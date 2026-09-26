@@ -15,7 +15,7 @@ const formats=t.includes('coloring')?[['Coloring Book','$21.99',checkout]]:t.inc
 document.getElementById('formats').innerHTML=formats.map(x=>x[2]?`<a class="format-option" href="${x[2]}" target="_blank" rel="noopener"><b>${x[0]}</b><span>${x[1]}</span><small>Buy now</small></a>`:`<div><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
 const b=document.getElementById('pBuy'); const primary=checkout||paperback; if(primary){b.href=primary;b.target='_blank';b.rel='noopener';b.textContent='BUY NOW'} else {b.removeAttribute('href');b.onclick=()=>alert('Checkout is not yet connected for this edition.')}
 const previewSets={
- book1:{match:()=>t.includes('missing puppy'),dir:'book1',files:['page-03.jpg','page-04.jpg','page-05.jpg','page-06.jpg','page-07.jpg'],label:'Book 1 - Squish Man and the Missing Puppy Parade'},
+ book1:{match:()=>t.includes('missing puppy'),dir:'book1',files:['page-03.jpg','page-04.jpg','page-05.jpg','page-06.jpg'],label:'Book 1 - Squish Man and the Missing Puppy Parade'},
  book2:{match:()=>t.includes('dream'),dir:'book2',files:['page-01.jpg','page-02.jpg','page-03.jpg','page-04.jpg','page-05.jpg'],label:'Book 2 - Squish Man’s Big Dream Adventure'},
  book3:{match:()=>t.includes('garden'),dir:'book3',files:['page-01.jpg','page-02.jpg','page-03.jpg','page-04.jpg','page-05.jpg'],label:'Book 3 - Squish Man and the Magical Garden'},
  book4:{match:()=>t.includes('snow'),dir:'book4',files:['page-01.jpg','page-02.jpg','page-03.jpg','page-04.jpg','page-05.jpg'],label:'Book 4 - Squish Man Saves the Snow Day'},
