@@ -58,8 +58,11 @@ pages into `public/assets/previews/book1` … `book5` by hand: Book 1 uses
 npm run deploy
 ```
 
-This deploys the Worker named `squishman` and attaches the `squishman.com`
-custom domain (see `routes` in `wrangler.jsonc`). The KV namespace
+This deploys the Worker named `squishman`. There is deliberately no `routes`
+entry in `wrangler.jsonc`: this repo's Workers Builds integration deploys every
+push to `main`, and a route there would move `squishman.com` onto that build
+too. Manage the domain in the dashboard instead (Workers & Pages → `squishman`
+→ Settings → Domains & Routes); `wrangler deploy` leaves it in place. The KV namespace
 `squishman-visibility-cache` has already been created in the account. Set
 `ADMIN_TOKEN` (`npx wrangler secret put ADMIN_TOKEN`) if you want to use
 `POST /api/refresh` after editing `src/lib/content.ts`.

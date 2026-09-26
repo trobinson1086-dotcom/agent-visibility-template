@@ -4,12 +4,6 @@
 	"main": "./src/worker/index.ts",
 	"compatibility_date": "2025-10-08",
 	"upload_source_maps": true,
-	"routes": [
-		{
-			"pattern": "squishman.com",
-			"custom_domain": true
-		}
-	],
 	"observability": {
 		"enabled": true
 	},
