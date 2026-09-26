@@ -15,7 +15,7 @@ const sets={
   ['7598.png','Bonus Edition Book 5','https://buy.stripe.com/6oU8wJb3z52f09n7VP1Jm06']
  ],
  learning:[
-  ['7606.png','Learning & Activity Book 1','https://book.stripe.com/cNi4gt4FbfGT9JX4JD1Jm09'],
+  ['7610.png','Learning & Activity Book 1','https://book.stripe.com/cNi4gt4FbfGT9JX4JD1Jm09'],
   ['drive_master/Squish Man Book 2 - Squish Mans Big Dream Adventure - Learning and Activity Book.png','Learning & Activity Book 2','https://book.stripe.com/9B6aERdbHamz3lza3X1Jm0e'],
   ['drive_master/Squish Man Book 3 - Squish Man and the Magical Garden - Learning and Activity Book.png','Learning & Activity Book 3','https://book.stripe.com/dRm4gtdbH9iv4pD4JD1Jm0j'],
   ['drive_master/Squish Man Book 4 - Squish Man Saves the Snow Day - Learning and Activity Book.png','Learning & Activity Book 4','https://book.stripe.com/28E5kx2x37anf4hekd1Jm0o'],
