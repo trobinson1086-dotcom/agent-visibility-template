@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "agent-visibility-template",
+	"name": "squishman",
 	"main": "./src/worker/index.ts",
 	"compatibility_date": "2025-10-08",
 	"upload_source_maps": true,
@@ -9,7 +9,7 @@
 	},
 	"assets": {
 		"directory": "./dist/client",
-		"not_found_handling": "single-page-application",
+		"not_found_handling": "404-page",
 		"run_worker_first": [
 			"/.well-known/web-bot-auth/*",
 			"/api",
@@ -29,12 +29,12 @@
 	"kv_namespaces": [
 		{
 			"binding": "VISIBILITY_CACHE",
-			"id": "6d817a3fa1294b3a9c433bdddcfc8444"
+			"id": "c16823d6f6f6460ea52d08c2dbbfaaca"
 		}
 	],
 	"vars": {
-		"SITE_NAME": "Acme Docs",
-		"SITE_DESCRIPTION": "Product documentation for the Acme platform.",
+		"SITE_NAME": "Squish Man™",
+		"SITE_DESCRIPTION": "The Amazing Adventures of Squish Man™ — picture books, learning & activity books, Spanish editions and coloring books for K–4 readers (ages 5–9), set in Maple Hollow.",
 		"AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
 		"ENRICHMENT_CACHE_TTL": "3600",
 		"CONTENT_SIGNAL": "ai-input=yes, search=yes, ai-train=no",

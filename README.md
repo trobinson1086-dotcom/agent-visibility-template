@@ -22,6 +22,51 @@ This template ships with sample content so it works the moment you deploy it. Po
 
 <!-- dash-content-end -->
 
+## squishman.com
+
+This copy of the template runs **squishman.com**: the live Squish Man™ site
+(from the "Squish live website" Google Drive folder) plus every agent surface
+above, on one Worker.
+
+| Path | Served from |
+| --- | --- |
+| `/`, `/product.html`, `/privacy.html`, `/terms.html`, `/shipping-returns.html`, `/sitemap.xml`, `/404.html` | `public/`, the live site, copied as-is |
+| `/assets/...` (covers, logo, video, Look Inside pages) | `public/assets/`, see below |
+| `/llms.txt`, `/index.json`, `/<slug>.md`, `/robots.txt`, JSON-LD | the Worker, from `src/lib/content.ts` |
+| `/explorer` | the React surface explorer |
+
+Unknown paths return the Squish Man 404 page.
+
+### Bring in the images and video
+
+The Drive files are private, so the binaries aren't in git yet. Download the
+"Squish live website" folder from Drive, unzip it, then:
+
+```bash
+./scripts/import-drive-assets.sh ~/Downloads/"Squish live website"
+```
+
+That puts the logo, every book cover and the featured video where the site
+expects them, and it reports anything missing. Drive flattened the Look Inside
+pages (`page-01.jpg` … `page-07.jpg`, one set per book), so move each book's
+pages into `public/assets/previews/book1` … `book5` by hand: Book 1 uses
+`page-03` … `page-07`, and Books 2–5 use `page-01` … `page-05`.
+
+### Deploy
+
+```bash
+npm run deploy
+```
+
+This deploys the Worker named `squishman`. There is deliberately no `routes`
+entry in `wrangler.jsonc`: this repo's Workers Builds integration deploys every
+push to `main`, and a route there would move `squishman.com` onto that build
+too. Manage the domain in the dashboard instead (Workers & Pages → `squishman`
+→ Settings → Domains & Routes); `wrangler deploy` leaves it in place. The KV namespace
+`squishman-visibility-cache` has already been created in the account. Set
+`ADMIN_TOKEN` (`npx wrangler secret put ADMIN_TOKEN`) if you want to use
+`POST /api/refresh` after editing `src/lib/content.ts`.
+
 ## Who is this for
 
 - **Anyone who wants to show up in AI answers.** If readers increasingly ask ChatGPT, Claude, or Perplexity instead of clicking a search result, this gives those agents a clean, structured copy of your content to cite.

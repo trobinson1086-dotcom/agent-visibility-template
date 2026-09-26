@@ -98,6 +98,7 @@ describe("Agent Visibility template", () => {
 		// Content-Signal must live inside robots.txt (the canonical location),
 		// not only in an HTTP header.
 		expect(text).toContain("Content-Signal: ai-input=yes");
+		expect(text).toContain(`Sitemap: ${BASE}/sitemap.xml`);
 	});
 
 	it("sets CORS headers on the per-page Markdown surface", async () => {

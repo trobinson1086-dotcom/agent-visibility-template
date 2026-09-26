@@ -184,6 +184,8 @@ export function renderRobotsTxt(ctx: RenderCtx): string {
 	lines.push(`# - ${site.origin}/llms.txt`);
 	lines.push(`# - ${site.origin}/index.json`);
 	lines.push("");
+	lines.push(`Sitemap: ${site.origin}/sitemap.xml`);
+	lines.push("");
 	return lines.join("\n");
 }
 
