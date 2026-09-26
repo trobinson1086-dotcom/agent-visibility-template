@@ -20,11 +20,17 @@ src/
   lib/content.ts         Sample content (zero-config demo data)
   lib/types.ts           Shared types (Resource, RawResource, Env, SiteConfig)
   lib/web-bot-auth.ts    OPTIONAL agent-identity module (off by default)
-  react-app/             Surface-explorer UI
+  react-app/             Surface-explorer UI (served at /explorer)
+public/                  The live squishman.com site, served as static assets
+scripts/                 import-drive-assets.sh: pulls covers/video from Drive export
 test/index.test.ts       Worker tests (vitest-pool-workers, via SELF.fetch)
 ```
 
 ## Conventions
+
+- **`public/` is the live squishman.com site.** Keep it identical to the
+  "Squish live website" Drive folder; don't route it through Vite. The
+  explorer entry is `explorer.html` (Vite's only HTML input).
 
 - **`surfaces.ts` is pure.** Render functions take `RenderCtx` and return
   strings/objects. No I/O. This keeps surfaces easy to test and add to.
