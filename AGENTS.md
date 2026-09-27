@@ -40,8 +40,9 @@ test/index.test.ts       Worker tests (vitest-pool-workers, via SELF.fetch)
   (`assets/media/<name>.mp4`), uploaded byte-for-byte. The `squishman-media`
   Worker (`npx wrangler deploy -c wrangler.media.jsonc`) runs on the zone route
   `squishman.com/assets/media/*` ahead of the Custom Domain and passes anything
-  not in R2 through to the main Worker. The main Worker has the same handler
-  for when it's redeployed with `/assets/media/*` in `run_worker_first`.
+  not in R2 through to the main Worker; it is not currently routed. The main
+  Worker serves `/assets/media/*` itself, which only works while that path is
+  in `assets.run_worker_first`. See DEPLOYMENTS.md for rollback references.
 
 - **`surfaces.ts` is pure.** Render functions take `RenderCtx` and return
   strings/objects. No I/O. This keeps surfaces easy to test and add to.

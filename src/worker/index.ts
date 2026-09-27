@@ -35,6 +35,7 @@ import {
 	getResources,
 	siteConfig,
 	upsertResource,
+	type WaitUntil,
 } from "../lib/store";
 import type { Env, RawResource } from "../lib/types";
 import { MEDIA_PREFIX, mediaKey, serveMedia } from "./media";
@@ -55,6 +56,11 @@ app.onError((err, c) => {
 	}
 	return c.json({ error: "Internal server error" }, 500);
 });
+
+/** Hand background work (cache refreshes) to the request's waitUntil. */
+function bg(c: { executionCtx: ExecutionContext }): WaitUntil {
+	return (promise) => c.executionCtx.waitUntil(promise);
+}
 
 function originOf(url: string): string {
 	return new URL(url).origin;
@@ -101,7 +107,7 @@ app.use("/:file{.+\\.jsonld}", cors());
 
 app.get("/llms.txt", async (c) => {
 	const site = siteConfig(c.env, originOf(c.req.url));
-	const resources = await getResources(c.env);
+	const resources = await getResources(c.env, bg(c));
 	return c.text(renderLlmsTxt({ site, resources }), 200, {
 		"Content-Type": "text/plain; charset=utf-8",
 		...contentSignal(c),
@@ -110,7 +116,7 @@ app.get("/llms.txt", async (c) => {
 
 app.get("/llms-full.txt", async (c) => {
 	const site = siteConfig(c.env, originOf(c.req.url));
-	const resources = await getResources(c.env);
+	const resources = await getResources(c.env, bg(c));
 	return c.text(renderLlmsFullTxt({ site, resources }), 200, {
 		"Content-Type": "text/plain; charset=utf-8",
 		...contentSignal(c),
@@ -119,14 +125,14 @@ app.get("/llms-full.txt", async (c) => {
 
 app.get("/index.json", async (c) => {
 	const site = siteConfig(c.env, originOf(c.req.url));
-	const resources = await getResources(c.env);
+	const resources = await getResources(c.env, bg(c));
 	c.header("Content-Signal", contentSignal(c)["Content-Signal"]);
 	return c.json(renderIndexJson({ site, resources }));
 });
 
 app.get("/robots.txt", async (c) => {
 	const site = siteConfig(c.env, originOf(c.req.url));
-	const resources = await getResources(c.env);
+	const resources = await getResources(c.env, bg(c));
 	return c.text(
 		renderRobotsTxt({
 			site,
@@ -143,7 +149,7 @@ app.get("/robots.txt", async (c) => {
 
 app.get("/jsonld", async (c) => {
 	const site = siteConfig(c.env, originOf(c.req.url));
-	const resources = await getResources(c.env);
+	const resources = await getResources(c.env, bg(c));
 	return c.json(renderWebsiteJsonLd({ site, resources }), 200, {
 		"Content-Type": "application/ld+json; charset=utf-8",
 		...contentSignal(c),
@@ -154,7 +160,7 @@ app.get("/jsonld", async (c) => {
 app.get("/:file{.+\\.md}", async (c) => {
 	const slug = c.req.param("file").replace(/\.md$/, "");
 	const site = siteConfig(c.env, originOf(c.req.url));
-	const resources = await getResources(c.env);
+	const resources = await getResources(c.env, bg(c));
 	const resource = resources.find((r) => r.slug === slug);
 	if (!resource) return c.notFound();
 	return c.text(renderResourceMd({ resource, site }), 200, {
@@ -167,7 +173,7 @@ app.get("/:file{.+\\.md}", async (c) => {
 app.get("/:file{.+\\.jsonld}", async (c) => {
 	const slug = c.req.param("file").replace(/\.jsonld$/, "");
 	const site = siteConfig(c.env, originOf(c.req.url));
-	const resources = await getResources(c.env);
+	const resources = await getResources(c.env, bg(c));
 	const resource = resources.find((r) => r.slug === slug);
 	if (!resource) return c.notFound();
 	return c.json(renderResourceJsonLd({ resource, site }), 200, {
@@ -215,12 +221,12 @@ app.get("/api/site", async (c) => {
 });
 
 app.get("/api/resources", async (c) => {
-	const resources = await getResources(c.env);
+	const resources = await getResources(c.env, bg(c));
 	return c.json({ count: resources.length, resources });
 });
 
 app.get("/api/resources/:slug", async (c) => {
-	const resources = await getResources(c.env);
+	const resources = await getResources(c.env, bg(c));
 	const resource = resources.find((r) => r.slug === c.req.param("slug"));
 	if (!resource) return c.json({ error: "Not found" }, 404);
 	return c.json(resource);
@@ -289,7 +295,8 @@ app.post("/api/refresh", async (c) => {
 	await clearCache(c.env);
 	return c.json({
 		ok: true,
-		message: "Cache cleared; surfaces will re-enrich.",
+		message:
+			"Cache cleared; surfaces will re-enrich in the background while serving last-known-good content.",
 	});
 });
 

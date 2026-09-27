@@ -29,7 +29,9 @@ for f in "$src"/*; do
 		squishman-logo.png) copy "$f" "$assets/squishman-logo.png" ;;
 		*.mp4) copy "$f" "$assets/media/$name" ;;
 		"Squish Man "*.png | "Squish Man "*.jpg) copy "$f" "$assets/covers/drive_master/$name" ;;
-		[0-9]*.png | [0-9]*.jpg) copy "$f" "$assets/covers/$name" ;;
+		# Parentheses in asset URLs make the asset server redirect-loop in
+		# Chromium browsers, so "6542(4).png" is stored as "6542-4.png".
+		[0-9]*.png | [0-9]*.jpg) copy "$f" "$assets/covers/$(echo "$name" | sed 's/(/-/g; s/)//g')" ;;
 		page-*.jpg) echo "PREVIEW (sort by hand into public/assets/previews/bookN/): $name" ;;
 		*.html | *.css | *.js | *.xml | *.txt) ;; # already in public/
 		*) echo "skipped: $name" ;;

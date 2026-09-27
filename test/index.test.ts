@@ -1,6 +1,13 @@
 import { env, SELF } from "cloudflare:test";
 import { beforeAll, describe, it, expect } from "vitest";
-import { ENRICHED_KEY } from "../src/lib/store";
+import { enrichResource } from "../src/enrichment";
+import { SAMPLE_RESOURCES } from "../src/lib/content";
+import {
+	ENRICHED_KEY,
+	FRESH_KEY,
+	REFRESH_LOCK_KEY,
+	refreshResources,
+} from "../src/lib/store";
 import type { Resource } from "../src/lib/types";
 
 const BASE = "https://example.com";
@@ -35,9 +42,12 @@ const SEEDED: Resource[] = [
 	},
 ];
 
-beforeAll(async () => {
+async function seed() {
 	await env.VISIBILITY_CACHE.put(ENRICHED_KEY, JSON.stringify(SEEDED));
-});
+	await env.VISIBILITY_CACHE.put(FRESH_KEY, "seed");
+}
+
+beforeAll(seed);
 
 describe("Agent Visibility template", () => {
 	it("serves /llms.txt as plain text with a Content-Signal header", async () => {
@@ -195,7 +205,81 @@ describe("Agent Visibility template", () => {
 		const json = (await res.json()) as { ok: boolean; message: string };
 		expect(json.ok).toBe(true);
 		expect(json.message).toContain("Cache cleared");
-		expect(await env.VISIBILITY_CACHE.get(ENRICHED_KEY)).toBeNull();
+		// Marked stale, but last-known-good content is kept and still served.
+		expect(await env.VISIBILITY_CACHE.get(FRESH_KEY)).toBeNull();
+		expect(await env.VISIBILITY_CACHE.get(ENRICHED_KEY)).not.toBeNull();
+		await seed();
+	});
+
+	it("serves fallback content immediately on a cold cache", async () => {
+		await env.VISIBILITY_CACHE.delete(ENRICHED_KEY);
+		await env.VISIBILITY_CACHE.delete(FRESH_KEY);
+		// Hold the refresh lock so no background enrichment runs in the test.
+		await env.VISIBILITY_CACHE.put(REFRESH_LOCK_KEY, "1");
+		try {
+			const res = await SELF.fetch(`${BASE}/api/resources`);
+			expect(res.status).toBe(200);
+			const json = (await res.json()) as {
+				count: number;
+				resources: Array<{ slug: string; model: string }>;
+			};
+			expect(json.count).toBe(SAMPLE_RESOURCES.length);
+			expect(json.resources[0].model).toContain("(fallback)");
+		} finally {
+			await env.VISIBILITY_CACHE.delete(REFRESH_LOCK_KEY);
+			await seed();
+		}
+	});
+
+	it("keeps serving the stale store while a refresh is pending", async () => {
+		await env.VISIBILITY_CACHE.delete(FRESH_KEY);
+		await env.VISIBILITY_CACHE.put(REFRESH_LOCK_KEY, "1");
+		try {
+			const res = await SELF.fetch(`${BASE}/getting-started.md`);
+			expect(res.status).toBe(200);
+		} finally {
+			await env.VISIBILITY_CACHE.delete(REFRESH_LOCK_KEY);
+			await seed();
+		}
+	});
+
+	it("times out a hung Workers AI call and falls back", async () => {
+		const hungAi = { run: () => new Promise(() => {}) } as unknown as Ai;
+		const started = Date.now();
+		const r = await enrichResource(
+			hungAi,
+			"test-model",
+			{ slug: "x", url: "https://example.com/x", body: "Hello there." },
+			50,
+		);
+		expect(r.model).toBe("test-model (fallback)");
+		expect(Date.now() - started).toBeLessThan(5000);
+	});
+
+	it("never replaces good content with fallback content on refresh", async () => {
+		const good = SAMPLE_RESOURCES.map((raw) => ({
+			slug: raw.slug,
+			url: raw.url,
+			title: "Good",
+			summary: "Good summary.",
+			keyPoints: [],
+			topics: [],
+			category: null,
+			content: "Good content.",
+			updatedAt: "2026-01-01T00:00:00.000Z",
+			model: "good-model",
+		}));
+		await env.VISIBILITY_CACHE.put(ENRICHED_KEY, JSON.stringify(good));
+		const failingAi = {
+			run: () => Promise.reject(new Error("quota exhausted")),
+		} as unknown as Ai;
+		try {
+			const out = await refreshResources({ ...env, AI: failingAi });
+			expect(out.every((r) => r.model === "good-model")).toBe(true);
+			expect(await env.VISIBILITY_CACHE.get(FRESH_KEY)).not.toBeNull();
+		} finally {
+			await seed();
+		}
 	});
 
 	it("keeps the Web Bot Auth identity surface disabled by default", async () => {
