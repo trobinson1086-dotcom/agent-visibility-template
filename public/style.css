@@ -78,3 +78,10 @@
  .maple-hero{padding-bottom:22px}
 }
 @media(prefers-reduced-motion:reduce){.maple-home header nav a,.spot{transition:none}}
+
+/* ---- Site logo: Squish Man Maple Hollow banner (all pages) ---- */
+.logo-brand img{width:260px;height:auto;max-height:none;object-fit:contain;border-radius:12px;border:3px solid #5b3312;box-shadow:0 3px 0 #9a5f28,0 6px 14px #0003;background:#fff}
+.site-logo-bar{display:flex;justify-content:center;padding:14px 4%;background:linear-gradient(180deg,#1b6fd8,#0b4aa6);border-bottom:5px solid #5b3312}
+.site-logo-bar img{display:block;width:320px;max-width:90vw;height:auto;border-radius:14px;border:3px solid #5b3312;box-shadow:0 3px 0 #9a5f28,0 6px 14px #0003}
+@media(max-width:900px){.logo-brand img{width:200px}}
+@media(max-width:560px){.logo-brand img,.maple-home .logo-brand img{width:170px}.site-logo-bar img{width:260px}}
