@@ -11,6 +11,29 @@ import type { RawResource, Resource } from "../lib/types";
 const MAX_INPUT_BYTES = 60_000;
 
 /**
+ * Upper bound on a single Workers AI call. Enrichment runs in the background
+ * (inside `waitUntil`, which allows ~30s after the response), so keep each
+ * call comfortably inside that budget. A timed-out call falls back like any
+ * other model failure.
+ */
+export const AI_TIMEOUT_MS = 20_000;
+
+/** How many resources `enrichAll` enriches at once. */
+const ENRICH_CONCURRENCY = 10;
+
+/** Reject if `promise` hasn't settled within `ms`. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+	let timer: Parameters<typeof clearTimeout>[0];
+	const timeout = new Promise<never>((_, reject) => {
+		timer = setTimeout(
+			() => reject(new Error(`Workers AI timed out after ${ms}ms`)),
+			ms,
+		);
+	});
+	return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+/**
  * Trim source content to a model-feedable window. Strips script/style/svg and
  * HTML comments, collapses whitespace, and truncates as a last resort.
  */
@@ -87,17 +110,21 @@ export async function enrichResource(
 	ai: Ai,
 	model: string,
 	raw: RawResource,
+	timeoutMs = AI_TIMEOUT_MS,
 ): Promise<Resource> {
 	const trimmed = trimContent(raw.body);
 
 	try {
-		const res = (await ai.run(model as keyof AiModels, {
-			messages: [
-				{ role: "system", content: SYSTEM_PROMPT },
-				{ role: "user", content: trimmed },
-			],
-			max_tokens: 1200,
-		})) as AiResult;
+		const res = (await withTimeout(
+			ai.run(model as keyof AiModels, {
+				messages: [
+					{ role: "system", content: SYSTEM_PROMPT },
+					{ role: "user", content: trimmed },
+				],
+				max_tokens: 1200,
+			}),
+			timeoutMs,
+		)) as AiResult;
 
 		const parsed =
 			res?.response && typeof res.response === "object"
@@ -136,10 +163,19 @@ export async function enrichAll(
 	model: string,
 	raws: RawResource[],
 ): Promise<Resource[]> {
-	const out: Resource[] = [];
-	for (const raw of raws) {
-		out.push(await enrichResource(ai, model, raw));
-	}
+	// Enrich in parallel (bounded) so a refresh takes roughly one model call's
+	// time rather than the sum of all of them. Order is preserved.
+	const out: Resource[] = new Array(raws.length);
+	let next = 0;
+	const worker = async () => {
+		while (next < raws.length) {
+			const i = next++;
+			out[i] = await enrichResource(ai, model, raws[i]);
+		}
+	};
+	await Promise.all(
+		Array.from({ length: Math.min(ENRICH_CONCURRENCY, raws.length) }, worker),
+	);
 	return out;
 }
 

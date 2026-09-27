@@ -144,7 +144,7 @@ All configuration lives in `wrangler.jsonc` under `vars`:
 | `SITE_NAME`            | Your site's name, shown across every surface                  | `Acme Docs`                                |
 | `SITE_DESCRIPTION`     | One-line description for agents                               | _(sample)_                                 |
 | `AI_MODEL`             | Workers AI model used for enrichment                          | `@cf/meta/llama-3.3-70b-instruct-fp8-fast` |
-| `ENRICHMENT_CACHE_TTL` | Seconds to cache enriched records in KV                       | `3600`                                     |
+| `ENRICHMENT_CACHE_TTL` | Seconds enriched records stay fresh before a background refresh | `86400`                                  |
 | `CONTENT_SIGNAL`       | Content-Signal policy (emitted in robots.txt and as a header) | `ai-input=yes, search=yes, ai-train=no`    |
 | `ENABLE_WEB_BOT_AUTH`  | Expose the optional agent-identity surface                    | `false`                                    |
 
@@ -186,26 +186,36 @@ at 100 KB, and the store holds up to 100 resources. Call `POST /api/refresh`
 | GET    | `/api/resources`                      | Enriched resources as JSON                                   |
 | GET    | `/api/resources/:slug`                | A single enriched resource                                   |
 | POST   | `/api/resources`                      | Enrich and add/replace a resource _(requires `ADMIN_TOKEN`)_ |
-| POST   | `/api/refresh`                        | Clear the enrichment cache _(requires `ADMIN_TOKEN`)_        |
+| POST   | `/api/refresh`                        | Mark the enrichment cache stale _(requires `ADMIN_TOKEN`)_   |
 | GET    | `/.well-known/web-bot-auth/directory` | Trusted agent keys _(if enabled)_                            |
 | POST   | `/api/identity`                       | Verify a signed agent request _(if enabled)_                 |
 
 ## Caching
 
-Enrichment is the expensive step (one Workers AI call per page), so results are
-cached in KV under a single key and reused until `ENRICHMENT_CACHE_TTL` expires
-(default 1 hour). A `POST /api/resources` enriches only the new/changed page and
-updates the cache in place; `POST /api/refresh` clears the cache so the next
-read re-enriches from source. If Workers AI is briefly unavailable, the Worker
-falls back to deterministic enrichment and caches that degraded result for only
-60 seconds so a transient outage can't poison your surfaces for the full TTL.
+Enrichment is the expensive step (one Workers AI call per page), so visitors
+never wait on it. The store is stale-while-revalidate:
+
+- The enriched records live in KV with no expiry (the last-known-good copy). A
+  separate marker key stays fresh for `ENRICHMENT_CACHE_TTL` (default 24 hours).
+- Once stale, the cached copy is still served immediately and a refresh runs in
+  the background (`waitUntil`), guarded by a short KV lock so concurrent
+  requests don't all re-enrich. On a completely cold cache, deterministic
+  fallback content is served immediately while the first enrichment runs.
+- Pages are enriched in parallel, and each Workers AI call has a 20s timeout.
+- A refresh never replaces a good AI-enriched record with a fallback one. If a
+  refresh comes back degraded (e.g. the Workers AI quota is exhausted), it is
+  retried after 15 minutes while last-known-good content keeps being served.
+
+A `POST /api/resources` enriches only the new/changed page and updates the store
+in place; `POST /api/refresh` marks the store stale so the next read re-enriches
+it in the background.
 
 ## Known limitations
 
-- **Enrichment runs on the request path.** The first request after a cold cache
-  enriches all pages inline, so it's slower than cached reads. For large sites,
-  move enrichment to a [Queue](https://developers.cloudflare.com/queues/) or a
-  scheduled [Cron Trigger](https://developers.cloudflare.com/workers/configuration/cron-triggers/).
+- **Background refresh has a ~30s budget.** Refreshes run in `waitUntil` after
+  the response, so very large sites should move enrichment to a
+  [Queue](https://developers.cloudflare.com/queues/) or a scheduled
+  [Cron Trigger](https://developers.cloudflare.com/workers/configuration/cron-triggers/).
 - **The store lives in two KV keys** and is capped at 100 resources / 100 KB per
   body to stay well within KV limits. For larger catalogs, switch to one KV key
   per resource (or D1) and add pagination.

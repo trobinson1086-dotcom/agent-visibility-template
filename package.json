@@ -26,7 +26,7 @@
 				"description": "Workers AI model ID used for enrichment (default: @cf/meta/llama-3.3-70b-instruct-fp8-fast)"
 			},
 			"ENRICHMENT_CACHE_TTL": {
-				"description": "How long enriched records are cached in seconds (default: 3600)"
+				"description": "How long enriched records stay fresh before a background refresh, in seconds (default: 86400)"
 			},
 			"CONTENT_SIGNAL": {
 				"description": "Content-Signal header value declaring agent usage intent (default: ai-input=yes, search=yes, ai-train=no)"

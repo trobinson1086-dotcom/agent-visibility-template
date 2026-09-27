@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "squishman",
+	"name": "agent-visibility-template",
 	"main": "./src/worker/index.ts",
 	"compatibility_date": "2025-10-08",
 	"upload_source_maps": true,
@@ -36,7 +36,7 @@
 		"SITE_NAME": "Squish Man™",
 		"SITE_DESCRIPTION": "The Amazing Adventures of Squish Man™ — picture books, learning & activity books, Spanish editions and coloring books for K–4 readers (ages 5–9), set in Maple Hollow.",
 		"AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-		"ENRICHMENT_CACHE_TTL": "3600",
+		"ENRICHMENT_CACHE_TTL": "86400",
 		"CONTENT_SIGNAL": "ai-input=yes, search=yes, ai-train=no",
 		"ENABLE_WEB_BOT_AUTH": "false"
 	}
