@@ -10,6 +10,7 @@
  *   GET /:slug.jsonld                      — per-page schema.org JSON-LD
  *   GET /jsonld                            — site-level schema.org JSON-LD
  *   GET /robots.txt                        — explicit AI-bot directives
+ *   GET /assets/media/*                    — R2-backed video with byte ranges
  *
  * Plus a small JSON API the bundled UI uses, and an OPTIONAL Web Bot Auth
  * identity surface (disabled unless ENABLE_WEB_BOT_AUTH=true).
@@ -36,6 +37,7 @@ import {
 	upsertResource,
 } from "../lib/store";
 import type { Env, RawResource } from "../lib/types";
+import { MEDIA_PREFIX, mediaKey, serveMedia } from "./media";
 import {
 	directoryDocument,
 	SAMPLE_AGENT_KEYS,
@@ -172,6 +174,15 @@ app.get("/:file{.+\\.jsonld}", async (c) => {
 		"Content-Type": "application/ld+json; charset=utf-8",
 		...contentSignal(c),
 	});
+});
+
+// Media: served from R2 so video gets 206 byte-range responses. Falls back to
+// the static asset if the object hasn't been uploaded to the bucket.
+app.get(`${MEDIA_PREFIX}*`, async (c) => {
+	const key = mediaKey(new URL(c.req.url).pathname);
+	if (!key) return c.notFound();
+	const res = await serveMedia(c.req.raw, c.env.MEDIA_BUCKET, key);
+	return res ?? c.env.ASSETS.fetch(c.req.raw);
 });
 
 // ---------------------------------------------------------------------------

@@ -57,6 +57,9 @@ export interface SiteConfig {
 export interface Env {
 	AI: Ai;
 	VISIBILITY_CACHE: KVNamespace;
+	/** Video under /assets/media/*, keyed by URL path (no leading slash). */
+	MEDIA_BUCKET: R2Bucket;
+	ASSETS: Fetcher;
 	SITE_NAME: string;
 	SITE_DESCRIPTION: string;
 	AI_MODEL: string;

@@ -9,11 +9,13 @@
 	},
 	"assets": {
 		"directory": "./dist/client",
+		"binding": "ASSETS",
 		"not_found_handling": "404-page",
 		"run_worker_first": [
 			"/.well-known/web-bot-auth/*",
 			"/api",
 			"/api/*",
+			"/assets/media/*",
 			"/index.json",
 			"/jsonld",
 			"/llms-full.txt",
@@ -30,6 +32,12 @@
 		{
 			"binding": "VISIBILITY_CACHE",
 			"id": "c16823d6f6f6460ea52d08c2dbbfaaca"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "MEDIA_BUCKET",
+			"bucket_name": "squishman-media"
 		}
 	],
 	"vars": {

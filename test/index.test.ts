@@ -203,3 +203,69 @@ describe("Agent Visibility template", () => {
 		expect(dir.status).toBe(404);
 	});
 });
+
+describe("R2 media with byte ranges", () => {
+	const KEY = "assets/media/test-clip.mp4";
+	const URL_ = `${BASE}/${KEY}`;
+	const BYTES = new Uint8Array(1000).map((_, i) => i % 256);
+
+	beforeAll(async () => {
+		await env.MEDIA_BUCKET.put(KEY, BYTES, {
+			httpMetadata: { contentType: "video/mp4" },
+		});
+	});
+
+	it("serves the full object with Accept-Ranges", async () => {
+		const res = await SELF.fetch(URL_);
+		expect(res.status).toBe(200);
+		expect(res.headers.get("content-type")).toBe("video/mp4");
+		expect(res.headers.get("accept-ranges")).toBe("bytes");
+		expect(res.headers.get("content-length")).toBe("1000");
+		expect(new Uint8Array(await res.arrayBuffer())).toEqual(BYTES);
+	});
+
+	it("answers a byte range with 206 and Content-Range", async () => {
+		const res = await SELF.fetch(URL_, { headers: { Range: "bytes=0-1" } });
+		expect(res.status).toBe(206);
+		expect(res.headers.get("content-range")).toBe("bytes 0-1/1000");
+		expect(res.headers.get("content-length")).toBe("2");
+		expect(new Uint8Array(await res.arrayBuffer())).toEqual(BYTES.slice(0, 2));
+	});
+
+	it("supports open-ended and suffix ranges", async () => {
+		const open = await SELF.fetch(URL_, { headers: { Range: "bytes=990-" } });
+		expect(open.status).toBe(206);
+		expect(open.headers.get("content-range")).toBe("bytes 990-999/1000");
+		expect(new Uint8Array(await open.arrayBuffer())).toEqual(BYTES.slice(990));
+
+		const suffix = await SELF.fetch(URL_, { headers: { Range: "bytes=-5" } });
+		expect(suffix.status).toBe(206);
+		expect(suffix.headers.get("content-range")).toBe("bytes 995-999/1000");
+		expect(new Uint8Array(await suffix.arrayBuffer())).toEqual(
+			BYTES.slice(995),
+		);
+	});
+
+	it("returns 416 for an unsatisfiable range", async () => {
+		const res = await SELF.fetch(URL_, { headers: { Range: "bytes=5000-" } });
+		expect(res.status).toBe(416);
+		expect(res.headers.get("content-range")).toBe("bytes */1000");
+		await res.arrayBuffer();
+	});
+
+	it("answers HEAD with headers only", async () => {
+		const res = await SELF.fetch(URL_, {
+			method: "HEAD",
+			headers: { Range: "bytes=100-199" },
+		});
+		expect(res.status).toBe(206);
+		expect(res.headers.get("content-length")).toBe("100");
+		expect(res.headers.get("content-range")).toBe("bytes 100-199/1000");
+	});
+
+	it("falls back to static assets when the object is not in R2", async () => {
+		const res = await SELF.fetch(`${BASE}/assets/media/missing.mp4`);
+		expect(res.status).toBe(404);
+		await res.arrayBuffer();
+	});
+});

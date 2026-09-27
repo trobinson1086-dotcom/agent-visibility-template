@@ -14,6 +14,8 @@ just a different rendering of that same store.
 ```
 src/
   worker/index.ts        Hono app: routes for every surface + JSON API
+  worker/media.ts        R2 media serving with byte ranges (206) for /assets/media/*
+  media-worker/index.ts  squishman-media route Worker (wrangler.media.jsonc)
   enrichment/index.ts    Workers AI enrichment (raw page -> structured Resource)
   enrichment/surfaces.ts Pure render functions, one per surface
   lib/store.ts           KV-backed enriched store (get / upsert / clear)
@@ -31,6 +33,15 @@ test/index.test.ts       Worker tests (vitest-pool-workers, via SELF.fetch)
 - **`public/` is the live squishman.com site.** Keep it identical to the
   "Squish live website" Drive folder; don't route it through Vite. The
   explorer entry is `explorer.html` (Vite's only HTML input).
+
+- **Video is served from R2, not static assets.** Static assets can't answer
+  `Range` requests with 206, which Safari/iOS need to play MP4. The file lives
+  in the `squishman-media` bucket under its URL path
+  (`assets/media/<name>.mp4`), uploaded byte-for-byte. The `squishman-media`
+  Worker (`npx wrangler deploy -c wrangler.media.jsonc`) runs on the zone route
+  `squishman.com/assets/media/*` ahead of the Custom Domain and passes anything
+  not in R2 through to the main Worker. The main Worker has the same handler
+  for when it's redeployed with `/assets/media/*` in `run_worker_first`.
 
 - **`surfaces.ts` is pure.** Render functions take `RenderCtx` and return
   strings/objects. No I/O. This keeps surfaces easy to test and add to.
