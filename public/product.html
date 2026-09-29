@@ -15,6 +15,11 @@ const formats=t.includes('coloring')?[['Coloring Book','$21.99',checkout]]:t.inc
 document.getElementById('formats').innerHTML=formats.map(x=>x[2]?`<a class="format-option" href="${x[2]}" target="_blank" rel="noopener"><b>${x[0]}</b><span>${x[1]}</span><small>Buy now</small></a>`:`<div><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
 const b=document.getElementById('pBuy'); const primary=checkout||paperback; if(primary){b.href=primary;b.target='_blank';b.rel='noopener';b.textContent='BUY NOW'} else {b.removeAttribute('href');b.onclick=()=>alert('Checkout is not yet connected for this edition.')}
 const previewSets={
+ coloring1:{match:()=>t.startsWith('coloring book 1'),dir:'coloring-book1',files:['page-01.webp'],label:'Coloring Book 1'},
+ coloring2:{match:()=>t.startsWith('coloring book 2'),dir:'coloring-book2',files:['page-01.webp'],label:'Coloring Book 2'},
+ coloring3:{match:()=>t.startsWith('coloring book 3'),dir:'coloring-book3',files:['page-01.webp'],label:'Coloring Book 3'},
+ coloring4:{match:()=>t.startsWith('coloring book 4'),dir:'coloring-book4',files:['page-01.webp'],label:'Coloring Book 4'},
+ coloring5:{match:()=>t.startsWith('coloring book 5'),dir:'coloring-book5',files:['page-01.webp'],label:'Coloring Book 5'},
  learning3:{match:()=>t.startsWith('learning & activity book 3'),dir:'learning-book3',files:['page-01.webp','page-02.webp','page-03.webp','page-04.webp','page-05.webp'],label:'Learning & Activity Book 3 - Squish Man and the Magical Garden'},
  aprendizaje5:{match:()=>t.startsWith('aprendizaje y actividades 5'),dir:'aprendizaje-libro5',files:['page-01.webp','page-02.webp','page-03.webp'],label:'Aprendizaje y Actividades 5 - Squish Man y Pudy y el Gran Derby de Maple Hollow'},
  aprendizaje2:{match:()=>t.startsWith('aprendizaje y actividades 2'),dir:'aprendizaje-libro2',files:['page-01.webp','page-02.webp'],label:'Aprendizaje y Actividades 2 - La Gran Aventura del Gran Sueño'},
