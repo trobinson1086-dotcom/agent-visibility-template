@@ -15,6 +15,9 @@ const formats=t.includes('coloring')?[['Coloring Book','$21.99',checkout]]:t.inc
 document.getElementById('formats').innerHTML=formats.map(x=>x[2]?`<a class="format-option" href="${x[2]}" target="_blank" rel="noopener"><b>${x[0]}</b><span>${x[1]}</span><small>Buy now</small></a>`:`<div><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
 const b=document.getElementById('pBuy'); const primary=checkout||paperback; if(primary){b.href=primary;b.target='_blank';b.rel='noopener';b.textContent='BUY NOW'} else {b.removeAttribute('href');b.onclick=()=>alert('Checkout is not yet connected for this edition.')}
 const previewSets={
+ aprendizaje1:{match:()=>t.startsWith('aprendizaje y actividades 1'),dir:'aprendizaje-libro1',files:['page-01.webp'],label:'Aprendizaje y Actividades 1'},
+ aprendizaje3:{match:()=>t.startsWith('aprendizaje y actividades 3'),dir:'aprendizaje-libro3',files:['page-01.webp'],label:'Aprendizaje y Actividades 3'},
+ aprendizaje4:{match:()=>t.startsWith('aprendizaje y actividades 4'),dir:'aprendizaje-libro4',files:['page-01.webp'],label:'Aprendizaje y Actividades 4'},
  bonus1:{match:()=>t.startsWith('bonus edition book 1'),dir:'bonus-book1',files:['page-01.webp'],label:'Bonus Edition Book 1'},
  bonus2:{match:()=>t.startsWith('bonus edition book 2'),dir:'bonus-book2',files:['page-01.webp'],label:'Bonus Edition Book 2'},
  bonus3:{match:()=>t.startsWith('bonus edition book 3'),dir:'bonus-book3',files:['page-01.webp'],label:'Bonus Edition Book 3'},
