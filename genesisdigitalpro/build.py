@@ -149,6 +149,8 @@ def copy_assets():
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         by_hash[hashlib.sha256(src.read_bytes()).hexdigest()] = path
+    for spanish, _ in SPANISH_COVERS.values():
+        shutil.copy2(EXTRA / spanish, OUT / "assets" / "covers" / spanish)
     return by_hash
 
 
@@ -503,7 +505,23 @@ def rewrite_checkout(s, books):
     return s
 
 
+# Spanish covers for Books 3-5, supplied by the owner (copied unchanged). The
+# master build showed the English Book 3-5 covers on these Spanish editions.
+SPANISH_COVERS = {
+    "Squish Man and the Magical Garden - Spanish": ("squish-man-spanish-book3.jpg", "squish-man-book-3.png"),
+    "Squish Man Saves the Snow Day - Spanish": ("squish-man-spanish-book4.jpg", "squish-man-book-4.png"),
+    "Squish Man and the Great Maple Hollow Derby - Spanish": ("squish-man-spanish-book5.png", "squish-man-book-5.png"),
+}
+
+
 def rewrite_spanish(s):
+    for marker, (spanish, english) in SPANISH_COVERS.items():
+        i = s.index(marker)
+        start, end = s.rfind("<article", 0, i), s.index("</article>", i)
+        article = s[start:end].replace(COVERS + english, "/assets/covers/" + spanish)
+        if "/assets/covers/" + spanish not in article:
+            raise SystemExit(f"Spanish cover swap failed for {marker}")
+        s = s[:start] + article + s[end:]
     s = re.sub(
         r'(<img src="(/assets/[^"]+)")>',
         lambda m: m.group(1) + ' alt="Squish Man Spanish Activity &amp; Learning Edition cover" loading="lazy" decoding="async">',

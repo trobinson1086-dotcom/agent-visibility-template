@@ -60,6 +60,9 @@ Variables and Secrets), never in this repo:
   `1Vxn_-g5HNLdW7UmF4Tm4oyJn2cmHIw9v`, which is different artwork from the packaged
   `ruben-book2.png`. The packaged cover was approved and is used everywhere; the
   Drive version is kept in `source-extra-covers/` and compared in `review/`.
+- Spanish Activity & Learning editions, Books 3–5: the master build showed the
+  English covers. The owner supplied the Spanish covers (Libro 3, 4, 5), copied
+  unchanged into `source-extra-covers/squish-man-spanish-book{3,4,5}.*`.
 
 ## Open items
 
@@ -67,9 +70,6 @@ Variables and Secrets), never in this repo:
   (the Drive connector caps downloads at 10 MB). `build.py` generates a
   collections page from the packaged covers and the catalog in its place; it is
   replaced automatically if the original is added to `source/`.
-- NEEDS COVER REVIEW — DO NOT SUBSTITUTE: the Spanish Activity & Learning editions of
-  Books 3–5 on `squish-spanish.html` use the English Book 3–5 covers, as in the
-  master build.
 - No Stripe Price IDs exist in the build, so the combined multi-book checkout stays
   hidden; each format sells through its existing live Payment Link.
 - Ruben Books 1–5, Champagne Hearts Book 3, Rizzmeister Books 2–3, AI for Small
