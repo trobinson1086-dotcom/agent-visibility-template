@@ -38,8 +38,9 @@ DRIVE_IDS = {
     # Book 5 file as the authoritative replacement, and checkout.html already uses it.
     "1EOIzqd48B71IBAMx36X5j2Jix-aSIVwP": "squish-man-book-5.png",
     "1NClI_onRPqQtFyQgns2OY6fAsaz322kQ": "ruben-book1.png",
-    # NEEDS COVER REVIEW: this Drive file is different artwork from the packaged
-    # ruben-book2.png. The ZIP is the source of truth, so the packaged file is used.
+    # This Drive file is different artwork from the packaged ruben-book2.png. The
+    # owner approved the packaged file (the ZIP is the source of truth); the Drive
+    # version is kept in source-extra-covers/ for reference only.
     "1Vxn_-g5HNLdW7UmF4Tm4oyJn2cmHIw9v": "ruben-book2.png",
     "1C-PiasVSbQYhSLZw7uY2TYB9E89yHCW6": "ruben-book3.png",
     "1nEHfmn_ozdnahEQn5cj-6dIdS-A1uOQj": "ruben-book4.png",

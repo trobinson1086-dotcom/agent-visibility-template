@@ -54,16 +54,19 @@ Variables and Secrets), never in this repo:
   site-wide value. The `/ /index.html 200` redirect was dropped because Pages
   rejects it as an infinite loop.
 
+## Decisions
+
+- Ruben Book 2: the children's page hot-linked Drive file
+  `1Vxn_-g5HNLdW7UmF4Tm4oyJn2cmHIw9v`, which is different artwork from the packaged
+  `ruben-book2.png`. The packaged cover was approved and is used everywhere; the
+  Drive version is kept in `source-extra-covers/` and compared in `review/`.
+
 ## Open items
 
 - `collections.html` in the master build is 90 MB and could not be retrieved
   (the Drive connector caps downloads at 10 MB). `build.py` generates a
   collections page from the packaged covers and the catalog in its place; it is
   replaced automatically if the original is added to `source/`.
-- NEEDS COVER REVIEW — DO NOT SUBSTITUTE: Ruben Book 2. The children's page
-  hot-linked Drive file `1Vxn_-g5HNLdW7UmF4Tm4oyJn2cmHIw9v`, which is different
-  artwork from the packaged `ruben-book2.png`. The packaged file is used everywhere;
-  the Drive version is kept in `source-extra-covers/` for review.
 - NEEDS COVER REVIEW — DO NOT SUBSTITUTE: the Spanish Activity & Learning editions of
   Books 3–5 on `squish-spanish.html` use the English Book 3–5 covers, as in the
   master build.
