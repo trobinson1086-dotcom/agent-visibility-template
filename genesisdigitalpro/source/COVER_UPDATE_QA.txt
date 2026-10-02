@@ -1,0 +1,5 @@
+Genesis Digital Pro cover update
+19 newly pulled, clearly matched Drive cover files added to assets/home-covers.
+Newest clearly matched Drive variant selected where duplicates existed.
+Squish Man Books 2-5 retained from the newer approved uploaded replacement assets already in the build; older Drive versions were not allowed to overwrite them.
+Suspicious/mislabeled Drive covers were not substituted.

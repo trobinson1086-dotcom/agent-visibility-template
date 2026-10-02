@@ -1,0 +1,11 @@
+GENESIS DIGITAL PRO — ERROR DISPLAY QA
+
+HTML pages protected: 7
+Raw visible error-code patterns found after cleanup: 0
+Broken/error fallback behavior: visitor-friendly message only
+Image load failures: broken image element hidden
+Unhandled browser promise errors: suppressed from visitor UI
+UTF-8 source preserved.
+
+This layer prevents raw technical error codes/debug strings from being intentionally rendered by the site itself.
+Hosting-provider/browser/network error pages remain controlled by the hosting platform and must be configured there after deployment.

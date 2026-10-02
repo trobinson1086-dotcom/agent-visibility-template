@@ -1,0 +1,7 @@
+STRIPE CHECKOUT BUILD QA
+HTML pages: 26
+Broken internal links: 0
+Stripe test payment-link URLs: 0
+Checkout Session endpoint: True
+Verified webhook endpoint: True
+Success page: True

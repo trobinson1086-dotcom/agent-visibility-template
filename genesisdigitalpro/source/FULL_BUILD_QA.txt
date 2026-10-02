@@ -1,0 +1,8 @@
+FULL BUILD QA
+HTML pages: 25
+Broken internal links / encoding findings: 0
+Stripe test-format links: 0
+Custom 404: True
+Custom 500: True
+robots.txt: True
+sitemap.xml: True

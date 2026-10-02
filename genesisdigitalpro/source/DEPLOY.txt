@@ -1,0 +1,15 @@
+GENESIS DIGITAL PRO — LAUNCH-READY STATIC SITE
+
+Upload the CONTENTS of this folder to the web root for GenesisDigitalPro.com.
+
+Entry page: index.html
+Children's Store: children.html
+Other Collections: collections.html
+Checkout: checkout.html
+Squish Man Spanish: squish-spanish.html
+
+All five pages are connected by navigation.
+Stripe checkout URLs already present in checkout pages remain unchanged.
+UTF-8 is explicitly declared to prevent corrupted punctuation such as â€” appearing in production.
+
+Before public launch, test each live Stripe checkout and verify digital fulfillment/delivery settings in Stripe or your fulfillment service.

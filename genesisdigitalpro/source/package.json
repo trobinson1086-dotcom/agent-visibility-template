@@ -1,0 +1,9 @@
+{
+  "name": "genesis-digital-pro-store",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "stripe": "^18.5.0",
+    "resend": "^6.0.0"
+  }
+}

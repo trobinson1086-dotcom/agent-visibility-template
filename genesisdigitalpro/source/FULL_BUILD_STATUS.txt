@@ -1,0 +1,29 @@
+GENESIS DIGITAL PRO — FULL PUBLISHING SITE BUILD STATUS
+
+COMPLETED IN THIS PACKAGE
+- Existing exact-cover storefront and Stripe payment links preserved
+- Client-side multi-item shopping cart/planning page
+- Search/filter storefront page
+- Series landing hub with children/adult separation
+- GET A FREE PAGE compliant form UI with separate SMS opt-in
+- Customer account/digital library UI shell
+- About, Contact, Schools & Educators, FAQ, Media, Bulk Orders pages
+- Privacy, Terms, Shipping, Refunds, Accessibility pages
+- SEO robots.txt and sitemap.xml
+- Analytics/consent event scaffold (no undisclosed tracker)
+- Existing error-safe 404/500 pages, security headers and routes preserved
+- UTF-8 maintained
+
+REQUIRES EXTERNAL SERVICE CONNECTION / BUSINESS DECISION BEFORE IT CAN BE LIVE-FUNCTIONAL
+- One-transaction multi-product Stripe cart: requires Stripe API/server-side Checkout Session integration
+- Automatic secure eBook/audiobook delivery: requires the actual digital files + storage/email fulfillment provider
+- Customer login/order history: requires authentication + Stripe/customer database integration
+- Physical shipping/fulfillment/tracking: requires chosen printer/fulfillment provider and shipping rules
+- Sales tax automation: requires Stripe Tax or other tax configuration and business nexus settings
+- Email marketing/free-page automation: requires email/CRM provider and sender/domain configuration
+- Analytics: requires chosen analytics provider/property
+- Final legal policies: require actual business/legal details and connected providers
+- Bundle checkout/prices: requires owner-approved bundle pricing
+- Live domain: requires hosting/deployment connection and DNS configuration
+
+No prices, tax rules, shipping promises, legal entity details, bundle discounts, reviews, or customer data were invented.

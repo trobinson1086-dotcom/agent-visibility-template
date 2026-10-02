@@ -1,0 +1,12 @@
+// Cloudflare Pages project for GenesisDigitalPro.com (static site + Pages Functions).
+// Deploy: python3 build.py && npx wrangler pages deploy
+// Secrets (set in Cloudflare, never in this repo): STRIPE_SECRET_KEY,
+// STRIPE_WEBHOOK_SECRET, RESEND_API_KEY, SAMPLE_URL_<SERIES>.
+{
+	"name": "genesisdigitalpro",
+	"pages_build_output_dir": "./dist",
+	"compatibility_date": "2025-10-08",
+	"vars": {
+		"SITE_URL": "https://genesisdigitalpro.com"
+	}
+}

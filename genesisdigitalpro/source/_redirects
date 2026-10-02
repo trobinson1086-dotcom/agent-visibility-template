@@ -1,0 +1,6 @@
+# Genesis Digital Pro static routes
+/  /index.html  200
+/home  /index.html  301
+/shop  /checkout.html  301
+/kids  /children.html  301
+/espanol  /squish-spanish.html  301

@@ -1,0 +1,7 @@
+GENESIS DIGITAL PRO — GET A FREE PAGE
+Website form is connected to /api/free-page and the Resend sample.requested automation.
+Cloudflare Pages Function: functions/api/free-page.js
+Node fallback: api/free-page.js
+Required secret: RESEND_API_KEY
+Set only approved permanent HTTPS sample URLs in SAMPLE_URL_SQUISH_MAN, SAMPLE_URL_MESSIAH, SAMPLE_URL_RUBEN, SAMPLE_URL_CHAMPAGNE_HEARTS, SAMPLE_URL_UPTOWN_TESTIMONY, SAMPLE_URL_RIZZMEISTER.
+A series with no approved URL is safely blocked; no substitute page is sent.

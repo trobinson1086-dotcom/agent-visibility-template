@@ -1,0 +1,29 @@
+GENESIS DIGITAL PRO — STRIPE LIVE INTEGRATION STATUS
+
+VERIFIED LIVE STRIPE ACCOUNT
+Account name: Squishman
+Mode: LIVE
+
+LIVE CATALOG AUDIT
+Active products: 123
+Active one-time prices: 123
+Pagination completed: YES
+Test-mode prices used by this build: NO
+
+CHECKOUT ARCHITECTURE
+Stripe-hosted Checkout Sessions
+Web storefront -> persistent cart -> server-side Checkout Session -> Stripe-hosted payment page -> success page
+Existing individual Stripe Payment Links remain available as fallback.
+
+ADDED TO THIS PACKAGE
+/api/create-checkout-session.js
+/api/stripe-webhook.js
+success.html
+package.json
+.env.example
+upgraded cart.html
+
+IMPORTANT DEPLOYMENT REQUIREMENT
+The host must provide server-side JavaScript/serverless functions and environment variables.
+Set STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET only on the host. Never place either secret in HTML or client-side JavaScript.
+The webhook is the secure fulfillment trigger for later ebook/audiobook delivery and physical fulfillment.

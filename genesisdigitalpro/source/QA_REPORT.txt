@@ -1,0 +1,13 @@
+GENESIS DIGITAL PRO — SQUISH MAN BOOKS 2–5 FINAL QA
+
+HTML pages checked: 7
+Book 2 replacement asset: PASS
+Book 3 replacement asset: PASS
+Book 4 replacement asset: PASS
+Book 5 replacement asset: PASS
+Broken internal links: 0
+Known encoding errors: 0
+Stripe test-format URLs: 0
+Unique live-format Stripe URLs present: 113
+
+The uploaded Squish Man Book 2, 3, 4 and 5 cover files are packaged as the authoritative replacement assets.

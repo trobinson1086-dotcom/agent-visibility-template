@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy Policy | Genesis Digital Pro</title><meta name="description" content="Genesis Digital Pro publishing bookstore">
+<style>
+:root{--ink:#07111a;--panel:#0d1b26;--gold:#e5c46e;--paper:#f7f2e7;--muted:#b9c2ca}
+*{box-sizing:border-box}body{margin:0;background:var(--ink);color:#fff;font-family:Arial,sans-serif}
+a{color:inherit}.wrap{max-width:1180px;margin:auto;padding:24px}.top{position:sticky;top:0;z-index:99;background:#07111af2;border-bottom:1px solid #e5c46e55}
+.nav{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}.nav a{text-decoration:none;font-weight:800}
+.brand{font-family:Georgia;font-size:23px;color:var(--gold)}.links{display:flex;gap:12px;flex-wrap:wrap}
+.hero{padding:72px 0;background:radial-gradient(circle at 80% 20%,#233a4a,#07111a 55%)}h1,h2{font-family:Georgia}
+h1{font-size:clamp(38px,7vw,72px);margin:.15em 0}.lead{font-size:20px;line-height:1.6;max-width:760px;color:#e7ebee}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}.card{background:#0d1b26;border:1px solid #ffffff18;border-radius:18px;padding:22px}
+.btn{display:inline-block;border:0;border-radius:9px;padding:13px 18px;background:var(--gold);color:var(--ink);font-weight:900;text-decoration:none;cursor:pointer}
+.btn2{display:inline-block;border:1px solid var(--gold);border-radius:9px;padding:12px 17px;color:var(--gold);text-decoration:none;font-weight:800;background:transparent}
+section{padding:46px 0}.muted{color:var(--muted);line-height:1.6}.pill{display:inline-block;border:1px solid #e5c46e55;padding:7px 10px;border-radius:99px;margin:4px;font-size:13px}
+input,select,textarea{width:100%;padding:13px;border-radius:9px;border:1px solid #ffffff30;background:#07111a;color:white;margin:7px 0}
+label{font-weight:700;font-size:14px}.footer{border-top:1px solid #ffffff18;margin-top:50px;padding:34px 0;color:#b9c2ca}
+.notice{padding:14px;border:1px solid #e5c46e55;border-radius:12px;background:#e5c46e10}
+@media(max-width:650px){.links{font-size:12px}.hero{padding:42px 0}}
+</style></head><body><div class="top"><div class="wrap nav"><a class="brand" href="index.html">GENESIS DIGITAL PRO</a><div class="links">
+<a href="checkout.html">SHOP</a><a href="children.html">CHILDREN</a><a href="series.html">SERIES</a><a href="search.html">SEARCH</a>
+<a href="free-page.html">FREE PAGE</a><a href="account.html">ACCOUNT</a><a href="cart.html">CART <span id="cartCount">0</span></a>
+</div></div></div><section class="hero"><div class="wrap"><h1>Privacy Policy</h1><p class="lead">Genesis Digital Pro should collect only information needed to operate the store, fulfill purchases, respond to inquiries, and deliver opted-in communications. The final policy must name the actual analytics, email, payment, hosting, and fulfillment providers once connected.</p></div></section><div class="footer"><div class="wrap"><b>Genesis Digital Pro</b><p>Good Books. Brighter Tomorrows.™</p>
+<p><a href="about.html">About</a> · <a href="contact.html">Contact</a> · <a href="schools.html">Schools & Educators</a> · <a href="faq.html">FAQ</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="shipping.html">Shipping</a> · <a href="refunds.html">Refunds</a> · <a href="accessibility.html">Accessibility</a></p></div></div><script>
+function cart(){try{return JSON.parse(localStorage.getItem('gdpCart')||'[]')}catch(e){return []}}
+function saveCart(c){localStorage.setItem('gdpCart',JSON.stringify(c)); updateCount()}
+function updateCount(){var e=document.getElementById('cartCount');if(e)e.textContent=cart().reduce((a,x)=>a+(x.qty||1),0)}
+function addCart(title,format,price,url){let c=cart(),k=title+'|'+format,x=c.find(i=>i.k===k);if(x)x.qty++;else c.push({k,title,format,price,url,qty:1});saveCart(c);alert('Added to cart')}
+document.addEventListener('DOMContentLoaded',updateCount)
+</script></body></html>

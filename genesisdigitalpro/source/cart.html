@@ -1,0 +1,52 @@
+<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cart | Genesis Digital Pro</title><meta name="description" content="Genesis Digital Pro publishing bookstore">
+<style>
+:root{--ink:#07111a;--panel:#0d1b26;--gold:#e5c46e;--paper:#f7f2e7;--muted:#b9c2ca}
+*{box-sizing:border-box}body{margin:0;background:var(--ink);color:#fff;font-family:Arial,sans-serif}
+a{color:inherit}.wrap{max-width:1180px;margin:auto;padding:24px}.top{position:sticky;top:0;z-index:99;background:#07111af2;border-bottom:1px solid #e5c46e55}
+.nav{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}.nav a{text-decoration:none;font-weight:800}
+.brand{font-family:Georgia;font-size:23px;color:var(--gold)}.links{display:flex;gap:12px;flex-wrap:wrap}
+.hero{padding:72px 0;background:radial-gradient(circle at 80% 20%,#233a4a,#07111a 55%)}h1,h2{font-family:Georgia}
+h1{font-size:clamp(38px,7vw,72px);margin:.15em 0}.lead{font-size:20px;line-height:1.6;max-width:760px;color:#e7ebee}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}.card{background:#0d1b26;border:1px solid #ffffff18;border-radius:18px;padding:22px}
+.btn{display:inline-block;border:0;border-radius:9px;padding:13px 18px;background:var(--gold);color:var(--ink);font-weight:900;text-decoration:none;cursor:pointer}
+.btn2{display:inline-block;border:1px solid var(--gold);border-radius:9px;padding:12px 17px;color:var(--gold);text-decoration:none;font-weight:800;background:transparent}
+section{padding:46px 0}.muted{color:var(--muted);line-height:1.6}.pill{display:inline-block;border:1px solid #e5c46e55;padding:7px 10px;border-radius:99px;margin:4px;font-size:13px}
+input,select,textarea{width:100%;padding:13px;border-radius:9px;border:1px solid #ffffff30;background:#07111a;color:white;margin:7px 0}
+label{font-weight:700;font-size:14px}.footer{border-top:1px solid #ffffff18;margin-top:50px;padding:34px 0;color:#b9c2ca}
+.notice{padding:14px;border:1px solid #e5c46e55;border-radius:12px;background:#e5c46e10}
+@media(max-width:650px){.links{font-size:12px}.hero{padding:42px 0}}
+</style></head><body><div class="top"><div class="wrap nav"><a class="brand" href="index.html">GENESIS DIGITAL PRO</a><div class="links">
+<a href="checkout.html">SHOP</a><a href="children.html">CHILDREN</a><a href="series.html">SERIES</a><a href="search.html">SEARCH</a>
+<a href="free-page.html">FREE PAGE</a><a href="account.html">ACCOUNT</a><a href="cart.html">CART <span id="cartCount">0</span></a>
+</div></div></div><section class="hero"><div class="wrap"><span class="pill">SHOPPING CART</span><h1>Your Cart</h1>
+<p class="lead">Keep several books together while you shop. Each purchase uses the book’s existing secure checkout link.</p></div></section>
+<section><div class="wrap"><div id="items"></div><div id="summary" class="notice"></div><p><button id="secureCheckout" class="btn" onclick="secureMultiCheckout()">SECURE MULTI-BOOK CHECKOUT</button></p></div></section>
+<script>
+function money(n){return '$'+Number(n||0).toFixed(2)}
+function render(){let c=cart(),box=document.getElementById('items'),sum=0;if(!c.length){box.innerHTML='<div class="card"><h2>Your cart is empty.</h2><a class="btn" href="checkout.html">SHOP BOOKS</a></div>';document.getElementById('summary').innerHTML='Add books to begin.';return}
+box.innerHTML=c.map((x,i)=>{sum+=(+x.price||0)*(x.qty||1);return `<div class="card"><h2>${x.title}</h2><p>${x.format} · ${money(x.price)} · Qty ${x.qty}</p><button class="btn2" onclick="rm(${i})">REMOVE</button> ${x.url?`<a class="btn" href="collections.html">BUY THIS ITEM</a>`:''}</div>`}).join('');
+document.getElementById('summary').innerHTML='<b>Planned subtotal:</b> '+money(sum)+'<p class="muted">A single combined Stripe transaction requires a server-side Stripe cart/Checkout Session integration. Until that is connected, existing product checkout links remain the payment source of truth.</p>'}
+function rm(i){let c=cart();c.splice(i,1);saveCart(c);render()}document.addEventListener('DOMContentLoaded',render)
+</script><div class="footer"><div class="wrap"><b>Genesis Digital Pro</b><p>Good Books. Brighter Tomorrows.™</p>
+<p><a href="about.html">About</a> · <a href="contact.html">Contact</a> · <a href="schools.html">Schools & Educators</a> · <a href="faq.html">FAQ</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="shipping.html">Shipping</a> · <a href="refunds.html">Refunds</a> · <a href="accessibility.html">Accessibility</a></p></div></div><script>
+function cart(){try{return JSON.parse(localStorage.getItem('gdpCart')||'[]')}catch(e){return []}}
+function saveCart(c){localStorage.setItem('gdpCart',JSON.stringify(c)); updateCount()}
+function updateCount(){var e=document.getElementById('cartCount');if(e)e.textContent=cart().reduce((a,x)=>a+(x.qty||1),0)}
+function addCart(title,format,price,url){let c=cart(),k=title+'|'+format,x=c.find(i=>i.k===k);if(x)x.qty++;else c.push({k,title,format,price,url,qty:1});saveCart(c);alert('Added to cart')}
+document.addEventListener('DOMContentLoaded',updateCount)
+</script>
+<script>
+async function secureMultiCheckout(){
+  const c=cart();
+  const eligible=c.filter(x=>x.priceId && /^price_[A-Za-z0-9]+$/.test(x.priceId));
+  if(!eligible.length){alert('These cart items still use their existing individual Stripe checkout links.');return;}
+  const btn=document.getElementById('secureCheckout'); if(btn){btn.disabled=true;btn.textContent='OPENING SECURE CHECKOUT…';}
+  try{
+    const r=await fetch('/api/create-checkout-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:eligible.map(x=>({priceId:x.priceId,quantity:x.qty||1}))})});
+    const d=await r.json(); if(!r.ok||!d.url) throw new Error();
+    location.href=d.url;
+  }catch(e){alert('Secure checkout could not start. Please use the individual Buy buttons or try again.');if(btn){btn.disabled=false;btn.textContent='SECURE MULTI-BOOK CHECKOUT';}}
+}
+</script>
+</body></html>
