@@ -119,3 +119,70 @@
  .cast-art{grid-row:1/span 5;height:128px}.cast-art img{max-height:128px}
  .cast-card h3{margin:2px 0 0;font-size:19px}.cast-card p{margin:6px 0;font-size:13px}.cast-card small{margin-top:0}
 }
+
+/* ---- Squish Squad Shop: merchandise design previews (Coming Soon) ---- */
+.merch{text-align:center;background:linear-gradient(180deg,#eaf3ff,#fffaf0)}
+.merch-status,.merch-badge{display:inline-block;background:var(--deep);color:var(--gold);border:2px solid var(--gold);border-radius:999px;padding:6px 14px;font-weight:900;font-size:12px;letter-spacing:1.2px}
+.merch-lede{max-width:760px;margin:16px auto 22px;font-size:17px;line-height:1.6}
+.merch-jump{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:0 auto 34px}
+.merch-jump a{background:#fff;color:var(--deep);border:2px solid var(--blue);border-radius:999px;padding:9px 16px;font-weight:800;font-size:14px;text-decoration:none}
+.merch-jump a:hover,.merch-jump a:focus-visible{background:var(--blue);color:#fff}
+.merch-cat{max-width:1240px;margin:0 auto 40px;text-align:left;scroll-margin-top:110px}
+.maple-home main .merch-cat{padding:0}
+.merch-cat-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;border-bottom:3px solid var(--gold);padding-bottom:8px;margin-bottom:18px}
+.merch-cat-head h3{margin:0;color:var(--deep);font-size:26px}
+.merch-cat-head p{margin:0;color:#3d4d78;font-size:15px}
+.merch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));align-items:start;gap:22px}
+.merch-card{align-self:stretch;background:#fff;border:3px solid #d7e6ff;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 24px #07347d14}
+.merch-card-wide{grid-column:1/-1}
+.merch-art{position:relative;background:#fff;border-bottom:3px solid var(--gold)}
+.merch-art img{display:block;width:100%;height:auto}
+.merch-body .merch-badge{align-self:flex-start;font-size:11px;padding:4px 11px;margin-bottom:8px}
+.merch-more .merch-badge{position:absolute;top:14px;left:18px;font-size:11px;padding:4px 11px}
+.merch-body{padding:16px 18px 20px;display:flex;flex-direction:column;flex:1}
+.merch-body h4,.merch-more h4{margin:0 0 6px;font-size:21px;color:var(--deep)}
+.merch-body>p{margin:0 0 12px;font-size:15px;line-height:1.55}
+.merch-colors{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.merch .merch-swatch{display:inline-flex;align-items:center;gap:7px;background:#fff;color:var(--deep);border:2px solid #b9cdf0;border-radius:999px;padding:7px 12px;min-height:40px;font-weight:800;font-size:13px;box-shadow:none}
+.merch .merch-swatch[aria-pressed=true]{border-color:var(--blue);background:#e6f0ff;box-shadow:inset 0 0 0 1px var(--blue)}
+.merch-dot{width:18px;height:18px;border-radius:50%;background:var(--sw);border:2px solid #13265c55}
+.merch-shown{margin:2px 0 10px;font-size:13px;color:#3d4d78;font-weight:700}
+.merch-facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px}
+.merch-facts div{background:#f4f8ff;border-radius:10px;padding:8px 10px}
+.merch-facts dt{font-size:11px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:#3d4d78}
+.merch-facts dd{margin:2px 0 0;font-weight:800;color:var(--deep);font-size:14px}
+.merch-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto}
+.merch .merch-explore{background:var(--blue);color:#fff;box-shadow:0 4px 0 var(--deep);min-height:46px;flex:1 1 180px}
+.merch .merch-explore:hover{filter:brightness(1.1)}
+.merch .merch-checkout,.merch .merch-checkout:disabled{background:#e9edf5;color:#44506b;box-shadow:none;border:2px dashed #9aa6bf;cursor:not-allowed;min-height:46px;flex:1 1 180px}
+.merch-more{position:relative;background:var(--deep);color:#fff;border-radius:20px;padding:52px 22px 22px;display:flex;flex-direction:column;box-shadow:0 8px 24px #07347d24}
+.merch-more h4{color:var(--gold)}
+.merch-more ul{list-style:none;padding:0;margin:4px 0 12px;display:flex;flex-wrap:wrap;gap:8px}
+.merch-more li{background:#ffffff1f;border:1px solid #ffffff40;border-radius:999px;padding:6px 12px;font-weight:700;font-size:14px}
+.merch-more p{margin:0 0 14px;line-height:1.5;font-size:15px}
+.merch .merch-peek{background:var(--gold);color:var(--deep);box-shadow:0 4px 0 #c98f00;margin-top:auto;flex:none}
+.merch-alert{max-width:1000px;margin:10px auto 0;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;background:#fff;border:3px solid var(--gold);border-radius:20px;padding:18px 22px;text-align:left}
+.merch-alert b,.merch-alert span{display:block}.merch-alert span{font-size:14px;margin-top:4px}
+.merch :focus-visible,.merch-gallery :focus-visible{outline:3px solid var(--gold);outline-offset:3px;box-shadow:0 0 0 6px var(--deep)}
+.maple-home .merch-cat-head h3,.maple-home .merch-body h4,.maple-home .merch-more h4,.maple-home .merch-status,.maple-home .merch-badge,.merch-gallery h2{font-family:'Fredoka','Arial Rounded MT Bold',Arial,sans-serif}
+.merch-gallery{border:0;border-radius:22px;padding:0;width:min(1180px,96vw);max-height:94vh;background:#fff;color:var(--ink);box-shadow:0 24px 70px #0007}
+.merch-gallery::backdrop{background:#001b49d9}
+.mg-head{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--deep);padding:12px 16px 12px 22px;border-bottom:4px solid var(--gold)}
+.mg-head h2{margin:0;color:var(--gold);font-size:24px;text-align:left}
+.merch-gallery .mg-close{background:var(--gold);color:var(--deep);width:46px;height:46px;padding:0;border-radius:50%;font-size:28px;line-height:1;box-shadow:0 3px 0 #c98f00;flex:none}
+.mg-figure{margin:0;padding:16px 16px 4px;text-align:center}
+.mg-img{display:block;max-width:100%;max-height:68vh;width:auto;height:auto;margin:0 auto;border-radius:12px}
+.mg-figure figcaption{margin-top:10px;font-weight:800;color:var(--deep)}
+.mg-count{color:#3d4d78;font-weight:700}
+.mg-nav{display:flex;justify-content:center;gap:12px;padding:8px 16px}
+.merch-gallery .mg-prev,.merch-gallery .mg-next{background:var(--blue);color:#fff;box-shadow:0 4px 0 var(--deep);min-width:140px;min-height:46px}
+.mg-note{text-align:center;font-size:13px;color:#3d4d78;margin:6px 16px 16px}
+@media(max-width:700px){
+ .merch-cat-head h3{font-size:22px}
+ .merch-facts{grid-template-columns:1fr}
+ .merch-alert{flex-direction:column;align-items:stretch;text-align:center}
+ .mg-head h2{font-size:19px}
+ .mg-img{max-height:56vh}
+ .merch-gallery .mg-prev,.merch-gallery .mg-next{min-width:0;flex:1}
+}
+@media(prefers-reduced-motion:reduce){.merch .merch-explore:hover{filter:none}}
