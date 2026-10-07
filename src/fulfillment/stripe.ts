@@ -103,7 +103,7 @@ export function shippingFromSession(
 	return { shipping, missing: missingShippingFields(shipping) };
 }
 
-/** Fields Lulu needs that are absent or malformed. */
+/** Fields Lulu needs that are absent, malformed or over Lulu's length limits. */
 export function missingShippingFields(shipping: ShippingInfo): string[] {
 	const missing: string[] = [];
 	for (const f of ["name", "street1", "city", "postcode", "country_code", "email"] as const) {
@@ -115,6 +115,10 @@ export function missingShippingFields(shipping: ShippingInfo): string[] {
 	}
 	if (shipping.country_code && !/^[A-Z]{2}$/.test(shipping.country_code)) {
 		missing.push("country_code");
+	}
+	// Lulu's limits; an over-long field is held for a human rather than truncated.
+	for (const [f, max] of [["name", 35], ["street1", 30], ["street2", 30], ["city", 30]] as const) {
+		if ((shipping[f]?.length ?? 0) > max) missing.push(`${f}_too_long`);
 	}
 	return missing;
 }

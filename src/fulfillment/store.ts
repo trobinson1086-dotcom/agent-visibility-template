@@ -78,12 +78,12 @@ export async function list(db: D1Database, limit = 50): Promise<FulfillmentRecor
 	return res.results;
 }
 
-/** Records with a Lulu job that hasn't reached a final state yet. */
+/** Records with a Lulu job still moving (SHIPPED can still become DELIVERED). */
 export async function open(db: D1Database): Promise<FulfillmentRecord[]> {
 	const res = await db
 		.prepare(
 			`SELECT * FROM fulfillments WHERE lulu_print_job_id IS NOT NULL
-			 AND status IN ('SUBMITTED') ORDER BY updated_at ASC LIMIT 50`,
+			 AND status IN ('SUBMITTED', 'SHIPPED') ORDER BY updated_at ASC LIMIT 50`,
 		)
 		.all<FulfillmentRecord>();
 	return res.results;

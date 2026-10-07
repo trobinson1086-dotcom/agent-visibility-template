@@ -14,7 +14,11 @@ export type Format =
  * in source: they come from the LULU_PRINT_FILES secret, keyed by `key`.
  */
 export interface LuluMapping {
-	/** 27-character Lulu product code (trim, color, quality, binding, paper, finish). */
+	/**
+	 * Lulu POD package id in the dotted format, e.g. "0850X1100.FC.STD.PB.080CW444.GXX"
+	 * (trim.ink.quality.binding.paper.finish). The legacy 27-character form stops
+	 * working on 2027-02-01.
+	 */
 	podPackageId: string;
 	/** Interior page count, used for cost/shipping quotes. */
 	pageCount: number;
@@ -45,6 +49,7 @@ export type FulfillmentStatus =
 	| "SUBMITTED" // Lulu print job created
 	| "FAILED" // Lulu rejected or errored; needs a manual retry
 	| "SHIPPED"
+	| "DELIVERED"
 	| "CANCELED"
 	| "REJECTED";
 

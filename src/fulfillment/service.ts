@@ -45,7 +45,9 @@ export const PAID_EVENTS = new Set([
 	"checkout.session.async_payment_succeeded",
 ]);
 
-const FINAL_LULU = new Set(["SHIPPED", "CANCELED", "REJECTED"]);
+// SHIPPED is not final: carriers that report it move on to DELIVERED.
+const FINAL_LULU = new Set(["DELIVERED", "CANCELED", "REJECTED"]);
+const TERMINAL_LULU = new Set(["SHIPPED", ...FINAL_LULU]);
 
 export function mode(env: Env): FulfillmentMode {
 	const m = (env.FULFILLMENT_MODE ?? "off").trim().toLowerCase();
@@ -280,8 +282,8 @@ async function applyJob(db: D1Database, sessionId: string, job: LuluPrintJob): P
 	const luluStatus = job.status?.name ?? null;
 	const t = trackingOf(job);
 	const status =
-		luluStatus && FINAL_LULU.has(luluStatus)
-			? (luluStatus as "SHIPPED" | "CANCELED" | "REJECTED")
+		luluStatus && TERMINAL_LULU.has(luluStatus)
+			? (luluStatus as "SHIPPED" | "DELIVERED" | "CANCELED" | "REJECTED")
 			: "SUBMITTED";
 	await store.update(db, sessionId, {
 		status,

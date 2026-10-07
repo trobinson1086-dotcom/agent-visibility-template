@@ -25,7 +25,7 @@ const BOOK2_PAPERBACK = "price_1UNmqj9cRroVv8pkgo2woTcw";
 
 // Test-only Lulu specs for Book 1 Paperback. The shipped catalog keeps it
 // FULFILLMENT_MAPPING_REQUIRED until Travis confirms the real values.
-const TEST_SPEC = { podPackageId: "0850X0850FCSTDPB080CW444GXX", pageCount: 32 };
+const TEST_SPEC = { podPackageId: "0850X1100.FC.STD.PB.080CW444.GXX", pageCount: 32 };
 const book1 = byKey("EN-PAPERBACK-1") as CatalogEntry;
 
 function sandboxEnv(overrides: Partial<Env> = {}): Env {
@@ -68,7 +68,8 @@ function session(
 		paid = true,
 		livemode = false,
 		state = "TX",
-	}: { price?: string; quantity?: number; paid?: boolean; livemode?: boolean; state?: string } = {},
+		line1 = "100 Maple St",
+	}: { price?: string; quantity?: number; paid?: boolean; livemode?: boolean; state?: string; line1?: string } = {},
 ): string {
 	sessions.set(id, {
 		id,
@@ -82,7 +83,7 @@ function session(
 			shipping_details: {
 				name: "Pat Parent",
 				address: {
-					line1: "100 Maple St",
+					line1,
 					line2: null,
 					city: "Austin",
 					state,
@@ -283,6 +284,13 @@ describe("order trigger", () => {
 		expect(lulu.creates).toBe(0);
 	});
 
+	it("holds (never truncates) an address line longer than Lulu allows", async () => {
+		session("cs_test_longaddr", { line1: "12345 Extraordinarily Long Maple Hollow Boulevard" });
+		const r = await deliver(sandboxEnv(), paidEvent("cs_test_longaddr"));
+		expect(r.body).toMatchObject({ reason: "INVALID_ADDRESS:street1_too_long" });
+		expect(lulu.creates).toBe(0);
+	});
+
 	it("holds an order with an incomplete shipping address", async () => {
 		session("cs_test_nostate", { state: "" });
 		const r = await deliver(sandboxEnv(), paidEvent("cs_test_nostate"));
@@ -440,6 +448,11 @@ describe("Lulu status and tracking", () => {
 		expect(after).toMatchObject({ status: "SHIPPED", lulu_status: "SHIPPED", carrier: "UPS", tracking_id: "1Z999" });
 		expect(JSON.parse(after!.tracking_urls!)).toEqual(["https://track.example.com/1Z999"]);
 
+		// Lulu's later DELIVERED update is recorded too.
+		const delivered = body.replaceAll('"SHIPPED"', '"DELIVERED"');
+		await handleLuluWebhook(sandboxEnv(), delivered, toHex(await hmacSha256(LULU_SECRET, delivered)));
+		expect(await store.get(env.ORDERS_DB!, "cs_test_track")).toMatchObject({ status: "DELIVERED", tracking_id: "1Z999" });
+
 		// Travis's admin view: requires the admin token, shows tracking, no payment data.
 		expect((await SELF.fetch(`${BASE}/api/admin/fulfillments`)).status).toBe(401);
 		const res = await SELF.fetch(`${BASE}/api/admin/fulfillments`, {
@@ -448,7 +461,7 @@ describe("Lulu status and tracking", () => {
 
 		const json = (await res.json()) as { orders: Array<Record<string, unknown>> };
 		const track = json.orders.find((o) => o.stripeSessionId === "cs_test_track");
-		expect(track).toMatchObject({ status: "SHIPPED", carrier: "UPS", trackingId: "1Z999", luluPrintJobId: expect.any(String) });
+		expect(track).toMatchObject({ status: "DELIVERED", carrier: "UPS", trackingId: "1Z999", luluPrintJobId: expect.any(String) });
 		expect(JSON.stringify(json)).not.toMatch(/card|cvc|whsec|rk_test|lulu-client-secret/i);
 	});
 });
