@@ -49,7 +49,7 @@ SquishMan.com · © 2026 Travis Robinson.`,
 		title: "The Squish Man Book Series",
 		body: `# The Squish Man Book Series
 
-Original English adventures. Paperback $24.99 • eBook $12.99 • Audiobook $20.99.
+Original English adventures. Paperback $19.99 • Hardcover $29.99 • eBook $9.99 • Audiobook $14.99.
 Each book has a product page with real "Look Inside" interior preview pages.
 
 ## Book 1 — Squish Man and the Missing Puppy Parade
@@ -83,14 +83,14 @@ to shine.`,
 		title: "Learning, Activity, Bonus & Coloring Books",
 		body: `# Learning, Activity, Bonus & Coloring Books
 
-## Learning & Activity Books 1–5 — $24.99 each
+## Learning & Activity Books 1–5 — $19.99 each
 Practice early skills with puzzles, mazes, letters, numbers, reading,
 creativity and more, alongside familiar Maple Hollow characters.
 
-## Bonus Activities & Learning Editions 1–5 — $44.99 each
+## Bonus Activities & Learning Editions 1–5 — $39.99 each
 More story, more learning: expanded editions of each adventure with activities.
 
-## Coloring Books 1–5 — $21.99 each
+## Coloring Books 1–5 — $18.99 each
 Screen-free creative fun with familiar Maple Hollow characters and scenes.
 
 ## Complete collections
@@ -105,7 +105,7 @@ Screen-free creative fun with familiar Maple Hollow characters and scenes.
 		body: `# Squish Man en Español — Aventuras en Español
 
 Storybooks, special editions and learning & activity books for Spanish-reading
-families. From $24.99.
+families. From $19.99. Libros 1–5 in Paperback $19.99 and Hardcover $29.99.
 
 ## Libros 1–5
 1. Squish Man y el Desfile del Cachorro Perdido
@@ -158,7 +158,7 @@ read-alouds and audiobook samples.
 - Official video: "Watch Squish Man Come to Life" — Squish Man and Pudy in the
   official SquishMan.com featured video.
 - Mini cartoons, read-alouds and book trailers: coming soon.
-- Audiobook editions of Books 1–5 are $20.99 where offered.`,
+- Audiobook editions of Books 1–5 are $14.99 where offered.`,
 	},
 	{
 		slug: "squish-squad",
