@@ -1,7 +1,14 @@
-import { env, SELF } from "cloudflare:test";
+import {
+	createExecutionContext,
+	createScheduledController,
+	env,
+	SELF,
+	waitOnExecutionContext,
+} from "cloudflare:test";
 import { beforeAll, describe, it, expect } from "vitest";
 import { ENRICHED_KEY } from "../src/lib/store";
 import type { Resource } from "../src/lib/types";
+import worker from "../src/worker/index";
 
 const BASE = "https://example.com";
 
@@ -210,6 +217,19 @@ describe("Agent Visibility template", () => {
 		expect(json.ok).toBe(true);
 		expect(json.message).toContain("Cache cleared");
 		expect(await env.VISIBILITY_CACHE.get(ENRICHED_KEY)).toBeNull();
+	});
+
+	it("rebuilds the enriched cache on the hourly cron", async () => {
+		await env.VISIBILITY_CACHE.delete(ENRICHED_KEY);
+		const ctx = createExecutionContext();
+		await worker.scheduled(
+			createScheduledController({ cron: "17 * * * *" }),
+			env,
+			ctx,
+		);
+		await waitOnExecutionContext(ctx);
+		const cached = await env.VISIBILITY_CACHE.get<Resource[]>(ENRICHED_KEY, "json");
+		expect(cached?.length).toBeGreaterThan(0);
 	});
 
 	it("keeps the Web Bot Auth identity surface disabled by default", async () => {

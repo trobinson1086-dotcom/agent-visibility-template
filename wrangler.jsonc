@@ -23,6 +23,10 @@
 			"/*.md"
 		]
 	},
+	"triggers": {
+		// Hourly cache rebuild (see rebuildCache in src/lib/store.ts).
+		"crons": ["17 * * * *"]
+	},
 	"ai": {
 		"binding": "AI"
 	},

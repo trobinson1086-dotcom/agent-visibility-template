@@ -115,3 +115,26 @@ export async function upsertResource(
 export async function clearCache(env: Env): Promise<void> {
 	await env.VISIBILITY_CACHE.delete(ENRICHED_KEY);
 }
+
+/**
+ * Re-enrich every resource and overwrite the cache (run hourly by the cron
+ * trigger), so readers never hit a cold cache and wait on Workers AI.
+ *
+ * The entry is written with TTL + 15 minutes so it is still warm when the
+ * next run lands. A degraded rebuild (Workers AI unavailable) never replaces
+ * a good cached copy; it is skipped and the next run tries again.
+ */
+export async function rebuildCache(env: Env): Promise<"rebuilt" | "kept"> {
+	const raws = await getRawResources(env);
+	const enriched = await enrichAll(env.AI, env.AI_MODEL, raws);
+	if (isDegraded(enriched)) {
+		const cached = await env.VISIBILITY_CACHE.get(ENRICHED_KEY, "json");
+		if (Array.isArray(cached) && cached.length && !isDegraded(cached as Resource[])) {
+			return "kept";
+		}
+	}
+	await env.VISIBILITY_CACHE.put(ENRICHED_KEY, JSON.stringify(enriched), {
+		expirationTtl: cacheTtl(env, enriched) + (isDegraded(enriched) ? 0 : 900),
+	});
+	return "rebuilt";
+}
