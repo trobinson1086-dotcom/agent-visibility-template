@@ -10,8 +10,9 @@ export const CATALOG: readonly CatalogEntry[] = [
 	// EN-PAPERBACK-1 print spec confirmed by Travis 2026-10-07: 8x10 in, full color,
 	// standard quality, perfect bound, gloss cover → Lulu pod_package_id
 	// "0800X1000FCSTDPB080CW444GXX". Interior (final, per Travis): Drive file
-	// "Squish_Man_Book1 Amazon pdf" (2026-09-25, 8x10). Stays MAPPING_REQUIRED until
-	// the page count is known and Lulu's sandbox accepts the code and files.
+	// "Squish_Man_Book1 Amazon pdf" (2026-09-25, 8x10, 30 pages). BLOCKED: Lulu perfect
+	// binding needs 32-800 pages, so the interior needs 2 more pages (owner's call).
+	// Stays MAPPING_REQUIRED until a 32-page interior passes Lulu's sandbox checks.
 	{ key: "EN-PAPERBACK-1", title: "The Amazing Adventures of Squish Man — Book 1 Paperback", language: "en", format: "paperback", stripeProductId: "prod_VJZ1F1eyzJUsrX", stripePriceId: "price_1UNmh49cRroVv8pkheBXH7ag", physical: true, lulu: MAPPING_REQUIRED, productionEnabled: false },
 	{ key: "EN-EBOOK-1", title: "The Amazing Adventures of Squish Man — Book 1 eBook", language: "en", format: "ebook", stripeProductId: "prod_VJMXt2AGqFiRGB", stripePriceId: "price_1UNmnk9cRroVv8pkjzdKzEBB", physical: false, lulu: null, productionEnabled: false },
 	{ key: "EN-AUDIOBOOK-1", title: "The Amazing Adventures of Squish Man — Book 1 Audiobook", language: "en", format: "audiobook", stripeProductId: "prod_VJMnnMgk3Nbuet", stripePriceId: "price_1UNmoH9cRroVv8pkp2cgbckF", physical: false, lulu: null, productionEnabled: false },
