@@ -7,12 +7,10 @@ const MAPPING_REQUIRED = "FULFILLMENT_MAPPING_REQUIRED" as const;
 
 /** Every current Squish Man Stripe price, keyed by Stripe Price ID. */
 export const CATALOG: readonly CatalogEntry[] = [
-	// EN-PAPERBACK-1: Travis confirmed full color, standard quality, paperback, gloss.
-	// Final interior: Drive "Squish_Man_Book1 Amazon pdf" (2026-09-25), 8x10 in, 30 pages.
-	// BLOCKED (Lulu spec sheet, 2026-10-07): Lulu has no 8x10 trim, and paperbacks need
-	// 32-800 pages. Needs a 32-page interior + cover at a Lulu size Travis picks, e.g.
-	// US Letter "0850X1100.FC.STD.PB.080CW444.GXX". Never guess the size.
-	{ key: "EN-PAPERBACK-1", title: "The Amazing Adventures of Squish Man — Book 1 Paperback", language: "en", format: "paperback", stripeProductId: "prod_VJZ1F1eyzJUsrX", stripePriceId: "price_1UNmh49cRroVv8pkheBXH7ag", physical: true, lulu: MAPPING_REQUIRED, productionEnabled: false },
+	// EN-PAPERBACK-1, chosen by Travis 2026-10-07: Lulu US Letter 8.5x11 in, full color,
+	// standard, perfect bound, gloss, 32 pages (Lulu has no 8x10; paperbacks need 32+).
+	// Files to be re-exported from the 8x10 Amazon edition and set in LULU_PRINT_FILES.
+	{ key: "EN-PAPERBACK-1", title: "The Amazing Adventures of Squish Man — Book 1 Paperback", language: "en", format: "paperback", stripeProductId: "prod_VJZ1F1eyzJUsrX", stripePriceId: "price_1UNmh49cRroVv8pkheBXH7ag", physical: true, lulu: { podPackageId: "0850X1100.FC.STD.PB.080CW444.GXX", pageCount: 32 }, productionEnabled: false },
 	{ key: "EN-EBOOK-1", title: "The Amazing Adventures of Squish Man — Book 1 eBook", language: "en", format: "ebook", stripeProductId: "prod_VJMXt2AGqFiRGB", stripePriceId: "price_1UNmnk9cRroVv8pkjzdKzEBB", physical: false, lulu: null, productionEnabled: false },
 	{ key: "EN-AUDIOBOOK-1", title: "The Amazing Adventures of Squish Man — Book 1 Audiobook", language: "en", format: "audiobook", stripeProductId: "prod_VJMnnMgk3Nbuet", stripePriceId: "price_1UNmoH9cRroVv8pkp2cgbckF", physical: false, lulu: null, productionEnabled: false },
 	{ key: "EN-PAPERBACK-2", title: "The Amazing Adventures of Squish Man — Book 2 Paperback", language: "en", format: "paperback", stripeProductId: "prod_VJMjCtZgC22pLF", stripePriceId: "price_1UNmqj9cRroVv8pkgo2woTcw", physical: true, lulu: MAPPING_REQUIRED, productionEnabled: false },

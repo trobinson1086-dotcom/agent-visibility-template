@@ -27,6 +27,7 @@ const BOOK2_PAPERBACK = "price_1UNmqj9cRroVv8pkgo2woTcw";
 // FULFILLMENT_MAPPING_REQUIRED until Travis confirms the real values.
 const TEST_SPEC = { podPackageId: "0850X1100.FC.STD.PB.080CW444.GXX", pageCount: 32 };
 const book1 = byKey("EN-PAPERBACK-1") as CatalogEntry;
+const BOOK1_SHIPPED_MAPPING = book1.lulu;
 
 function sandboxEnv(overrides: Partial<Env> = {}): Env {
 	return {
@@ -160,7 +161,7 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-	(book1 as { lulu: unknown }).lulu = "FULFILLMENT_MAPPING_REQUIRED";
+	(book1 as { lulu: unknown }).lulu = BOOK1_SHIPPED_MAPPING;
 });
 
 beforeEach(() => {
@@ -191,14 +192,20 @@ describe("catalog", () => {
 		expect(new Set(CATALOG.map((e) => e.stripePriceId)).size).toBe(55);
 	});
 
-	it("ships with every physical product unmapped and production disabled", async () => {
-		(book1 as { lulu: unknown }).lulu = "FULFILLMENT_MAPPING_REQUIRED";
+	it("ships with only Book 1 Paperback mapped and production disabled everywhere", async () => {
+		(book1 as { lulu: unknown }).lulu = BOOK1_SHIPPED_MAPPING;
 		const res = await SELF.fetch(`${BASE}/api/admin/fulfillment/catalog`, {
 			headers: { authorization: "Bearer test-token" },
 		});
 		const json = (await res.json()) as { mode: string; products: Array<{ key: string; lulu: unknown; productionEnabled: boolean }> };
 		expect(json.mode).toBe("off");
-		expect(json.products.find((p) => p.key === "EN-PAPERBACK-1")?.lulu).toBe("FULFILLMENT_MAPPING_REQUIRED");
+		expect(json.products.find((p) => p.key === "EN-PAPERBACK-1")?.lulu).toEqual({
+			podPackageId: "0850X1100.FC.STD.PB.080CW444.GXX",
+			pageCount: 32,
+		});
+		const unmapped = json.products.filter((p) => p.key !== "EN-PAPERBACK-1" && p.lulu !== "NOT_PHYSICAL");
+		expect(unmapped).toHaveLength(44);
+		expect(unmapped.every((p) => p.lulu === "FULFILLMENT_MAPPING_REQUIRED")).toBe(true);
 		expect(json.products.find((p) => p.key === "EN-EBOOK-1")?.lulu).toBe("NOT_PHYSICAL");
 		expect(json.products.every((p) => !p.productionEnabled)).toBe(true);
 	});
