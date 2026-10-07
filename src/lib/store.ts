@@ -9,8 +9,12 @@ import { enrichAll, enrichResource } from "../enrichment";
 import { SAMPLE_RESOURCES } from "./content";
 import type { Env, RawResource, Resource, SiteConfig } from "./types";
 
-/** KV key holding the enriched `Resource[]`. Exported so tests can seed it. */
-export const ENRICHED_KEY = "resources:enriched";
+/**
+ * KV key holding the enriched `Resource[]`. Exported so tests can seed it.
+ * Bump the version when the content changes and the old entry must not be
+ * served (an earlier entry was written without an expiry).
+ */
+export const ENRICHED_KEY = "resources:enriched:v2";
 /** KV key holding the configured raw resources. */
 export const RAW_KEY = "resources:raw";
 
