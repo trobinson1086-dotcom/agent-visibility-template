@@ -105,19 +105,20 @@ Screen-free creative fun with familiar Maple Hollow characters and scenes.
 		body: `# Squish Man en Español — Aventuras en Español
 
 Storybooks, special editions and learning & activity books for Spanish-reading
-families. From $19.99. Libros 1–5 in Paperback $19.99 and Hardcover $29.99.
+families. Libros 1–5: Paperback $19.99 • Hardcover $29.99. Edición Especial
+$39.99 • Aprendizaje y Actividades $19.99.
 
-## Libros 1–5
+## Libros 1–5 — Paperback $19.99 • Hardcover $29.99
 1. Squish Man y el Desfile del Cachorro Perdido
 2. La Gran Aventura del Gran Sueño
 3. Squish Man y el Jardín Mágico
 4. Squish Man Salva el Día de Nieve
 5. Squish Man y Pudy y el Gran Derby de Maple Hollow
 
-## Edición Especial 1–5
+## Edición Especial 1–5 — $39.99 each
 Special activity & learning editions of each Spanish storybook.
 
-## Aprendizaje y Actividades 1–5
+## Aprendizaje y Actividades 1–5 — $19.99 each
 Spanish learning & activity books.`,
 	},
 	{
