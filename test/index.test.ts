@@ -30,6 +30,7 @@ const SEEDED: Resource[] = [
 		topics: ["pricing", "plans"],
 		category: "pricing",
 		content: "# Pricing\n\nFree, Pro, and Enterprise.",
+		prices: "Free $0 • Pro $20/mo",
 		updatedAt: "2026-01-01T00:00:00.000Z",
 		model: "seed",
 	},
@@ -81,6 +82,19 @@ describe("Agent Visibility template", () => {
 		const text = await res.text();
 		expect(text).toContain("# ");
 		expect(text).toContain("## Source");
+	});
+
+	it("shows a resource's fixed price line on its Markdown and index.json", async () => {
+		const md = await (await SELF.fetch(`${BASE}/pricing.md`)).text();
+		expect(md).toContain("**Prices:** Free $0 • Pro $20/mo");
+		const noPrices = await (await SELF.fetch(`${BASE}/getting-started.md`)).text();
+		expect(noPrices).not.toContain("**Prices:**");
+		const json = (await (await SELF.fetch(`${BASE}/index.json`)).json()) as {
+			pages: Array<{ slug: string; prices?: string }>;
+		};
+		expect(json.pages.find((p) => p.slug === "pricing")?.prices).toBe(
+			"Free $0 • Pro $20/mo",
+		);
 	});
 
 	it("404s for an unknown page Markdown slug", async () => {

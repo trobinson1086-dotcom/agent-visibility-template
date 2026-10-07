@@ -47,6 +47,8 @@ SquishMan.com · © 2026 Travis Robinson.`,
 		slug: "books",
 		url: `${SITE}/#books`,
 		title: "The Squish Man Book Series",
+		prices:
+			"Paperback $19.99 • Hardcover $29.99 • eBook $9.99 • Audiobook $14.99",
 		body: `# The Squish Man Book Series
 
 Original English adventures. Paperback $19.99 • Hardcover $29.99 • eBook $9.99 • Audiobook $14.99.
@@ -81,6 +83,8 @@ to shine.`,
 		slug: "learning-and-activity-books",
 		url: `${SITE}/#learning`,
 		title: "Learning, Activity, Bonus & Coloring Books",
+		prices:
+			"Learning & Activity Books $19.99 • Bonus Activities & Learning Editions $39.99 • Coloring Books $18.99",
 		body: `# Learning, Activity, Bonus & Coloring Books
 
 ## Learning & Activity Books 1–5 — $19.99 each
@@ -102,6 +106,8 @@ Screen-free creative fun with familiar Maple Hollow characters and scenes.
 		slug: "espanol",
 		url: `${SITE}/#spanish`,
 		title: "Squish Man en Español",
+		prices:
+			"Libros 1–5: Paperback $19.99 • Hardcover $29.99 • Edición Especial $39.99 • Aprendizaje y Actividades $19.99",
 		body: `# Squish Man en Español — Aventuras en Español
 
 Storybooks, special editions and learning & activity books for Spanish-reading
@@ -151,6 +157,7 @@ Schools: schools@squishman.com • Parents: parents@squishman.com • Media: med
 		slug: "watch",
 		url: `${SITE}/#watch`,
 		title: "Maple Hollow Entertainment Center",
+		prices: "Audiobook editions of Books 1–5: $14.99",
 		body: `# The Maple Hollow Entertainment Center
 
 Watch • Listen • Read Along. A home for Squish Man cartoons, book trailers,

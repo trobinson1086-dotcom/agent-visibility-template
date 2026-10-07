@@ -21,6 +21,11 @@ export interface RawResource {
 	 * Markdown. Enrichment trims and summarizes it.
 	 */
 	body: string;
+	/**
+	 * Optional fixed price line (e.g. "Paperback $19.99 • Hardcover $29.99").
+	 * Passed through enrichment unchanged so surfaces always show exact prices.
+	 */
+	prices?: string;
 }
 
 /** A resource after Workers AI enrichment — the canonical record we store. */
@@ -39,6 +44,8 @@ export interface Resource {
 	category: string | null;
 	/** Clean Markdown body suitable for grounding / citation. */
 	content: string;
+	/** Exact price line copied from the raw resource, if any. */
+	prices?: string;
 	/** ISO timestamp of when enrichment last ran. */
 	updatedAt: string;
 	/** Workers AI model used for enrichment. */

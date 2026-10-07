@@ -122,6 +122,7 @@ export async function enrichResource(
 			content:
 				(typeof parsed.content === "string" && parsed.content.trim()) ||
 				trimmed,
+			...(raw.prices ? { prices: raw.prices } : {}),
 			updatedAt: new Date().toISOString(),
 			model,
 		};
@@ -155,6 +156,7 @@ export function fallbackEnrichment(raw: RawResource, model: string): Resource {
 		topics: [],
 		category: null,
 		content: trimmed,
+		...(raw.prices ? { prices: raw.prices } : {}),
 		updatedAt: new Date().toISOString(),
 		model: `${model} (fallback)`,
 	};
