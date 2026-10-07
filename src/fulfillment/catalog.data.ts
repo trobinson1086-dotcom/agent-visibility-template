@@ -7,6 +7,11 @@ const MAPPING_REQUIRED = "FULFILLMENT_MAPPING_REQUIRED" as const;
 
 /** Every current Squish Man Stripe price, keyed by Stripe Price ID. */
 export const CATALOG: readonly CatalogEntry[] = [
+	// EN-PAPERBACK-1 print spec confirmed by Travis 2026-10-07: 8x10 in, full color,
+	// standard quality, perfect bound, gloss cover → Lulu pod_package_id
+	// "0800X1000FCSTDPB080CW444GXX". Interior: Drive "Squish Amazon official" /
+	// Squish_Man_Book_1_KDP_8x10_FULL_BLEED_CORRECTED.pdf. Stays MAPPING_REQUIRED until
+	// the page count is known and Lulu's sandbox accepts the code and files.
 	{ key: "EN-PAPERBACK-1", title: "The Amazing Adventures of Squish Man — Book 1 Paperback", language: "en", format: "paperback", stripeProductId: "prod_VJZ1F1eyzJUsrX", stripePriceId: "price_1UNmh49cRroVv8pkheBXH7ag", physical: true, lulu: MAPPING_REQUIRED, productionEnabled: false },
 	{ key: "EN-EBOOK-1", title: "The Amazing Adventures of Squish Man — Book 1 eBook", language: "en", format: "ebook", stripeProductId: "prod_VJMXt2AGqFiRGB", stripePriceId: "price_1UNmnk9cRroVv8pkjzdKzEBB", physical: false, lulu: null, productionEnabled: false },
 	{ key: "EN-AUDIOBOOK-1", title: "The Amazing Adventures of Squish Man — Book 1 Audiobook", language: "en", format: "audiobook", stripeProductId: "prod_VJMnnMgk3Nbuet", stripePriceId: "price_1UNmoH9cRroVv8pkp2cgbckF", physical: false, lulu: null, productionEnabled: false },
