@@ -14,7 +14,7 @@ import type { Env, RawResource, Resource, SiteConfig } from "./types";
  * Bump the version when the content changes and the old entry must not be
  * served (an earlier entry was written without an expiry).
  */
-export const ENRICHED_KEY = "resources:enriched:v3";
+export const ENRICHED_KEY = "resources:enriched:v4";
 /** KV key holding the configured raw resources. */
 export const RAW_KEY = "resources:raw";
 

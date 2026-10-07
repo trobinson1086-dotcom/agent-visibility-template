@@ -110,6 +110,7 @@ export function renderIndexJson(ctx: RenderCtx) {
 			keyPoints: r.keyPoints,
 			topics: r.topics,
 			category: r.category,
+			...(r.prices ? { prices: r.prices } : {}),
 			updatedAt: r.updatedAt,
 			sources: {
 				markdown: `${site.origin}/${r.slug}.md`,
@@ -135,6 +136,10 @@ export function renderResourceMd(args: {
 	if (r.category || r.topics.length) lines.push("");
 	if (r.summary) {
 		lines.push(r.summary);
+		lines.push("");
+	}
+	if (r.prices) {
+		lines.push(`**Prices:** ${r.prices}`);
 		lines.push("");
 	}
 	if (r.keyPoints.length) {
