@@ -56,3 +56,10 @@ npm test        # vitest (hits live Workers AI — needs credentials)
 ```
 
 After editing `wrangler.jsonc`, rerun `npx wrangler types`.
+
+## Deployment
+
+Cloudflare Workers Builds deploys this repo to the `agent-visibility-template`
+Worker, which serves squishman.com. Only `main` goes live (`npm run deploy`);
+other branches run `npx wrangler versions upload`, which uploads a version
+without changing the live site. Merge to `main` to publish.
