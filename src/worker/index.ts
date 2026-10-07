@@ -11,6 +11,9 @@
  *   GET /jsonld                            — site-level schema.org JSON-LD
  *   GET /robots.txt                        — explicit AI-bot directives
  *
+ * A cron trigger (see `triggers` in wrangler.jsonc) rebuilds the enriched
+ * cache hourly so surfaces stay current and never wait on a cold cache.
+ *
  * Plus a small JSON API the bundled UI uses, and an OPTIONAL Web Bot Auth
  * identity surface (disabled unless ENABLE_WEB_BOT_AUTH=true).
  *
@@ -32,6 +35,7 @@ import {
 import {
 	clearCache,
 	getResources,
+	rebuildCache,
 	siteConfig,
 	upsertResource,
 } from "../lib/store";
@@ -299,4 +303,9 @@ app.all("/api/identity", async (c) => {
 	return c.json(result);
 });
 
-export default app;
+export default {
+	fetch: app.fetch,
+	async scheduled(_controller, env, ctx) {
+		ctx.waitUntil(rebuildCache(env));
+	},
+} satisfies ExportedHandler<Env>;
