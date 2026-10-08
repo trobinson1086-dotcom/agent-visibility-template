@@ -152,6 +152,10 @@ beforeAll(() => {
 		})
 		.persist();
 	sandbox
+		.intercept({ path: "/cover-dimensions/", method: "POST" })
+		.reply(200, JSON.stringify({ width: "17.38", height: "11.25", unit: "inch" }))
+		.persist();
+	sandbox
 		.intercept({ path: (p) => p.startsWith("/print-jobs/?search="), method: "GET" })
 		.reply(() => ({ statusCode: 200, data: JSON.stringify({ results: lulu.existingJobs }) }))
 		.persist();
@@ -494,15 +498,26 @@ describe("configuration health check", () => {
 			stripeSecretKey: "test",
 			stripeKeyCanReadCheckout: true,
 			stripeWebhookSecret: "configured",
-			luluClientKey: "looks right",
-			luluClientSecret: "looks right",
+			luluClientKey: "set (id format)",
+			luluClientSecret: "set (id format)",
 			lulu: "ok",
 			luluEnvironment: "sandbox",
+			book1Paperback: {
+				luluEnvironment: "sandbox",
+				podPackageId: "0850X1100.FC.STD.PB.080CW444.GXX",
+				pages: 32,
+				coverSize: "17.38 x 11.25 inch",
+				costForOneCopyToWashingtonDC: {
+					MAIL: { total: "9.87", shipping: "4.99", currency: "USD" },
+					GROUND: { total: "9.87", shipping: "4.99", currency: "USD" },
+					EXPEDITED: { total: "9.87", shipping: "4.99", currency: "USD" },
+				},
+			},
 		});
 		expect(JSON.stringify(result)).not.toMatch(/rk_test_dummy|whsec_test|f2c47f17|3395bde8/);
 	});
 
-	it("describes a mis-pasted Lulu key without revealing it", async () => {
+	it("describes pasted Lulu keys without revealing them", async () => {
 		const result = await health(
 			sandboxEnv({
 				FULFILLMENT_MODE: "off",
@@ -510,8 +525,8 @@ describe("configuration health check", () => {
 				LULU_CLIENT_SECRET: btoa("f2c47f17-9c1f-4efe-b3c1-028a3ee4c3c7:3395bde8-0d24-4d47-aa4c-c84c76248dbc"),
 			}),
 		);
-		expect(result.luluClientKey).toBe("looks right (had extra spaces, trimmed)");
-		expect(result.luluClientSecret).toBe("looks like the Base64 string, not the key");
+		expect(result.luluClientKey).toBe("set (id format, extra spaces trimmed)");
+		expect(result.luluClientSecret).toBe("set (100 characters)");
 	});
 
 	it("is served publicly and flags missing keys", async () => {

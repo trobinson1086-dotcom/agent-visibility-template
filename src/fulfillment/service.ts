@@ -16,6 +16,7 @@ import { byKey, byPriceId, luluMapping, printFiles } from "./catalog";
 import {
 	calculateCost,
 	checkAuth,
+	coverDimensions,
 	createPrintJob,
 	findPrintJobs,
 	getPrintJob,
@@ -77,16 +78,15 @@ export function luluCredentials(env: Env, checksOnly = false): LuluCredentials |
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * Describe a pasted Lulu key without revealing it. Lulu client keys and
- * secrets are both UUIDs; the "Base64" string on the same page is not one.
+ * Describe a pasted Lulu key without revealing it: set or not, UUID-shaped
+ * or not, and its length. Secret formats vary by account, so only the login
+ * check below says whether a pair actually works.
  */
 function luluKeyShape(raw: string | undefined): string {
 	if (!raw) return "missing";
 	const v = raw.trim();
-	const note = v === raw ? "" : " (had extra spaces, trimmed)";
-	if (UUID_RE.test(v)) return `looks right${note}`;
-	if (/^[A-Za-z0-9+/]{60,}={0,2}$/.test(v)) return `looks like the Base64 string, not the key${note}`;
-	return `unexpected format, ${v.length} characters${note}`;
+	const note = v === raw ? "" : ", extra spaces trimmed";
+	return `set (${UUID_RE.test(v) ? "id format" : `${v.length} characters`}${note})`;
 }
 
 const HEALTH_KEY = "fulfillment:health";
@@ -161,8 +161,77 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 		}
 	}
 
+	const checkEnv =
+		result.lulu === "ok"
+			? creds?.mode
+			: typeof result.luluKeysAreFor === "string" && result.luluKeysAreFor.startsWith("production")
+				? "production"
+				: null;
+	if (creds && checkEnv) {
+		result.book1Paperback = await book1Check({ ...creds, mode: checkEnv });
+	}
+
 	await env.VISIBILITY_CACHE.put(HEALTH_KEY, JSON.stringify(result), { expirationTtl: HEALTH_TTL });
 	return result;
+}
+
+/** A sample US destination for price checks (Lulu's own docs example address). */
+const SAMPLE_US_ADDRESS = {
+	street1: "101 Independence Ave SE",
+	city: "Washington",
+	state_code: "DC",
+	postcode: "20540",
+	country_code: "US",
+	phone_number: "+1 206 555 0100",
+};
+
+/**
+ * Read-only Lulu checks for Book 1 Paperback: exact cover size and the real
+ * cost of one copy at each common shipping level. Creates nothing.
+ */
+async function book1Check(creds: LuluCredentials): Promise<Record<string, unknown>> {
+	const entry = byKey("EN-PAPERBACK-1");
+	const spec = entry && luluMapping(entry);
+	if (!spec) return { status: "FULFILLMENT_MAPPING_REQUIRED" };
+	const out: Record<string, unknown> = {
+		luluEnvironment: creds.mode,
+		podPackageId: spec.podPackageId,
+		pages: spec.pageCount,
+	};
+	try {
+		const d = await coverDimensions(creds, spec.podPackageId, spec.pageCount);
+		out.coverSize = `${d.width} x ${d.height} ${d.unit}`;
+	} catch (err) {
+		out.coverSize = `error: ${errorDetail(err).slice(0, 200)}`;
+	}
+	const quotes: Record<string, unknown> = {};
+	for (const level of ["MAIL", "GROUND", "EXPEDITED"] as const) {
+		try {
+			const q = (await calculateCost(
+				creds,
+				[{ pod_package_id: spec.podPackageId, page_count: spec.pageCount, quantity: 1 }],
+				SAMPLE_US_ADDRESS,
+				level,
+			)) as {
+				currency?: string;
+				line_item_costs?: Array<{ total_cost_incl_tax?: string }>;
+				shipping_cost?: { total_cost_incl_tax?: string };
+				fulfillment_cost?: { total_cost_incl_tax?: string };
+				total_cost_incl_tax?: string;
+			};
+			quotes[level] = {
+				print: q.line_item_costs?.[0]?.total_cost_incl_tax,
+				shipping: q.shipping_cost?.total_cost_incl_tax,
+				fulfillmentFee: q.fulfillment_cost?.total_cost_incl_tax,
+				total: q.total_cost_incl_tax,
+				currency: q.currency,
+			};
+		} catch (err) {
+			quotes[level] = `error: ${errorDetail(err).slice(0, 200)}`;
+		}
+	}
+	out.costForOneCopyToWashingtonDC = quotes;
+	return out;
 }
 
 /** Safe operational log line: identifiers and states only, never addresses. */

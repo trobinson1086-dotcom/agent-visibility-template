@@ -163,6 +163,19 @@ export function createPrintJob(
 	return luluFetch(c, "POST", "/print-jobs/", payload);
 }
 
+/** POST /cover-dimensions/ — exact one-piece cover size for a product and page count. */
+export function coverDimensions(
+	c: LuluCredentials,
+	podPackageId: string,
+	interiorPageCount: number,
+): Promise<{ width: string; height: string; unit: string }> {
+	return luluFetch(c, "POST", "/cover-dimensions/", {
+		pod_package_id: podPackageId,
+		interior_page_count: interiorPageCount,
+		unit: "inch",
+	});
+}
+
 /** GET /print-jobs/{id}/ */
 export function getPrintJob(c: LuluCredentials, id: string): Promise<LuluPrintJob> {
 	return luluFetch(c, "GET", `/print-jobs/${encodeURIComponent(id)}/`);
