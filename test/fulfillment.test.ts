@@ -19,7 +19,7 @@ import type { Env } from "../src/lib/types";
 
 const BASE = "https://example.com";
 const WHSEC = "whsec_test_secret";
-const LULU_SECRET = "lulu-client-secret";
+const LULU_SECRET = "3395bde8-0d24-4d47-aa4c-c84c76248dbc";
 const BOOK1_PAPERBACK = "price_1UNmh49cRroVv8pkheBXH7ag";
 const BOOK1_EBOOK = "price_1UNmnk9cRroVv8pkjzdKzEBB";
 const BOOK2_PAPERBACK = "price_1UNmqj9cRroVv8pkgo2woTcw";
@@ -36,7 +36,7 @@ function sandboxEnv(overrides: Partial<Env> = {}): Env {
 		FULFILLMENT_MODE: "sandbox",
 		STRIPE_WEBHOOK_SECRET: WHSEC,
 		STRIPE_SECRET_KEY: "rk_test_dummy",
-		LULU_CLIENT_KEY: "lulu-client-key",
+		LULU_CLIENT_KEY: "f2c47f17-9c1f-4efe-b3c1-028a3ee4c3c7",
 		LULU_CLIENT_SECRET: LULU_SECRET,
 		LULU_PRINT_FILES: JSON.stringify({
 			"EN-PAPERBACK-1": {
@@ -488,10 +488,24 @@ describe("configuration health check", () => {
 			stripeSecretKey: "test",
 			stripeKeyCanReadCheckout: true,
 			stripeWebhookSecret: "configured",
+			luluClientKey: "looks right",
+			luluClientSecret: "looks right",
 			lulu: "ok",
 			luluEnvironment: "sandbox",
 		});
-		expect(JSON.stringify(result)).not.toMatch(/rk_test_dummy|whsec_test|lulu-client/);
+		expect(JSON.stringify(result)).not.toMatch(/rk_test_dummy|whsec_test|f2c47f17|3395bde8/);
+	});
+
+	it("describes a mis-pasted Lulu key without revealing it", async () => {
+		const result = await health(
+			sandboxEnv({
+				FULFILLMENT_MODE: "off",
+				LULU_CLIENT_KEY: " f2c47f17-9c1f-4efe-b3c1-028a3ee4c3c7\n",
+				LULU_CLIENT_SECRET: btoa("f2c47f17-9c1f-4efe-b3c1-028a3ee4c3c7:3395bde8-0d24-4d47-aa4c-c84c76248dbc"),
+			}),
+		);
+		expect(result.luluClientKey).toBe("looks right (had extra spaces, trimmed)");
+		expect(result.luluClientSecret).toBe("looks like the Base64 string, not the key");
 	});
 
 	it("is served publicly and flags missing keys", async () => {
@@ -502,6 +516,7 @@ describe("configuration health check", () => {
 			ordersDb: "ok",
 			stripeSecretKey: "missing",
 			stripeWebhookSecret: "missing",
+			luluClientKey: "missing",
 			lulu: "missing",
 		});
 	});
