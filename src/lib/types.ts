@@ -77,4 +77,23 @@ export interface Env {
 	 * When unset, those routes are disabled (return 401).
 	 */
 	ADMIN_TOKEN?: string;
+
+	// --- Lulu print-on-demand fulfillment (src/fulfillment) -----------------
+	/** D1 database holding one fulfillment record per paid Stripe checkout. */
+	ORDERS_DB?: D1Database;
+	/** "off" (default) | "sandbox" | "production". See src/fulfillment/service.ts. */
+	FULFILLMENT_MODE?: string;
+	/** Lulu shipping level: MAIL | PRIORITY_MAIL | GROUND | EXPEDITED | EXPRESS. */
+	LULU_SHIPPING_LEVEL?: string;
+	/** Shop contact email Lulu uses for print-job questions. */
+	FULFILLMENT_CONTACT_EMAIL?: string;
+	/** Secret: restricted Stripe key with read access to Checkout Sessions. */
+	STRIPE_SECRET_KEY?: string;
+	/** Secret: signing secret of the Stripe webhook endpoint. */
+	STRIPE_WEBHOOK_SECRET?: string;
+	/** Secrets: Lulu API client key/secret for the environment FULFILLMENT_MODE selects. */
+	LULU_CLIENT_KEY?: string;
+	LULU_CLIENT_SECRET?: string;
+	/** Secret: JSON of print PDF URLs by catalog key, {"EN-PAPERBACK-1": {"cover": …, "interior": …}}. */
+	LULU_PRINT_FILES?: string;
 }

@@ -30,6 +30,15 @@
 	"ai": {
 		"binding": "AI"
 	},
+	"d1_databases": [
+		{
+			// Fulfillment order records (src/fulfillment/store.ts, migrations/).
+			"binding": "ORDERS_DB",
+			"database_name": "squishman-orders",
+			"database_id": "2a5ded37-5432-4af6-964c-6943a41f2d49",
+			"migrations_dir": "migrations"
+		}
+	],
 	"kv_namespaces": [
 		{
 			"binding": "VISIBILITY_CACHE",
@@ -42,6 +51,10 @@
 		"AI_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
 		"ENRICHMENT_CACHE_TTL": "3600",
 		"CONTENT_SIGNAL": "ai-input=yes, search=yes, ai-train=no",
-		"ENABLE_WEB_BOT_AUTH": "false"
+		"ENABLE_WEB_BOT_AUTH": "false",
+		// Lulu fulfillment: "off" | "sandbox" | "production". Off until Book 1 passes testing.
+		"FULFILLMENT_MODE": "off",
+		"LULU_SHIPPING_LEVEL": "GROUND",
+		"FULFILLMENT_CONTACT_EMAIL": "orders@squishman.com"
 	}
 }

@@ -20,6 +20,7 @@ src/
   lib/content.ts         Sample content (zero-config demo data)
   lib/types.ts           Shared types (Resource, RawResource, Env, SiteConfig)
   lib/web-bot-auth.ts    OPTIONAL agent-identity module (off by default)
+  fulfillment/           Stripe → Lulu print-on-demand (FULFILLMENT_MODE, off by default)
   react-app/             Surface-explorer UI (served at /explorer)
 public/                  The live squishman.com site, served as static assets
 scripts/                 import-drive-assets.sh: pulls covers/video from Drive export
@@ -39,6 +40,22 @@ test/index.test.ts       Worker tests (vitest-pool-workers, via SELF.fetch)
 - **Keep readability and identity separate.** Web Bot Auth is about _who_ an
   agent is, not _what_ it can read. It lives in its own module and is gated by
   `ENABLE_WEB_BOT_AUTH`. Don't wire it into the core surfaces.
+
+## Lulu fulfillment
+
+`POST /api/stripe/webhook` (signed) → re-reads the Checkout Session from Stripe
+→ physical, mapped catalog items only → one D1 row per session (idempotent)
+→ Lulu quote + print job. Status/tracking arrive via `POST /api/lulu/webhook`
+and the hourly cron. Admin routes live under `/api/admin/*` (ADMIN_TOKEN).
+
+- `fulfillment/catalog.data.ts` maps every Stripe price. Physical items stay
+  `FULFILLMENT_MAPPING_REQUIRED` until the owner confirms Lulu specs; never
+  infer a `pod_package_id` from a title. Print PDF URLs live in the
+  `LULU_PRINT_FILES` secret, not in source.
+- `FULFILLMENT_MODE`: `off` records orders only; `sandbox` sends only Stripe
+  test-mode orders to Lulu's sandbox; `production` sends only live orders for
+  products with `productionEnabled`.
+- Schema changes go in `migrations/` (applied to tests automatically).
 
 ## Adding a surface
 

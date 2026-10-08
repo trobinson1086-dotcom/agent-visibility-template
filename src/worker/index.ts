@@ -40,6 +40,25 @@ import {
 	upsertResource,
 } from "../lib/store";
 import type { Env, RawResource } from "../lib/types";
+import { CATALOG, byKey, luluMapping } from "../fulfillment/catalog";
+import {
+	calculateCost,
+	checkAuth,
+	SHIPPING_LEVELS,
+	type ShippingLevel,
+} from "../fulfillment/lulu";
+import {
+	handleLuluWebhook,
+	handleStripeWebhook,
+	health as fulfillmentHealth,
+	luluCredentials,
+	mode as fulfillmentMode,
+	present,
+	reconcile,
+	refresh,
+	retry,
+} from "../fulfillment/service";
+import * as orders from "../fulfillment/store";
 import {
 	directoryDocument,
 	SAMPLE_AGENT_KEYS,
@@ -287,6 +306,130 @@ app.post("/api/refresh", async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// Lulu print-on-demand fulfillment (see src/fulfillment/service.ts)
+// ---------------------------------------------------------------------------
+
+app.post("/api/stripe/webhook", async (c) => {
+	const result = await handleStripeWebhook(
+		c.env,
+		await c.req.text(),
+		c.req.header("stripe-signature") ?? null,
+	);
+	if (result.background) c.executionCtx.waitUntil(result.background);
+	return c.json(result.body, result.status as 200);
+});
+
+/** Which fulfillment pieces are configured and working; never shows values. */
+app.get("/api/fulfillment/health", async (c) => {
+	return c.json(await fulfillmentHealth(c.env), 200, { "Cache-Control": "no-store" });
+});
+
+app.post("/api/lulu/webhook", async (c) => {
+	const result = await handleLuluWebhook(
+		c.env,
+		await c.req.text(),
+		c.req.header("lulu-hmac-sha256") ?? null,
+	);
+	return c.json(result.body, result.status as 200);
+});
+
+app.use("/api/admin/*", async (c, next) => {
+	if (!isAuthorized(c)) {
+		return c.json({ error: "Unauthorized. Set the ADMIN_TOKEN secret." }, 401);
+	}
+	await next();
+});
+
+/** Product → Stripe → Lulu mapping and readiness, for review before rollout. */
+app.get("/api/admin/fulfillment/catalog", (c) => {
+	return c.json({
+		mode: fulfillmentMode(c.env),
+		products: CATALOG.map((e) => ({
+			key: e.key,
+			title: e.title,
+			format: e.format,
+			stripeProductId: e.stripeProductId,
+			stripePriceId: e.stripePriceId,
+			physical: e.physical,
+			lulu: e.physical ? (luluMapping(e) ?? "FULFILLMENT_MAPPING_REQUIRED") : "NOT_PHYSICAL",
+			productionEnabled: e.productionEnabled,
+		})),
+	});
+});
+
+app.get("/api/admin/fulfillments", async (c) => {
+	if (!c.env.ORDERS_DB) return c.json({ error: "ORDERS_DB not configured" }, 503);
+	const limit = Number(c.req.query("limit") ?? 50) || 50;
+	return c.json({ orders: (await orders.list(c.env.ORDERS_DB, limit)).map(present) });
+});
+
+app.get("/api/admin/fulfillments/:id", async (c) => {
+	if (!c.env.ORDERS_DB) return c.json({ error: "ORDERS_DB not configured" }, 503);
+	const rec = await orders.get(c.env.ORDERS_DB, c.req.param("id"));
+	return rec ? c.json(present(rec)) : c.json({ error: "Not found" }, 404);
+});
+
+app.post("/api/admin/fulfillments/:id/retry", async (c) => {
+	const rec = await retry(c.env, c.req.param("id"));
+	return rec ? c.json(present(rec)) : c.json({ error: "Not found" }, 404);
+});
+
+app.post("/api/admin/fulfillments/:id/refresh", async (c) => {
+	const rec = await refresh(c.env, c.req.param("id"));
+	return rec ? c.json(present(rec)) : c.json({ error: "Not found" }, 404);
+});
+
+/** Check that the Lulu credentials for the current mode authenticate. */
+app.post("/api/admin/lulu/check", async (c) => {
+	const creds = luluCredentials(c.env, true);
+	if (!creds) return c.json({ ok: false, error: "Lulu keys are not configured" }, 400);
+	try {
+		await checkAuth(creds);
+		return c.json({ ok: true, environment: creds.mode });
+	} catch (err) {
+		return c.json({ ok: false, error: (err as Error).message }, 502);
+	}
+});
+
+/** Lulu print + shipping quote for a mapped product (no order is created). */
+app.post("/api/admin/lulu/quote", async (c) => {
+	const creds = luluCredentials(c.env, true);
+	if (!creds) return c.json({ error: "Lulu keys are not configured" }, 400);
+	const body = (await c.req.json().catch(() => ({}))) as {
+		key?: string;
+		quantity?: number;
+		shippingLevel?: string;
+		address?: Record<string, string>;
+	};
+	const entry = body.key ? byKey(body.key) : undefined;
+	const spec = entry && luluMapping(entry);
+	if (!entry || !spec) {
+		return c.json({ error: "Unknown or unmapped product (FULFILLMENT_MAPPING_REQUIRED)" }, 400);
+	}
+	const level = (body.shippingLevel ?? "GROUND").toUpperCase() as ShippingLevel;
+	if (!SHIPPING_LEVELS.includes(level)) return c.json({ error: "Invalid shipping level" }, 400);
+	const a = body.address ?? {};
+	try {
+		const quote = await calculateCost(
+			creds,
+			[{ pod_package_id: spec.podPackageId, page_count: spec.pageCount, quantity: Math.max(1, Math.trunc(body.quantity ?? 1)) }],
+			{
+				street1: a.street1 ?? "",
+				city: a.city ?? "",
+				state_code: a.state_code ?? "",
+				postcode: a.postcode ?? "",
+				country_code: (a.country_code ?? "US").toUpperCase(),
+				phone_number: a.phone_number,
+			},
+			level,
+		);
+		return c.json({ environment: creds.mode, shippingLevel: level, quote });
+	} catch (err) {
+		return c.json({ error: (err as Error).message }, 502);
+	}
+});
+
+// ---------------------------------------------------------------------------
 // OPTIONAL — Web Bot Auth identity surface (off by default)
 // ---------------------------------------------------------------------------
 
@@ -307,5 +450,6 @@ export default {
 	fetch: app.fetch,
 	async scheduled(_controller, env, ctx) {
 		ctx.waitUntil(rebuildCache(env));
+		ctx.waitUntil(reconcile(env));
 	},
 } satisfies ExportedHandler<Env>;
