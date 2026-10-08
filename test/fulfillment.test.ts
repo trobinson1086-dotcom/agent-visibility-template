@@ -45,7 +45,7 @@ function sandboxEnv(overrides: Partial<Env> = {}): Env {
 				interior: "https://files.example.com/book1-interior.pdf",
 			},
 		}),
-		LULU_SHIPPING_LEVEL: "GROUND",
+		LULU_SHIPPING_LEVEL: "MAIL",
 		FULFILLMENT_CONTACT_EMAIL: "orders@squishman.com",
 		...overrides,
 	};
@@ -332,7 +332,7 @@ describe("Book 1 Paperback → Lulu sandbox", () => {
 		expect(lulu.lastCreate).toEqual({
 			external_id: "cs_test_book1",
 			contact_email: "orders@squishman.com",
-			shipping_level: "GROUND",
+			shipping_level: "MAIL",
 			shipping_address: {
 				name: "Pat Parent",
 				street1: "100 Maple St",
@@ -509,7 +509,7 @@ describe("configuration health check", () => {
 				coverSize: "17.38 x 11.25 inch",
 				costForOneCopyToWashingtonDC: {
 					MAIL: { total: "9.87", shipping: "4.99", currency: "USD" },
-					GROUND: { total: "9.87", shipping: "4.99", currency: "USD" },
+					PRIORITY_MAIL: { total: "9.87", shipping: "4.99", currency: "USD" },
 					EXPEDITED: { total: "9.87", shipping: "4.99", currency: "USD" },
 				},
 			},

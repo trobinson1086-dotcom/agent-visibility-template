@@ -58,7 +58,7 @@ export function mode(env: Env): FulfillmentMode {
 
 function shippingLevel(env: Env): ShippingLevel {
 	const l = (env.LULU_SHIPPING_LEVEL ?? "").trim().toUpperCase() as ShippingLevel;
-	return SHIPPING_LEVELS.includes(l) ? l : "GROUND";
+	return SHIPPING_LEVELS.includes(l) ? l : "MAIL";
 }
 
 /**
@@ -205,7 +205,7 @@ async function book1Check(creds: LuluCredentials): Promise<Record<string, unknow
 		out.coverSize = `error: ${errorDetail(err).slice(0, 200)}`;
 	}
 	const quotes: Record<string, unknown> = {};
-	for (const level of ["MAIL", "GROUND", "EXPEDITED"] as const) {
+	for (const level of ["MAIL", "PRIORITY_MAIL", "EXPEDITED"] as const) {
 		try {
 			const q = (await calculateCost(
 				creds,

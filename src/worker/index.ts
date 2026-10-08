@@ -406,7 +406,7 @@ app.post("/api/admin/lulu/quote", async (c) => {
 	if (!entry || !spec) {
 		return c.json({ error: "Unknown or unmapped product (FULFILLMENT_MAPPING_REQUIRED)" }, 400);
 	}
-	const level = (body.shippingLevel ?? "GROUND").toUpperCase() as ShippingLevel;
+	const level = (body.shippingLevel ?? "MAIL").toUpperCase() as ShippingLevel;
 	if (!SHIPPING_LEVELS.includes(level)) return c.json({ error: "Invalid shipping level" }, 400);
 	const a = body.address ?? {};
 	try {
