@@ -67,8 +67,26 @@ function shippingLevel(env: Env): ShippingLevel {
 export function luluCredentials(env: Env, checksOnly = false): LuluCredentials | null {
 	const m = mode(env);
 	const target = m === "off" ? (checksOnly ? "sandbox" : null) : m;
-	if (!target || !env.LULU_CLIENT_KEY || !env.LULU_CLIENT_SECRET) return null;
-	return { clientKey: env.LULU_CLIENT_KEY, clientSecret: env.LULU_CLIENT_SECRET, mode: target };
+	// Trim: keys pasted on a phone often pick up a trailing space or newline.
+	const clientKey = env.LULU_CLIENT_KEY?.trim();
+	const clientSecret = env.LULU_CLIENT_SECRET?.trim();
+	if (!target || !clientKey || !clientSecret) return null;
+	return { clientKey, clientSecret, mode: target };
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Describe a pasted Lulu key without revealing it. Lulu client keys and
+ * secrets are both UUIDs; the "Base64" string on the same page is not one.
+ */
+function luluKeyShape(raw: string | undefined): string {
+	if (!raw) return "missing";
+	const v = raw.trim();
+	const note = v === raw ? "" : " (had extra spaces, trimmed)";
+	if (UUID_RE.test(v)) return `looks right${note}`;
+	if (/^[A-Za-z0-9+/]{60,}={0,2}$/.test(v)) return `looks like the Base64 string, not the key${note}`;
+	return `unexpected format, ${v.length} characters${note}`;
 }
 
 const HEALTH_KEY = "fulfillment:health";
@@ -115,6 +133,8 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 	const wh = env.STRIPE_WEBHOOK_SECRET ?? "";
 	result.stripeWebhookSecret = !wh ? "missing" : wh.startsWith("whsec_") ? "configured" : "unrecognized";
 
+	result.luluClientKey = luluKeyShape(env.LULU_CLIENT_KEY);
+	result.luluClientSecret = luluKeyShape(env.LULU_CLIENT_SECRET);
 	const creds = luluCredentials(env, true);
 	if (!creds) {
 		result.lulu = "missing";
