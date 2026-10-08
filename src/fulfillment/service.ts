@@ -135,6 +135,9 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 
 	result.luluClientKey = luluKeyShape(env.LULU_CLIENT_KEY);
 	result.luluClientSecret = luluKeyShape(env.LULU_CLIENT_SECRET);
+	if (env.LULU_CLIENT_KEY && env.LULU_CLIENT_KEY.trim() === env.LULU_CLIENT_SECRET?.trim()) {
+		result.luluKeyAndSecretIdentical = true;
+	}
 	const creds = luluCredentials(env, true);
 	if (!creds) {
 		result.lulu = "missing";
@@ -145,6 +148,16 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 			result.lulu = "ok";
 		} catch (err) {
 			result.lulu = err instanceof LuluError ? `auth_failed (HTTP ${err.status})` : "unreachable";
+			// Keys from developers.lulu.com only work against production. A login
+			// alone creates nothing; it just tells Travis which site they came from.
+			if (creds.mode === "sandbox" && err instanceof LuluError) {
+				try {
+					await checkAuth({ ...creds, mode: "production" });
+					result.luluKeysAreFor = "production (developers.lulu.com), not the sandbox";
+				} catch {
+					result.luluKeysAreFor = "neither sandbox nor production";
+				}
+			}
 		}
 	}
 
