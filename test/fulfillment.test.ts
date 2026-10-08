@@ -23,6 +23,7 @@ const LULU_SECRET = "3395bde8-0d24-4d47-aa4c-c84c76248dbc";
 const BOOK1_PAPERBACK = "price_1UNmh49cRroVv8pkheBXH7ag";
 const BOOK1_EBOOK = "price_1UNmnk9cRroVv8pkjzdKzEBB";
 const BOOK2_PAPERBACK = "price_1UNmqj9cRroVv8pkgo2woTcw";
+const PROD_ONLY_KEY = "aaaaaaaa-1111-2222-3333-444444444444";
 
 // Test-only Lulu specs for Book 1 Paperback. The shipped catalog keeps it
 // FULFILLMENT_MAPPING_REQUIRED until Travis confirms the real values.
@@ -129,7 +130,12 @@ beforeAll(() => {
 	const sandbox = fetchMock.get("https://api.sandbox.lulu.com");
 	sandbox
 		.intercept({ path: "/auth/realms/glasstree/protocol/openid-connect/token", method: "POST" })
-		.reply(200, JSON.stringify({ access_token: "tok", expires_in: 3600 }))
+		.reply((opts) =>
+			// Keys made for production are rejected by the sandbox.
+			JSON.stringify(opts.headers).includes(btoa(`${PROD_ONLY_KEY}:${PROD_ONLY_KEY}`))
+				? { statusCode: 401, data: JSON.stringify({ error: "invalid_client" }) }
+				: { statusCode: 200, data: JSON.stringify({ access_token: "tok", expires_in: 3600 }) },
+		)
 		.persist();
 	sandbox
 		.intercept({ path: "/print-job-cost-calculations/", method: "POST" })
@@ -521,3 +527,26 @@ describe("configuration health check", () => {
 		});
 	});
 });
+
+describe("Lulu key diagnosis", () => {
+	it("tells production keys apart from sandbox keys without creating anything", async () => {
+		const prod = fetchMock.get("https://api.lulu.com");
+		prod
+			.intercept({ path: "/auth/realms/glasstree/protocol/openid-connect/token", method: "POST" })
+			.reply(200, JSON.stringify({ access_token: "prod-tok", expires_in: 3600 }));
+		const result = await health(
+			sandboxEnv({
+				FULFILLMENT_MODE: "off",
+				LULU_CLIENT_KEY: PROD_ONLY_KEY,
+				LULU_CLIENT_SECRET: PROD_ONLY_KEY,
+			}),
+		);
+		expect(result).toMatchObject({
+			luluKeyAndSecretIdentical: true,
+			lulu: "auth_failed (HTTP 401)",
+			luluKeysAreFor: "production (developers.lulu.com), not the sandbox",
+		});
+		expect(JSON.stringify(result)).not.toContain("aaaaaaaa");
+	});
+});
+
