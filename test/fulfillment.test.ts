@@ -9,6 +9,7 @@ import { hmacSha256, toHex } from "../src/fulfillment/crypto";
 import {
 	handleLuluWebhook,
 	handleStripeWebhook,
+	health,
 	retry,
 } from "../src/fulfillment/service";
 import * as store from "../src/fulfillment/store";
@@ -119,6 +120,11 @@ beforeAll(() => {
 			const s = sessions.get(id);
 			return s ? { statusCode: 200, data: JSON.stringify(s) } : { statusCode: 404, data: "{}" };
 		})
+		.persist();
+	fetchMock
+		.get("https://api.stripe.com")
+		.intercept({ path: "/v1/checkout/sessions?limit=1", method: "GET" })
+		.reply(200, JSON.stringify({ object: "list", data: [] }))
 		.persist();
 	const sandbox = fetchMock.get("https://api.sandbox.lulu.com");
 	sandbox
@@ -470,5 +476,33 @@ describe("Lulu status and tracking", () => {
 		const track = json.orders.find((o) => o.stripeSessionId === "cs_test_track");
 		expect(track).toMatchObject({ status: "DELIVERED", carrier: "UPS", trackingId: "1Z999", luluPrintJobId: expect.any(String) });
 		expect(JSON.stringify(json)).not.toMatch(/card|cvc|whsec|rk_test|lulu-client-secret/i);
+	});
+});
+
+describe("configuration health check", () => {
+	it("reports what is configured and working while fulfillment is off, without values", async () => {
+		const result = await health(sandboxEnv({ FULFILLMENT_MODE: "off" }));
+		expect(result).toEqual({
+			mode: "off",
+			ordersDb: "ok",
+			stripeSecretKey: "test",
+			stripeKeyCanReadCheckout: true,
+			stripeWebhookSecret: "configured",
+			lulu: "ok",
+			luluEnvironment: "sandbox",
+		});
+		expect(JSON.stringify(result)).not.toMatch(/rk_test_dummy|whsec_test|lulu-client/);
+	});
+
+	it("is served publicly and flags missing keys", async () => {
+		const res = await SELF.fetch(`${BASE}/api/fulfillment/health`);
+		expect(res.status).toBe(200);
+		expect(await res.json()).toMatchObject({
+			mode: "off",
+			ordersDb: "ok",
+			stripeSecretKey: "missing",
+			stripeWebhookSecret: "missing",
+			lulu: "missing",
+		});
 	});
 });

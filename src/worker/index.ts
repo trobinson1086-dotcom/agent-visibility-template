@@ -50,6 +50,7 @@ import {
 import {
 	handleLuluWebhook,
 	handleStripeWebhook,
+	health as fulfillmentHealth,
 	luluCredentials,
 	mode as fulfillmentMode,
 	present,
@@ -318,6 +319,11 @@ app.post("/api/stripe/webhook", async (c) => {
 	return c.json(result.body, result.status as 200);
 });
 
+/** Which fulfillment pieces are configured and working; never shows values. */
+app.get("/api/fulfillment/health", async (c) => {
+	return c.json(await fulfillmentHealth(c.env), 200, { "Cache-Control": "no-store" });
+});
+
 app.post("/api/lulu/webhook", async (c) => {
 	const result = await handleLuluWebhook(
 		c.env,
@@ -375,8 +381,8 @@ app.post("/api/admin/fulfillments/:id/refresh", async (c) => {
 
 /** Check that the Lulu credentials for the current mode authenticate. */
 app.post("/api/admin/lulu/check", async (c) => {
-	const creds = luluCredentials(c.env);
-	if (!creds) return c.json({ ok: false, error: "Lulu not configured or mode is off" }, 400);
+	const creds = luluCredentials(c.env, true);
+	if (!creds) return c.json({ ok: false, error: "Lulu keys are not configured" }, 400);
 	try {
 		await checkAuth(creds);
 		return c.json({ ok: true, environment: creds.mode });
@@ -387,8 +393,8 @@ app.post("/api/admin/lulu/check", async (c) => {
 
 /** Lulu print + shipping quote for a mapped product (no order is created). */
 app.post("/api/admin/lulu/quote", async (c) => {
-	const creds = luluCredentials(c.env);
-	if (!creds) return c.json({ error: "Lulu not configured or mode is off" }, 400);
+	const creds = luluCredentials(c.env, true);
+	if (!creds) return c.json({ error: "Lulu keys are not configured" }, 400);
 	const body = (await c.req.json().catch(() => ({}))) as {
 		key?: string;
 		quantity?: number;

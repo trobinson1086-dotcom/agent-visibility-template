@@ -15,6 +15,7 @@ import type { Env } from "../lib/types";
 import { byKey, byPriceId, luluMapping, printFiles } from "./catalog";
 import {
 	calculateCost,
+	checkAuth,
 	createPrintJob,
 	findPrintJobs,
 	getPrintJob,
@@ -59,10 +60,76 @@ function shippingLevel(env: Env): ShippingLevel {
 	return SHIPPING_LEVELS.includes(l) ? l : "GROUND";
 }
 
-export function luluCredentials(env: Env): LuluCredentials | null {
+/**
+ * Lulu credentials for the current mode. `checksOnly` (auth checks and quotes,
+ * which never create orders) falls back to the sandbox while fulfillment is off.
+ */
+export function luluCredentials(env: Env, checksOnly = false): LuluCredentials | null {
 	const m = mode(env);
-	if (m === "off" || !env.LULU_CLIENT_KEY || !env.LULU_CLIENT_SECRET) return null;
-	return { clientKey: env.LULU_CLIENT_KEY, clientSecret: env.LULU_CLIENT_SECRET, mode: m };
+	const target = m === "off" ? (checksOnly ? "sandbox" : null) : m;
+	if (!target || !env.LULU_CLIENT_KEY || !env.LULU_CLIENT_SECRET) return null;
+	return { clientKey: env.LULU_CLIENT_KEY, clientSecret: env.LULU_CLIENT_SECRET, mode: target };
+}
+
+const HEALTH_KEY = "fulfillment:health";
+const HEALTH_TTL = 300;
+
+/**
+ * Configuration check that reveals no values: which pieces are set up and
+ * whether the Stripe and Lulu credentials actually authenticate. Cached in KV
+ * for 5 minutes so the public route can't be used to hammer either API.
+ */
+export async function health(env: Env): Promise<Record<string, unknown>> {
+	const cached = await env.VISIBILITY_CACHE.get(HEALTH_KEY, "json");
+	if (cached) return { ...(cached as Record<string, unknown>), cached: true };
+
+	const result: Record<string, unknown> = { mode: mode(env) };
+
+	try {
+		await env.ORDERS_DB?.prepare("SELECT COUNT(*) AS n FROM fulfillments").first();
+		result.ordersDb = env.ORDERS_DB ? "ok" : "missing";
+	} catch {
+		result.ordersDb = "error";
+	}
+
+	const sk = env.STRIPE_SECRET_KEY ?? "";
+	result.stripeSecretKey = !sk
+		? "missing"
+		: /^(rk|sk)_test_/.test(sk)
+			? "test"
+			: /^(rk|sk)_live_/.test(sk)
+				? "live"
+				: "unrecognized";
+	if (sk) {
+		try {
+			const res = await fetch("https://api.stripe.com/v1/checkout/sessions?limit=1", {
+				headers: { Authorization: `Bearer ${sk}` },
+				signal: AbortSignal.timeout(10_000),
+			});
+			result.stripeKeyCanReadCheckout = res.ok;
+		} catch {
+			result.stripeKeyCanReadCheckout = false;
+		}
+	}
+
+	const wh = env.STRIPE_WEBHOOK_SECRET ?? "";
+	result.stripeWebhookSecret = !wh ? "missing" : wh.startsWith("whsec_") ? "configured" : "unrecognized";
+
+	const creds = luluCredentials(env, true);
+	if (!creds) {
+		result.lulu = "missing";
+	} else {
+		result.luluEnvironment = creds.mode;
+		try {
+			await checkAuth(creds);
+			result.lulu = "ok";
+		} catch (err) {
+			result.lulu = err instanceof LuluError ? `auth_failed (HTTP ${err.status})` : "unreachable";
+		}
+	}
+
+	await env.VISIBILITY_CACHE.put(HEALTH_KEY, JSON.stringify(result), { expirationTtl: HEALTH_TTL });
+	return result;
 }
 
 /** Safe operational log line: identifiers and states only, never addresses. */

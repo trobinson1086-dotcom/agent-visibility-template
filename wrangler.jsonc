@@ -30,6 +30,15 @@
 	"ai": {
 		"binding": "AI"
 	},
+	"d1_databases": [
+		{
+			// Fulfillment order records (src/fulfillment/store.ts, migrations/).
+			"binding": "ORDERS_DB",
+			"database_name": "squishman-orders",
+			"database_id": "2a5ded37-5432-4af6-964c-6943a41f2d49",
+			"migrations_dir": "migrations"
+		}
+	],
 	"kv_namespaces": [
 		{
 			"binding": "VISIBILITY_CACHE",

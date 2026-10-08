@@ -21,8 +21,6 @@ export default defineWorkersProject(async () => {
 					miniflare: {
 						// Provide the admin secret for the mutating-route tests.
 						bindings: { ADMIN_TOKEN: "test-token", TEST_MIGRATIONS: migrations },
-						// Fulfillment order records (no real database in tests).
-						d1Databases: ["ORDERS_DB"],
 					},
 				},
 			},
