@@ -18,6 +18,9 @@ import {
 	checkAuth,
 	coverDimensions,
 	createPrintJob,
+	getValidation,
+	validateCover,
+	validateInterior,
 	findPrintJobs,
 	getPrintJob,
 	type LuluCredentials,
@@ -168,7 +171,7 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 				? "production"
 				: null;
 	if (creds && checkEnv) {
-		result.book1Paperback = await book1Check({ ...creds, mode: checkEnv });
+		result.book1Paperback = await book1Check(env, { ...creds, mode: checkEnv });
 	}
 
 	await env.VISIBILITY_CACHE.put(HEALTH_KEY, JSON.stringify(result), { expirationTtl: HEALTH_TTL });
@@ -189,7 +192,7 @@ const SAMPLE_US_ADDRESS = {
  * Read-only Lulu checks for Book 1 Paperback: exact cover size and the real
  * cost of one copy at each common shipping level. Creates nothing.
  */
-async function book1Check(creds: LuluCredentials): Promise<Record<string, unknown>> {
+async function book1Check(env: Env, creds: LuluCredentials): Promise<Record<string, unknown>> {
 	const entry = byKey("EN-PAPERBACK-1");
 	const spec = entry && luluMapping(entry);
 	if (!spec) return { status: "FULFILLMENT_MAPPING_REQUIRED" };
@@ -231,7 +234,51 @@ async function book1Check(creds: LuluCredentials): Promise<Record<string, unknow
 		}
 	}
 	out.costForOneCopyToWashingtonDC = quotes;
+	out.printFiles = await validateFiles(env, creds, "EN-PAPERBACK-1", spec.podPackageId, spec.pageCount);
 	return out;
+}
+
+/**
+ * Run Lulu's file checks once per set of file URLs (job ids kept in KV for
+ * two days) and report their latest status. Read-only: no print job.
+ */
+async function validateFiles(
+	env: Env,
+	creds: LuluCredentials,
+	key: string,
+	podPackageId: string,
+	pageCount: number,
+): Promise<Record<string, unknown> | string> {
+	const files = printFiles(env.LULU_PRINT_FILES, key);
+	if (!files) return "not configured (LULU_PRINT_FILES)";
+	const digest = new Uint8Array(
+		await crypto.subtle.digest(
+			"SHA-256",
+			new TextEncoder().encode(`${creds.mode}|${podPackageId}|${pageCount}|${files.interior}|${files.cover}`),
+		),
+	);
+	const kvKey = `fulfillment:validation:${key}:${[...digest.slice(0, 8)].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+	let jobs = (await env.VISIBILITY_CACHE.get(kvKey, "json")) as { interior: number; cover: number } | null;
+	try {
+		if (!jobs) {
+			const [i, c] = await Promise.all([
+				validateInterior(creds, files.interior, podPackageId),
+				validateCover(creds, files.cover, podPackageId, pageCount),
+			]);
+			jobs = { interior: i.id, cover: c.id };
+			await env.VISIBILITY_CACHE.put(kvKey, JSON.stringify(jobs), { expirationTtl: 2 * 86400 });
+		}
+		const [i, c] = await Promise.all([
+			getValidation(creds, "interior", jobs.interior),
+			getValidation(creds, "cover", jobs.cover),
+		]);
+		return {
+			interior: { status: i.status, pageCount: i.page_count, errors: i.errors ?? null },
+			cover: { status: c.status, errors: c.errors ?? null },
+		};
+	} catch (err) {
+		return `error: ${errorDetail(err).slice(0, 300)}`;
+	}
 }
 
 /** Safe operational log line: identifiers and states only, never addresses. */

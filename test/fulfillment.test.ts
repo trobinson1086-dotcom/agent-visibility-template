@@ -61,6 +61,7 @@ const lulu = {
 	lastCreate: null as Record<string, unknown> | null,
 	existingJobs: [] as Array<Record<string, unknown>>,
 	costCalls: 0,
+	validations: 0,
 };
 
 function session(
@@ -152,6 +153,28 @@ beforeAll(() => {
 		})
 		.persist();
 	sandbox
+		.intercept({ path: "/validate-interior/", method: "POST" })
+		.reply(() => {
+			lulu.validations++;
+			return { statusCode: 201, data: JSON.stringify({ id: 11, status: "VALIDATING" }) };
+		})
+		.persist();
+	sandbox
+		.intercept({ path: "/validate-cover/", method: "POST" })
+		.reply(() => {
+			lulu.validations++;
+			return { statusCode: 201, data: JSON.stringify({ id: 22, status: "NORMALIZING" }) };
+		})
+		.persist();
+	sandbox
+		.intercept({ path: "/validate-interior/11/", method: "GET" })
+		.reply(200, JSON.stringify({ id: 11, status: "VALIDATED", page_count: 32, errors: null }))
+		.persist();
+	sandbox
+		.intercept({ path: "/validate-cover/22/", method: "GET" })
+		.reply(200, JSON.stringify({ id: 22, status: "NORMALIZED", errors: null }))
+		.persist();
+	sandbox
 		.intercept({ path: "/cover-dimensions/", method: "POST" })
 		.reply(200, JSON.stringify({ width: "17.38", height: "11.25", unit: "inch" }))
 		.persist();
@@ -183,6 +206,7 @@ afterAll(() => {
 beforeEach(() => {
 	lulu.creates = 0;
 	lulu.costCalls = 0;
+	lulu.validations = 0;
 	lulu.createStatus = 201;
 	lulu.lastCreate = null;
 	lulu.existingJobs = [];
@@ -512,8 +536,17 @@ describe("configuration health check", () => {
 					PRIORITY_MAIL: { total: "9.87", shipping: "4.99", currency: "USD" },
 					EXPEDITED: { total: "9.87", shipping: "4.99", currency: "USD" },
 				},
+				printFiles: {
+					interior: { status: "VALIDATED", pageCount: 32, errors: null },
+					cover: { status: "NORMALIZED", errors: null },
+				},
 			},
 		});
+		// File checks start once per set of files, then only their status is read.
+		expect(lulu.validations).toBe(2);
+		await env.VISIBILITY_CACHE.delete("fulfillment:health");
+		await health(sandboxEnv({ FULFILLMENT_MODE: "off" }));
+		expect(lulu.validations).toBe(2);
 		expect(JSON.stringify(result)).not.toMatch(/rk_test_dummy|whsec_test|f2c47f17|3395bde8/);
 	});
 
