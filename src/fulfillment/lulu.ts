@@ -176,6 +176,49 @@ export function coverDimensions(
 	});
 }
 
+export interface FileValidation {
+	id: number;
+	status?: string;
+	page_count?: number | null;
+	errors?: unknown;
+	valid_pod_package_ids?: string[] | null;
+}
+
+/** POST /validate-interior/ — Lulu downloads and checks the interior PDF (async). */
+export function validateInterior(
+	c: LuluCredentials,
+	sourceUrl: string,
+	podPackageId: string,
+): Promise<FileValidation> {
+	return luluFetch(c, "POST", "/validate-interior/", {
+		source_url: sourceUrl,
+		pod_package_id: podPackageId,
+	});
+}
+
+/** POST /validate-cover/ — Lulu downloads and checks the cover PDF (async). */
+export function validateCover(
+	c: LuluCredentials,
+	sourceUrl: string,
+	podPackageId: string,
+	interiorPageCount: number,
+): Promise<FileValidation> {
+	return luluFetch(c, "POST", "/validate-cover/", {
+		source_url: sourceUrl,
+		pod_package_id: podPackageId,
+		interior_page_count: interiorPageCount,
+	});
+}
+
+/** GET /validate-interior/{id}/ or /validate-cover/{id}/ */
+export function getValidation(
+	c: LuluCredentials,
+	kind: "interior" | "cover",
+	id: number,
+): Promise<FileValidation> {
+	return luluFetch(c, "GET", `/validate-${kind}/${id}/`);
+}
+
 /** GET /print-jobs/{id}/ */
 export function getPrintJob(c: LuluCredentials, id: string): Promise<LuluPrintJob> {
 	return luluFetch(c, "GET", `/print-jobs/${encodeURIComponent(id)}/`);

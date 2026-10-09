@@ -54,7 +54,8 @@
 		"ENABLE_WEB_BOT_AUTH": "false",
 		// Lulu fulfillment: "off" | "sandbox" | "production". Off until Book 1 passes testing.
 		"FULFILLMENT_MODE": "off",
-		"LULU_SHIPPING_LEVEL": "GROUND",
+		// GROUND is not offered for Book 1 (8.5x11 paperback) to the US; MAIL is.
+		"LULU_SHIPPING_LEVEL": "MAIL",
 		"FULFILLMENT_CONTACT_EMAIL": "orders@squishman.com"
 	}
 }
