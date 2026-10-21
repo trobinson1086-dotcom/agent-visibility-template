@@ -598,7 +598,13 @@ describe("configuration health check", () => {
 			printful: {
 				status: "ok",
 				storeProducts: 0,
-				printFiles: { frontBanner: "ok", backCrown: "ok", mapleHollowLogo: "ok", mug_default: "missing" },
+				printFiles: {
+					frontBanner: "ok",
+					backCrown: "ok",
+					mapleHollowLogo: "ok",
+					mugWrapMapleCrown: "ok",
+					mug_default: "missing",
+				},
 			},
 			merchCheckout: "off",
 			luluClientKey: "set (id format)",
@@ -709,16 +715,27 @@ describe("merch catalog", () => {
 			}
 		}
 		const prices = (key: string) => merchProduct(key)!.designs.map((d) => [d.key, d.priceCents]);
-		expect(prices("TEE")).toEqual([["FULL", 2999], ["PUDY", 2699], ["LOGO", 2699], ["MAPLE", 2699]]);
-		expect(prices("HOODIE")).toEqual([["FULL", 4999], ["PUDY", 4699], ["LOGO", 4699], ["MAPLE", 4699]]);
-		expect(prices("LONGSLEEVE")).toEqual([["FULL", 3299], ["PUDY", 2999], ["LOGO", 2999], ["MAPLE", 2999]]);
-		expect(prices("MUG")).toEqual([["FULL", 1999], ["PUDY", 1799], ["LOGO", 1799], ["MAPLE", 1799]]);
+		const five = (full: number, one: number) => [
+			["FULL", full],
+			["PUDY", one],
+			["LOGO", one],
+			["MAPLE", one],
+			["MAPLECROWN", full],
+		];
+		expect(prices("TEE")).toEqual(five(2999, 2699));
+		expect(prices("HOODIE")).toEqual(five(4999, 4699));
+		expect(prices("LONGSLEEVE")).toEqual(five(3299, 2999));
+		expect(prices("MUG")).toEqual(five(1999, 1799));
 		// The single-artwork designs print only that artwork, on the front.
 		for (const p of [tee, hoodie, longSleeve]) {
 			const files = (k: string) => p.designs.find((d) => d.key === k)!.files.map((f) => [f.type, f.fileId]);
 			expect(files("PUDY")).toEqual([["front", 1090848214]]);
 			expect(files("LOGO")).toEqual([["front", 1090848220]]);
 			expect(files("MAPLE")).toEqual([["front", 1090919465]]);
+			expect(files("MAPLECROWN")).toEqual([
+				["front", 1090919465],
+				["back", 1090848220],
+			]);
 		}
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
 		const ids = MERCH.flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
@@ -764,16 +781,17 @@ describe("merch checkout", () => {
 		};
 		expect(json.checkout).toBe("off");
 		expect(json.products.map((p) => [p.key, ...p.designs.map((d) => d.priceCents)])).toEqual([
-			["TEE", 2999, 2699, 2699, 2699],
-			["HOODIE", 4999, 4699, 4699, 4699],
-			["LONGSLEEVE", 3299, 2999, 2999, 2999],
-			["MUG", 1999, 1799, 1799, 1799],
+			["TEE", 2999, 2699, 2699, 2699, 2999],
+			["HOODIE", 4999, 4699, 4699, 4699, 4999],
+			["LONGSLEEVE", 3299, 2999, 2999, 2999, 3299],
+			["MUG", 1999, 1799, 1799, 1799, 1999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
 			"Squish Man & Pudy only (front)",
 			"Crown logo only (front)",
 			"Maple Hollow logo only (front)",
+			"Maple Hollow logo front, crown logo back",
 		]);
 		expect(json.products[0].colors.map((c) => c.name)).toContain("Royal Blue");
 		const pink = json.products[2].colors.find((c) => c.name === "Pink");
@@ -921,6 +939,23 @@ describe("merch orders → Printful", () => {
 			},
 		]);
 		expect(printful.creates).toBe(2);
+	});
+
+	it("sends Maple Hollow + crown orders with the logo front and the crown back", async () => {
+		merchSession("cs_test_maplecrown", "HOODIE|Black|XL|MAPLECROWN");
+		await deliver(sandboxEnv(), paidEvent("cs_test_maplecrown"));
+		const item = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0];
+		expect(item).toMatchObject({ variant_id: 5533, name: "Squish Squad Hoodie, Maple Hollow + Crown — Black, XL", retail_price: "49.99" });
+		expect((item.files as Array<{ type: string; id: number }>).map((f) => [f.type, f.id])).toEqual([
+			["front", 1090919465],
+			["back", 1090848220],
+		]);
+		merchSession("cs_test_maplecrownmug", "MUG|White|11 oz|MAPLECROWN");
+		const mug = await deliver(sandboxEnv(), paidEvent("cs_test_maplecrownmug"));
+		expect(mug.body).toMatchObject({ fulfillment: "submitting" });
+		expect((printful.lastCreate as { items: Array<{ files: unknown[] }> }).items[0].files).toEqual([
+			{ type: "default", id: 1090966931 },
+		]);
 	});
 
 	it("sends Maple Hollow logo orders with just that logo on the front", async () => {

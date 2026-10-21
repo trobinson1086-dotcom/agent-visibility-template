@@ -85,18 +85,22 @@ const SHOP={
 };
 const slug=s=>s.toLowerCase().replace(/\s+/g,'-');
 const money=c=>'$'+(c/100).toFixed(2);
-// Every shop product comes in four designs: the full design (FULL: Squish Man
+// Every shop product comes in five designs: the full design (FULL: Squish Man
 // & Pudy front, crown logo back), Squish Man & Pudy alone (PUDY), the crown
-// logo alone (LOGO) or the Maple Hollow logo alone (MAPLE), each with its own
-// price and photos.
+// logo alone (LOGO), the Maple Hollow logo alone (MAPLE) or the Maple Hollow
+// logo front with the crown logo back (MAPLECROWN), each with its own price
+// and photos.
 const design=p=>p.shop.designs[p.design||0];
 const unit=(p,size)=>design(p).priceCents+(p.shop.sizeUpchargeCents[size]||0);
-const DESIGN_NOTE='Every shirt, long sleeve, hoodie and mug comes in four designs: the full design with Squish Man & Pudy on the front and the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, or The Amazing Adventures of Squish Man – Maple Hollow logo.';
-const DESIGN_TITLE={FULL:'Full Design',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo',MAPLE:'Maple Hollow Logo'};
+const DESIGN_NOTE='Every shirt, long sleeve, hoodie and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back.';
+const DESIGN_TITLE={FULL:'Squish Man & Pudy + Crown',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo',MAPLE:'Maple Hollow Logo',MAPLECROWN:'Maple Hollow + Crown'};
+// Designs that print on both sides (front + back, or both sides of the mug).
+const TWO_SIDED=new Set(['FULL','MAPLECROWN']);
 const DESIGN_ART={PUDY:'Squish Man and Pudy',LOGO:'the crown logo',MAPLE:'the Squish Man Maple Hollow logo'};
 function shopColors(p){
- const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple'}[k];
+ const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown'}[k];
  const alt=c=>k==='FULL'?`${p.name} in ${c}: front and back, as printed by our print partner`
+  :k==='MAPLECROWN'?`${p.name} in ${c}: the Maple Hollow logo on the front and the crown logo on the back`
   :`${p.name} in ${c} with ${DESIGN_ART[k]} on the front, and a close-up of the artwork`;
  return p.shop.colors.map(c=>[c.name,c.hex,img(`shop-${p.imgBase}-${slug(c.name)}${suffix}`,1400,700,720,360,alt(c.name.toLowerCase()))]);
 }
@@ -121,7 +125,7 @@ function cardHtml(p,n){
 const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
 const sizeLabel=(m,v)=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v;
 const colorSizes=p=>p.shop.colors[p.active||0].sizes;
-const where=(m,d)=>m.key==='MUG'?(d.key==='FULL'?'both sides':'one side'):(d.key==='FULL'?'front + back':'front only');
+const where=(m,d)=>TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
 function buyHtml(p,n){
  const m=p.shop,size=colorSizes(p)[0],one=m.sizes.length===1;
  return `<p class="merch-design-note">${m.designs.length} designs to choose from</p><div class="merch-designs" role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${esc(where(m,d))} · ${money(d.priceCents)}</span></button>`).join('')}</div>
