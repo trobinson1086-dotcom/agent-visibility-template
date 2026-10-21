@@ -1,9 +1,9 @@
 /**
  * Squish Squad Shop merch fulfilled by Printful: the T-shirt, hoodie, long
  * sleeve and mug Travis approved (colors, prices and shipping as agreed on
- * 2026-10-21), each in three designs: the full design (Squish Man & Pudy on
- * the front, crown logo on the back), Squish Man & Pudy alone, or the crown
- * logo alone.
+ * 2026-10-21), each in four designs: the full design (Squish Man & Pudy on
+ * the front, crown logo on the back), Squish Man & Pudy alone, the crown logo
+ * alone, or the Squish Man – Maple Hollow logo alone.
  *
  * Variant ids come from Printful's catalog (products 71, 146, 57 and 19). File ids
  * are the artwork in the Printful file library, uploaded from the "Squishman
@@ -37,7 +37,7 @@ export interface MerchColor {
 	variants: Record<string, number>;
 }
 
-export type DesignKey = "FULL" | "PUDY" | "LOGO";
+export type DesignKey = "FULL" | "PUDY" | "LOGO" | "MAPLE";
 
 /** One artwork option for a product, with its own price and print files. */
 export interface MerchDesign {
@@ -52,8 +52,8 @@ export interface MerchProduct {
 	key: MerchKey;
 	name: string;
 	/**
-	 * Three designs, default first: the full design, Squish Man & Pudy alone,
-	 * or the crown logo alone.
+	 * Four designs, default first: the full design, Squish Man & Pudy alone,
+	 * the crown logo alone, or the Maple Hollow logo alone.
 	 */
 	designs: MerchDesign[];
 	/** Added to the price for sizes Printful charges more for. */
@@ -73,6 +73,8 @@ export interface MerchProduct {
 /** Banner (Squish Man & Pudy) and crown logo in the Printful file library. */
 export const FRONT_BANNER_FILE = 1090848214;
 export const BACK_CROWN_FILE = 1090848220;
+/** Squish Man – Maple Hollow logo (1774x887, public/assets/merch/print/). */
+export const MAPLE_HOLLOW_FILE = 1090919465;
 
 const SIZES = ["S", "M", "L", "XL", "2XL", "3XL"];
 const UPCHARGE = { "2XL": 200, "3XL": 400 };
@@ -97,18 +99,38 @@ const logoFront = (areaWidth: number, areaHeight: number, top: number): MerchFil
 	position: { area_width: areaWidth, area_height: areaHeight, width: 1366, height: 1152, top, left: (areaWidth - 1366) / 2 },
 });
 
+// The Maple Hollow logo alone, on the front, about 10.7 inches wide.
+const mapleFront = (areaWidth: number, areaHeight: number, top: number): MerchFile => ({
+	type: "front",
+	fileId: MAPLE_HOLLOW_FILE,
+	position: { area_width: areaWidth, area_height: areaHeight, width: 1600, height: 800, top, left: (areaWidth - 1600) / 2 },
+});
+
 // Front-only designs skip Printful's back-print charge, so they cost $3 less.
-const designs = (fullCents: number, full: MerchFile[], pudy: MerchFile[], logo: MerchFile[]): MerchDesign[] => [
+const designs = (
+	fullCents: number,
+	full: MerchFile[],
+	pudy: MerchFile[],
+	logo: MerchFile[],
+	maple: MerchFile[],
+): MerchDesign[] => [
 	{ key: "FULL", label: "Squish Man & Pudy front, crown logo back", priceCents: fullCents, files: full },
 	{ key: "PUDY", label: "Squish Man & Pudy only (front)", priceCents: fullCents - 300, files: pudy },
 	{ key: "LOGO", label: "Crown logo only (front)", priceCents: fullCents - 300, files: logo },
+	{ key: "MAPLE", label: "Maple Hollow logo only (front)", priceCents: fullCents - 300, files: maple },
 ];
 
 export const MERCH: MerchProduct[] = [
 	{
 		key: "TEE",
 		name: "Squish Squad T-Shirt",
-		designs: designs(2999, [front(1800, 2400, 150), back], [pudyFront(1800, 2400, 150)], [logoFront(1800, 2400, 150)]),
+		designs: designs(
+			2999,
+			[front(1800, 2400, 150), back],
+			[pudyFront(1800, 2400, 150)],
+			[logoFront(1800, 2400, 150)],
+			[mapleFront(1800, 2400, 150)],
+		),
 		sizeUpchargeCents: UPCHARGE,
 		shipping: { firstCents: 599, additionalCents: 249 },
 		sizes: SIZES,
@@ -125,7 +147,13 @@ export const MERCH: MerchProduct[] = [
 	{
 		key: "HOODIE",
 		name: "Squish Squad Hoodie",
-		designs: designs(4999, [front(2100, 2100, 100), back], [pudyFront(2100, 2100, 100)], [logoFront(2100, 2100, 100)]),
+		designs: designs(
+			4999,
+			[front(2100, 2100, 100), back],
+			[pudyFront(2100, 2100, 100)],
+			[logoFront(2100, 2100, 100)],
+			[mapleFront(2100, 2100, 100)],
+		),
 		sizeUpchargeCents: UPCHARGE,
 		shipping: { firstCents: 999, additionalCents: 299 },
 		sizes: SIZES,
@@ -142,7 +170,13 @@ export const MERCH: MerchProduct[] = [
 	{
 		key: "LONGSLEEVE",
 		name: "Squish Squad Long Sleeve",
-		designs: designs(3299, [front(1800, 2400, 150), back], [pudyFront(1800, 2400, 150)], [logoFront(1800, 2400, 150)]),
+		designs: designs(
+			3299,
+			[front(1800, 2400, 150), back],
+			[pudyFront(1800, 2400, 150)],
+			[logoFront(1800, 2400, 150)],
+			[mapleFront(1800, 2400, 150)],
+		),
 		sizeUpchargeCents: UPCHARGE,
 		shipping: { firstCents: 599, additionalCents: 249 },
 		sizes: SIZES,
@@ -186,6 +220,18 @@ export const MERCH: MerchProduct[] = [
 						type: "default",
 						fileId: BACK_CROWN_FILE,
 						position: { area_width: 2700, area_height: 1050, width: 1100, height: 927, top: 61, left: 1475 },
+					},
+				],
+			},
+			{
+				key: "MAPLE",
+				label: "Maple Hollow logo only",
+				priceCents: 1799,
+				files: [
+					{
+						type: "default",
+						fileId: MAPLE_HOLLOW_FILE,
+						position: { area_width: 2700, area_height: 1050, width: 1250, height: 625, top: 212, left: 1400 },
 					},
 				],
 			},
@@ -233,7 +279,9 @@ export function merchSelection(
 			? `${product.name}, Crown Logo`
 			: design.key === "PUDY"
 				? `${product.name}, Squish Man & Pudy`
-				: product.name;
+				: design.key === "MAPLE"
+					? `${product.name}, Maple Hollow Logo`
+					: product.name;
 	return {
 		product,
 		design,

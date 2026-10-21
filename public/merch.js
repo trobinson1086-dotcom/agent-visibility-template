@@ -85,17 +85,19 @@ const SHOP={
 };
 const slug=s=>s.toLowerCase().replace(/\s+/g,'-');
 const money=c=>'$'+(c/100).toFixed(2);
-// Every shop product comes in three designs: the full design (FULL: Squish Man
-// & Pudy front, crown logo back), Squish Man & Pudy alone (PUDY) or the crown
-// logo alone (LOGO), each with its own price and photos.
+// Every shop product comes in four designs: the full design (FULL: Squish Man
+// & Pudy front, crown logo back), Squish Man & Pudy alone (PUDY), the crown
+// logo alone (LOGO) or the Maple Hollow logo alone (MAPLE), each with its own
+// price and photos.
 const design=p=>p.shop.designs[p.design||0];
 const unit=(p,size)=>design(p).priceCents+(p.shop.sizeUpchargeCents[size]||0);
-const DESIGN_NOTE='Every shirt, long sleeve, hoodie and mug comes in three designs: the full design with Squish Man & Pudy on the front and the crown logo on the back, Squish Man & Pudy on their own, or just the gold crown SQUISHMAN logo for a simpler look.';
-const DESIGN_TITLE={FULL:'Full Design',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo'};
+const DESIGN_NOTE='Every shirt, long sleeve, hoodie and mug comes in four designs: the full design with Squish Man & Pudy on the front and the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, or The Amazing Adventures of Squish Man – Maple Hollow logo.';
+const DESIGN_TITLE={FULL:'Full Design',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo',MAPLE:'Maple Hollow Logo'};
+const DESIGN_ART={PUDY:'Squish Man and Pudy',LOGO:'the crown logo',MAPLE:'the Squish Man Maple Hollow logo'};
 function shopColors(p){
- const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo'}[k];
+ const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple'}[k];
  const alt=c=>k==='FULL'?`${p.name} in ${c}: front and back, as printed by our print partner`
-  :`${p.name} in ${c} with ${k==='LOGO'?'the crown logo':'Squish Man and Pudy'} on the front, and a close-up of the artwork`;
+  :`${p.name} in ${c} with ${DESIGN_ART[k]} on the front, and a close-up of the artwork`;
  return p.shop.colors.map(c=>[c.name,c.hex,img(`shop-${p.imgBase}-${slug(c.name)}${suffix}`,1400,700,720,360,alt(c.name.toLowerCase()))]);
 }
 

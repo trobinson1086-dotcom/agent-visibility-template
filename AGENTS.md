@@ -67,8 +67,9 @@ Stripe Checkout Session for one T-shirt/hoodie/long-sleeve/mug choice with the S
 `fulfillment/merch-service.ts` → one D1 row (`provider = 'printful'`) →
 Printful order, under the same `FULFILLMENT_MODE` gate as Lulu.
 
-- `fulfillment/merch.ts` holds the approved colors, sizes, three designs per
-  product (full, Squish Man & Pudy only, crown logo only) with their prices, shipping,
+- `fulfillment/merch.ts` holds the approved colors, sizes, four designs per
+  product (full, Squish Man & Pudy only, crown logo only, Maple Hollow logo
+  only) with their prices, shipping,
   Printful variant ids and artwork file ids. Never add a color or product
   without a confirmed Printful variant id.
 - Printful has no sandbox: test-mode orders, and live orders for products
