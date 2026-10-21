@@ -1,8 +1,9 @@
 /**
  * Squish Squad Shop merch fulfilled by Printful: the T-shirt, hoodie, long
  * sleeve and mug Travis approved (colors, prices and shipping as agreed on
- * 2026-10-21), each in two designs: the full Squish Man & Pudy design or the
- * crown logo alone.
+ * 2026-10-21), each in three designs: the full design (Squish Man & Pudy on
+ * the front, crown logo on the back), Squish Man & Pudy alone, or the crown
+ * logo alone.
  *
  * Variant ids come from Printful's catalog (products 71, 146, 57 and 19). File ids
  * are the artwork in the Printful file library, uploaded from the "Squishman
@@ -36,7 +37,7 @@ export interface MerchColor {
 	variants: Record<string, number>;
 }
 
-export type DesignKey = "FULL" | "LOGO";
+export type DesignKey = "FULL" | "PUDY" | "LOGO";
 
 /** One artwork option for a product, with its own price and print files. */
 export interface MerchDesign {
@@ -50,7 +51,10 @@ export interface MerchDesign {
 export interface MerchProduct {
 	key: MerchKey;
 	name: string;
-	/** Two designs, default first: the full design, or the crown logo alone. */
+	/**
+	 * Three designs, default first: the full design, Squish Man & Pudy alone,
+	 * or the crown logo alone.
+	 */
 	designs: MerchDesign[];
 	/** Added to the price for sizes Printful charges more for. */
 	sizeUpchargeCents: Record<string, number>;
@@ -84,6 +88,8 @@ const back: MerchFile = {
 	fileId: BACK_CROWN_FILE,
 	position: { area_width: 1800, area_height: 2400, width: 1366, height: 1152, top: 150, left: 217 },
 };
+// Squish Man & Pudy alone, on the front (same placement as the full design).
+const pudyFront = front;
 // The crown logo alone, on the front.
 const logoFront = (areaWidth: number, areaHeight: number, top: number): MerchFile => ({
 	type: "front",
@@ -91,19 +97,18 @@ const logoFront = (areaWidth: number, areaHeight: number, top: number): MerchFil
 	position: { area_width: areaWidth, area_height: areaHeight, width: 1366, height: 1152, top, left: (areaWidth - 1366) / 2 },
 });
 
-const FULL_LABEL = "Squish Man & Pudy (front + back)";
-const LOGO_LABEL = "Crown logo only (front)";
-// Logo-only garments skip Printful's back-print charge, so they cost $3 less.
-const designs = (fullCents: number, full: MerchFile[], logo: MerchFile[], logoCents = fullCents - 300): MerchDesign[] => [
-	{ key: "FULL", label: FULL_LABEL, priceCents: fullCents, files: full },
-	{ key: "LOGO", label: LOGO_LABEL, priceCents: logoCents, files: logo },
+// Front-only designs skip Printful's back-print charge, so they cost $3 less.
+const designs = (fullCents: number, full: MerchFile[], pudy: MerchFile[], logo: MerchFile[]): MerchDesign[] => [
+	{ key: "FULL", label: "Squish Man & Pudy front, crown logo back", priceCents: fullCents, files: full },
+	{ key: "PUDY", label: "Squish Man & Pudy only (front)", priceCents: fullCents - 300, files: pudy },
+	{ key: "LOGO", label: "Crown logo only (front)", priceCents: fullCents - 300, files: logo },
 ];
 
 export const MERCH: MerchProduct[] = [
 	{
 		key: "TEE",
 		name: "Squish Squad T-Shirt",
-		designs: designs(2999, [front(1800, 2400, 150), back], [logoFront(1800, 2400, 150)]),
+		designs: designs(2999, [front(1800, 2400, 150), back], [pudyFront(1800, 2400, 150)], [logoFront(1800, 2400, 150)]),
 		sizeUpchargeCents: UPCHARGE,
 		shipping: { firstCents: 599, additionalCents: 249 },
 		sizes: SIZES,
@@ -120,7 +125,7 @@ export const MERCH: MerchProduct[] = [
 	{
 		key: "HOODIE",
 		name: "Squish Squad Hoodie",
-		designs: designs(4999, [front(2100, 2100, 100), back], [logoFront(2100, 2100, 100)]),
+		designs: designs(4999, [front(2100, 2100, 100), back], [pudyFront(2100, 2100, 100)], [logoFront(2100, 2100, 100)]),
 		sizeUpchargeCents: UPCHARGE,
 		shipping: { firstCents: 999, additionalCents: 299 },
 		sizes: SIZES,
@@ -137,7 +142,7 @@ export const MERCH: MerchProduct[] = [
 	{
 		key: "LONGSLEEVE",
 		name: "Squish Squad Long Sleeve",
-		designs: designs(3299, [front(1800, 2400, 150), back], [logoFront(1800, 2400, 150)]),
+		designs: designs(3299, [front(1800, 2400, 150), back], [pudyFront(1800, 2400, 150)], [logoFront(1800, 2400, 150)]),
 		sizeUpchargeCents: UPCHARGE,
 		shipping: { firstCents: 599, additionalCents: 249 },
 		sizes: SIZES,
@@ -157,9 +162,21 @@ export const MERCH: MerchProduct[] = [
 		name: "Squish Squad Mug (11 oz)",
 		// Full: one 2700x1050 wrap, banner on one side and crown logo on the
 		// other (not uploaded yet, so those orders are held until it is).
-		// Logo: the crown logo alone on one side.
+		// Pudy / Logo: that artwork alone on one side.
 		designs: [
 			{ key: "FULL", label: "Squish Man & Pudy + crown logo", priceCents: 1999, files: [{ type: "default", fileId: null }] },
+			{
+				key: "PUDY",
+				label: "Squish Man & Pudy only",
+				priceCents: 1799,
+				files: [
+					{
+						type: "default",
+						fileId: FRONT_BANNER_FILE,
+						position: { area_width: 2700, area_height: 1050, width: 908, height: 950, top: 50, left: 221 },
+					},
+				],
+			},
 			{
 				key: "LOGO",
 				label: "Crown logo only",
@@ -211,7 +228,12 @@ export function merchSelection(
 	const color = product?.colors.find((c) => c.name === colorName);
 	const variantId = color?.variants[size];
 	if (!product || !design || !color || !variantId || !product.sizes.includes(size)) return null;
-	const name = design.key === "LOGO" ? `${product.name}, Crown Logo` : product.name;
+	const name =
+		design.key === "LOGO"
+			? `${product.name}, Crown Logo`
+			: design.key === "PUDY"
+				? `${product.name}, Squish Man & Pudy`
+				: product.name;
 	return {
 		product,
 		design,

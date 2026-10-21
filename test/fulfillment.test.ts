@@ -709,14 +709,15 @@ describe("merch catalog", () => {
 			}
 		}
 		const prices = (key: string) => merchProduct(key)!.designs.map((d) => [d.key, d.priceCents]);
-		expect(prices("TEE")).toEqual([["FULL", 2999], ["LOGO", 2699]]);
-		expect(prices("HOODIE")).toEqual([["FULL", 4999], ["LOGO", 4699]]);
-		expect(prices("LONGSLEEVE")).toEqual([["FULL", 3299], ["LOGO", 2999]]);
-		expect(prices("MUG")).toEqual([["FULL", 1999], ["LOGO", 1799]]);
-		// The logo design prints only the crown logo, on the front.
+		expect(prices("TEE")).toEqual([["FULL", 2999], ["PUDY", 2699], ["LOGO", 2699]]);
+		expect(prices("HOODIE")).toEqual([["FULL", 4999], ["PUDY", 4699], ["LOGO", 4699]]);
+		expect(prices("LONGSLEEVE")).toEqual([["FULL", 3299], ["PUDY", 2999], ["LOGO", 2999]]);
+		expect(prices("MUG")).toEqual([["FULL", 1999], ["PUDY", 1799], ["LOGO", 1799]]);
+		// The single-artwork designs print only that artwork, on the front.
 		for (const p of [tee, hoodie, longSleeve]) {
-			const logo = p.designs.find((d) => d.key === "LOGO")!;
-			expect(logo.files.map((f) => [f.type, f.fileId])).toEqual([["front", 1090848220]]);
+			const files = (k: string) => p.designs.find((d) => d.key === k)!.files.map((f) => [f.type, f.fileId]);
+			expect(files("PUDY")).toEqual([["front", 1090848214]]);
+			expect(files("LOGO")).toEqual([["front", 1090848220]]);
 		}
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
 		const ids = MERCH.flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
@@ -762,13 +763,14 @@ describe("merch checkout", () => {
 		};
 		expect(json.checkout).toBe("off");
 		expect(json.products.map((p) => [p.key, ...p.designs.map((d) => d.priceCents)])).toEqual([
-			["TEE", 2999, 2699],
-			["HOODIE", 4999, 4699],
-			["LONGSLEEVE", 3299, 2999],
-			["MUG", 1999, 1799],
+			["TEE", 2999, 2699, 2699],
+			["HOODIE", 4999, 4699, 4699],
+			["LONGSLEEVE", 3299, 2999, 2999],
+			["MUG", 1999, 1799, 1799],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
-			"Squish Man & Pudy (front + back)",
+			"Squish Man & Pudy front, crown logo back",
+			"Squish Man & Pudy only (front)",
 			"Crown logo only (front)",
 		]);
 		expect(json.products[0].colors.map((c) => c.name)).toContain("Royal Blue");
@@ -917,6 +919,34 @@ describe("merch orders → Printful", () => {
 			},
 		]);
 		expect(printful.creates).toBe(2);
+	});
+
+	it("sends Squish Man & Pudy-only orders with just the banner on the front", async () => {
+		merchSession("cs_test_pudytee", "LONGSLEEVE|Pink|M|PUDY");
+		await deliver(sandboxEnv(), paidEvent("cs_test_pudytee"));
+		const item = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0];
+		expect(item).toMatchObject({
+			variant_id: 3513,
+			name: "Squish Squad Long Sleeve, Squish Man & Pudy — Pink, M",
+			retail_price: "29.99",
+		});
+		expect(item.files).toEqual([
+			{
+				type: "front",
+				id: 1090848214,
+				position: { area_width: 1800, area_height: 2400, width: 1226, height: 1283, top: 150, left: 287 },
+			},
+		]);
+		merchSession("cs_test_pudymug", "MUG|White|11 oz|PUDY");
+		const mug = await deliver(sandboxEnv(), paidEvent("cs_test_pudymug"));
+		expect(mug.body).toMatchObject({ fulfillment: "submitting" });
+		expect((printful.lastCreate as { items: Array<{ files: unknown[] }> }).items[0].files).toEqual([
+			{
+				type: "default",
+				id: 1090848214,
+				position: { area_width: 2700, area_height: 1050, width: 908, height: 950, top: 50, left: 221 },
+			},
+		]);
 	});
 
 	it("never sends a live order in sandbox mode, and holds unknown SKUs", async () => {
