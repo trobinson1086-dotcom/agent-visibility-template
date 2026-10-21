@@ -1,4 +1,4 @@
-/** Shared types for the Stripe → Lulu print-on-demand fulfillment flow. */
+/** Shared types for Stripe → Lulu (books) and Stripe → Printful (merch) fulfillment. */
 
 export type Format =
 	| "paperback"
@@ -45,9 +45,9 @@ export type FulfillmentMode = "off" | "sandbox" | "production";
 /** Our fulfillment states. Lulu's own status is kept separately in `lulu_status`. */
 export type FulfillmentStatus =
 	| "HELD" // recorded, deliberately not sent (see status_detail)
-	| "SUBMITTING" // claimed; Lulu submission in progress
-	| "SUBMITTED" // Lulu print job created
-	| "FAILED" // Lulu rejected or errored; needs a manual retry
+	| "SUBMITTING" // claimed; Lulu/Printful submission in progress
+	| "SUBMITTED" // Lulu print job or Printful order created
+	| "FAILED" // Lulu/Printful rejected or errored; needs a manual retry
 	| "SHIPPED"
 	| "DELIVERED"
 	| "CANCELED"
@@ -72,8 +72,12 @@ export interface OrderItem {
 	quantity: number;
 }
 
+export type Provider = "lulu" | "printful";
+
 export interface FulfillmentRecord {
 	stripe_session_id: string;
+	/** "lulu" for books, "printful" for merch. */
+	provider: Provider;
 	stripe_event_id: string;
 	stripe_payment_intent: string | null;
 	livemode: number;
@@ -88,6 +92,9 @@ export interface FulfillmentRecord {
 	carrier: string | null;
 	tracking_id: string | null;
 	tracking_urls: string | null;
+	printful_order_id: string | null;
+	printful_status: string | null;
+	printful_cost_json: string | null;
 	attempts: number;
 	created_at: string;
 	updated_at: string;

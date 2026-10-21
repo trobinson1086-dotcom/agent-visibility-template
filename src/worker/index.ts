@@ -58,6 +58,7 @@ import {
 	refresh,
 	retry,
 } from "../fulfillment/service";
+import { type CheckoutRequest, createMerchCheckout } from "../fulfillment/merch-service";
 import * as orders from "../fulfillment/store";
 import {
 	directoryDocument,
@@ -317,6 +318,19 @@ app.post("/api/stripe/webhook", async (c) => {
 	);
 	if (result.background) c.executionCtx.waitUntil(result.background);
 	return c.json(result.body, result.status as 200);
+});
+
+/** Squish Squad Shop: create a Stripe Checkout Session for one merch item. */
+app.post("/api/merch/checkout", async (c) => {
+	let body: CheckoutRequest = {};
+	try {
+		body = (await c.req.json()) as CheckoutRequest;
+	} catch {
+		// Validated below.
+	}
+	const origin = new URL(c.req.url).origin;
+	const result = await createMerchCheckout(c.env, body ?? {}, origin);
+	return c.json(result.body, result.status as 200, { "Cache-Control": "no-store" });
 });
 
 /** Which fulfillment pieces are configured and working; never shows values. */

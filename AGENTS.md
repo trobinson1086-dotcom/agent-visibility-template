@@ -20,7 +20,7 @@ src/
   lib/content.ts         Sample content (zero-config demo data)
   lib/types.ts           Shared types (Resource, RawResource, Env, SiteConfig)
   lib/web-bot-auth.ts    OPTIONAL agent-identity module (off by default)
-  fulfillment/           Stripe → Lulu print-on-demand (FULFILLMENT_MODE, off by default)
+  fulfillment/           Stripe → Lulu books and Stripe → Printful merch (FULFILLMENT_MODE, off by default)
   react-app/             Surface-explorer UI (served at /explorer)
 public/                  The live squishman.com site, served as static assets
 scripts/                 import-drive-assets.sh: pulls covers/video from Drive export
@@ -56,6 +56,21 @@ and the hourly cron. Admin routes live under `/api/admin/*` (ADMIN_TOKEN).
   test-mode orders to Lulu's sandbox; `production` sends only live orders for
   products with `productionEnabled`.
 - Schema changes go in `migrations/` (applied to tests automatically).
+
+## Printful merch (Squish Squad Shop)
+
+`POST /api/merch/checkout` (only when `MERCH_CHECKOUT` is `on`) creates a
+Stripe Checkout Session for one T-shirt/hoodie/mug choice with the SKU in
+`metadata.merch_sku`. The shared Stripe webhook hands those sessions to
+`fulfillment/merch-service.ts` → one D1 row (`provider = 'printful'`) →
+Printful order, under the same `FULFILLMENT_MODE` gate as Lulu.
+
+- `fulfillment/merch.ts` holds the approved colors, sizes, prices, shipping,
+  Printful variant ids and artwork file ids. Never add a color or product
+  without a confirmed Printful variant id.
+- Printful has no sandbox: test-mode orders, and live orders for products
+  without `productionEnabled`, are created as Printful **drafts** (nothing is
+  charged or printed until confirmed in the Printful dashboard).
 
 ## Adding a surface
 

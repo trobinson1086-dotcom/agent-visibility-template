@@ -1,7 +1,7 @@
 /**
- * Minimal Stripe access for fulfillment: webhook signature verification and a
+ * Minimal Stripe access for fulfillment: webhook signature verification, a
  * server-side re-read of the Checkout Session (the webhook body is never
- * trusted for payment state, items or address).
+ * trusted for payment state, items or address) and merch checkout creation.
  */
 import { hmacSha256, safeEqual, toHex } from "./crypto";
 import type { ShippingInfo } from "./types";
@@ -62,6 +62,8 @@ export interface StripeCheckoutSession {
 		shipping_details?: { name?: string | null; address?: StripeAddress | null } | null;
 	} | null;
 	line_items?: { data: StripeLineItem[]; has_more: boolean };
+	/** Set by our own merch checkout (merch_sku = "TEE|Black|M"). */
+	metadata?: Record<string, string> | null;
 }
 
 /** Fetch the Checkout Session (with line items) straight from Stripe. */
@@ -78,6 +80,30 @@ export async function fetchCheckoutSession(
 		throw new Error(`Stripe session lookup failed (HTTP ${res.status})`);
 	}
 	return (await res.json()) as StripeCheckoutSession;
+}
+
+/**
+ * Create a Checkout Session from form fields (Stripe's bracket notation).
+ * Needs a key with write access to Checkout Sessions.
+ */
+export async function createCheckoutSession(
+	secretKey: string,
+	fields: Record<string, string>,
+): Promise<{ id: string; url: string }> {
+	const res = await fetch(`${STRIPE_API}/checkout/sessions`, {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${secretKey}`,
+			"Content-Type": "application/x-www-form-urlencoded",
+		},
+		body: new URLSearchParams(fields).toString(),
+		signal: AbortSignal.timeout(TIMEOUT_MS),
+	});
+	if (!res.ok) {
+		throw new Error(`Stripe checkout creation failed (HTTP ${res.status})`);
+	}
+	const s = (await res.json()) as { id: string; url: string };
+	return { id: s.id, url: s.url };
 }
 
 /**
