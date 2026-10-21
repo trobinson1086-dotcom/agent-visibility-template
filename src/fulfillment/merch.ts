@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -299,6 +299,31 @@ export const MERCH: MerchProduct[] = [
 	},
 ];
 
+// Kiss-cut stickers (Printful product 358) come in the three single-artwork
+// designs. No position: Printful fits the artwork to each sticker size and
+// cuts around its outline.
+const sticker = (key: DesignKey, label: string, fileId: number): MerchDesign => ({
+	key,
+	label,
+	priceCents: 499,
+	files: [{ type: "default", fileId }],
+});
+MERCH.push({
+	key: "STICKER",
+	name: "Squish Squad Sticker",
+	designs: [
+		sticker("PUDY", "Squish Man & Pudy", FRONT_BANNER_FILE),
+		sticker("LOGO", "Crown logo", BACK_CROWN_FILE),
+		sticker("MAPLE", "Maple Hollow logo", MAPLE_HOLLOW_FILE),
+	],
+	sizeUpchargeCents: { "4 in": 100, "5.5 in": 200 },
+	// Printful ships any number of stickers for about the same price.
+	shipping: { firstCents: 499, additionalCents: 25 },
+	sizes: ["3 in", "4 in", "5.5 in"],
+	colors: [{ name: "White", hex: "#ffffff", variants: { "3 in": 10163, "4 in": 10164, "5.5 in": 10165 } }],
+	productionEnabled: false,
+});
+
 const BY_KEY = new Map(MERCH.map((p) => [p.key, p]));
 
 export function merchProduct(key: string): MerchProduct | undefined {
@@ -347,7 +372,13 @@ export function merchSelection(
 		variantId,
 		unitCents: design.priceCents + (product.sizeUpchargeCents[size] ?? 0),
 		sku: `${product.key}|${color.name}|${size}|${design.key}`,
-		title: product.key === "MUG" ? name : `${name} — ${color.name}, ${size}`,
+		// Single-color products leave the color out of the title.
+		title:
+			product.colors.length > 1
+				? `${name} — ${color.name}, ${size}`
+				: product.sizes.length > 1
+					? `${name} — ${size}`
+					: name,
 	};
 }
 
