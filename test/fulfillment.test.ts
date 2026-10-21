@@ -604,6 +604,10 @@ describe("configuration health check", () => {
 					mapleHollowLogo: "ok",
 					mugWrapMapleCrown: "ok",
 					mug_default: "missing",
+					stickerMapleHollowPals: "ok",
+					stickerMapleHollowHighFive: "ok",
+					stickerMapleHollowWave: "ok",
+					stickerMapleHollowTownSquare: "ok",
 				},
 			},
 			merchCheckout: "off",
@@ -787,7 +791,7 @@ describe("merch checkout", () => {
 			["LONGSLEEVE", 3299, 2999, 2999, 2999, 3299],
 			["TOTE", 3299, 2999, 2999, 2999, 3299],
 			["MUG", 1999, 1799, 1799, 1799, 1999],
-			["STICKER", 499, 499, 499],
+			["STICKER", 499, 499, 499, 499, 499, 499, 499],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -992,6 +996,16 @@ describe("merch orders → Printful", () => {
 		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("699");
 		expect(f.get("line_items[0][price_data][product_data][name]")).toBe("Squish Squad Sticker, Maple Hollow Logo — 5.5 in");
 		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("574"); // $4.99 + 3 x $0.25
+		const scene = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "STICKER", design: "MH_HIGHFIVE", color: "White", size: "4 in" },
+			"https://squishman.com",
+		);
+		expect(scene.status).toBe(200);
+		expect(stripeCreates[1].get("metadata[merch_sku]")).toBe("STICKER|White|4 in|MH_HIGHFIVE");
+		expect(merchProduct("STICKER")!.designs.find((d) => d.key === "MH_HIGHFIVE")!.files).toEqual([
+			{ type: "default", fileId: 1091358914 },
+		]);
 		const full = await createMerchCheckout(
 			sandboxEnv({ MERCH_CHECKOUT: "on" }),
 			{ product: "STICKER", design: "FULL", color: "White", size: "3 in" },

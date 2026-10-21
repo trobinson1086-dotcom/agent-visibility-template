@@ -38,7 +38,17 @@ export interface MerchColor {
 	variants: Record<string, number>;
 }
 
-export type DesignKey = "FULL" | "PUDY" | "LOGO" | "MAPLE" | "MAPLECROWN";
+export type DesignKey =
+	| "FULL"
+	| "PUDY"
+	| "LOGO"
+	| "MAPLE"
+	| "MAPLECROWN"
+	// Sticker-only artwork (public/assets/merch/print/stickers/).
+	| "MH_PALS"
+	| "MH_HIGHFIVE"
+	| "MH_WAVE"
+	| "MH_SQUARE";
 
 /** One artwork option for a product, with its own price and print files. */
 export interface MerchDesign {
@@ -79,6 +89,13 @@ export const BACK_CROWN_FILE = 1090848220;
 export const MAPLE_HOLLOW_FILE = 1090919465;
 /** Mug wrap: Maple Hollow logo on one side, crown logo on the other (public/assets/merch/print/). */
 export const MUG_WRAP_MAPLE_CROWN_FILE = 1090966931;
+/** Squish Man & Pudy in Maple Hollow sticker art (public/assets/merch/print/stickers/). */
+export const STICKER_FILES = {
+	MH_PALS: 1091358905,
+	MH_HIGHFIVE: 1091358914,
+	MH_WAVE: 1091358916,
+	MH_SQUARE: 1091358933,
+} as const;
 
 const SIZES = ["S", "M", "L", "XL", "2XL", "3XL"];
 const UPCHARGE = { "2XL": 200, "3XL": 400 };
@@ -315,6 +332,10 @@ MERCH.push({
 		sticker("PUDY", "Squish Man & Pudy", FRONT_BANNER_FILE),
 		sticker("LOGO", "Crown logo", BACK_CROWN_FILE),
 		sticker("MAPLE", "Maple Hollow logo", MAPLE_HOLLOW_FILE),
+		sticker("MH_PALS", "Squish Man & Pudy in Maple Hollow", STICKER_FILES.MH_PALS),
+		sticker("MH_HIGHFIVE", "Squish Man & Pudy high five", STICKER_FILES.MH_HIGHFIVE),
+		sticker("MH_WAVE", "Squish Man & Pudy waving", STICKER_FILES.MH_WAVE),
+		sticker("MH_SQUARE", "Maple Hollow town square", STICKER_FILES.MH_SQUARE),
 	],
 	sizeUpchargeCents: { "4 in": 100, "5.5 in": 200 },
 	// Printful ships any number of stickers for about the same price.
