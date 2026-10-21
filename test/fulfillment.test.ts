@@ -12,6 +12,8 @@ import {
 	health,
 	retry,
 } from "../src/fulfillment/service";
+import { MERCH, merchProduct } from "../src/fulfillment/merch";
+import { reconcile } from "../src/fulfillment/service";
 import * as store from "../src/fulfillment/store";
 import { verifyStripeSignature } from "../src/fulfillment/stripe";
 import type { CatalogEntry } from "../src/fulfillment/types";
@@ -64,6 +66,13 @@ const lulu = {
 	costCalls: 0,
 	validations: 0,
 };
+const printful = {
+	orders: new Map<string, Record<string, unknown>>(),
+	creates: 0,
+	lastCreate: null as Record<string, unknown> | null,
+	lastConfirm: null as string | null,
+};
+const stripeCreates: URLSearchParams[] = [];
 
 function session(
 	id: string,
@@ -74,7 +83,16 @@ function session(
 		livemode = false,
 		state = "TX",
 		line1 = "100 Maple St",
-	}: { price?: string; quantity?: number; paid?: boolean; livemode?: boolean; state?: string; line1?: string } = {},
+		metadata = {},
+	}: {
+		price?: string;
+		quantity?: number;
+		paid?: boolean;
+		livemode?: boolean;
+		state?: string;
+		line1?: string;
+		metadata?: Record<string, string>;
+	} = {},
 ): string {
 	sessions.set(id, {
 		id,
@@ -98,6 +116,7 @@ function session(
 			},
 		},
 		line_items: { data: [{ quantity, price: { id: price } }], has_more: false },
+		metadata,
 	});
 	return id;
 }
@@ -128,6 +147,49 @@ beforeAll(() => {
 		.get("https://api.printful.com")
 		.intercept({ path: "/store/products?limit=1", method: "GET" })
 		.reply(200, JSON.stringify({ code: 200, result: [], paging: { total: 0, offset: 0, limit: 1 } }))
+		.persist();
+	fetchMock
+		.get("https://api.stripe.com")
+		.intercept({ path: "/v1/checkout/sessions", method: "POST" })
+		.reply((opts) => {
+			stripeCreates.push(new URLSearchParams(String(opts.body)));
+			return {
+				statusCode: 200,
+				data: JSON.stringify({ id: "cs_test_new", url: "https://checkout.stripe.com/c/pay/cs_test_new" }),
+			};
+		})
+		.persist();
+	const pf = fetchMock.get("https://api.printful.com");
+	pf.intercept({ path: (p) => p.startsWith("/files/"), method: "GET" })
+		.reply((opts) => ({
+			statusCode: 200,
+			data: JSON.stringify({ code: 200, result: { id: Number(String(opts.path).split("/")[2]), status: "ok" } }),
+		}))
+		.persist();
+	pf.intercept({ path: (p) => p.startsWith("/orders/@"), method: "GET" })
+		.reply((opts) => {
+			const ext = decodeURIComponent(String(opts.path).slice("/orders/@".length));
+			const o = printful.orders.get(ext);
+			return o
+				? { statusCode: 200, data: JSON.stringify({ code: 200, result: o }) }
+				: { statusCode: 404, data: JSON.stringify({ code: 404, result: "Not found" }) };
+		})
+		.persist();
+	pf.intercept({ path: (p) => p.startsWith("/orders?confirm="), method: "POST" })
+		.reply((opts) => {
+			printful.creates++;
+			printful.lastConfirm = String(opts.path).split("=")[1];
+			printful.lastCreate = JSON.parse(String(opts.body));
+			const ext = (printful.lastCreate as { external_id: string }).external_id;
+			const order = {
+				id: 7000 + printful.creates,
+				external_id: ext,
+				status: printful.lastConfirm === "true" ? "pending" : "draft",
+				costs: { subtotal: "17.87", shipping: "5.35", total: "25.08" },
+			};
+			printful.orders.set(ext, order);
+			return { statusCode: 200, data: JSON.stringify({ code: 200, result: order }) };
+		})
 		.persist();
 	fetchMock
 		.get("https://api.stripe.com")
@@ -216,6 +278,11 @@ beforeEach(() => {
 	lulu.createStatus = 201;
 	lulu.lastCreate = null;
 	lulu.existingJobs = [];
+	printful.orders.clear();
+	printful.creates = 0;
+	printful.lastCreate = null;
+	printful.lastConfirm = null;
+	stripeCreates.length = 0;
 	(book1 as { lulu: unknown }).lulu = { ...TEST_SPEC };
 });
 
@@ -528,7 +595,12 @@ describe("configuration health check", () => {
 			stripeSecretKey: "test",
 			stripeKeyCanReadCheckout: true,
 			stripeWebhookSecret: "configured",
-			printful: { status: "ok", storeProducts: 0 },
+			printful: {
+				status: "ok",
+				storeProducts: 0,
+				printFiles: { frontBanner: "ok", backCrown: "ok", mug_default: "missing" },
+			},
+			merchCheckout: "off",
 			luluClientKey: "set (id format)",
 			luluClientSecret: "set (id format)",
 			lulu: "ok",
@@ -606,3 +678,199 @@ describe("Lulu key diagnosis", () => {
 	});
 });
 
+
+// --- Squish Squad Shop merch → Printful --------------------------------------
+
+const TEE_SKU = "TEE|Black|M";
+
+function merchSession(id: string, sku = TEE_SKU, opts: { quantity?: number; livemode?: boolean } = {}) {
+	return session(id, { price: "price_adhoc_merch", metadata: { merch_sku: sku }, ...opts });
+}
+
+async function checkout(body: unknown) {
+	const res = await SELF.fetch(`${BASE}/api/merch/checkout`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify(body),
+	});
+	return res;
+}
+
+describe("merch catalog", () => {
+	it("sells the approved six colors in S–3XL, a mug, and nothing in production yet", () => {
+		const tee = merchProduct("TEE")!;
+		const hoodie = merchProduct("HOODIE")!;
+		for (const p of [tee, hoodie]) {
+			expect(p.colors.map((c) => c.name)).toEqual(["Black", "White", "Royal Blue", "Pink", "Grey", "Red"]);
+			for (const c of p.colors) expect(Object.keys(c.variants)).toEqual(["S", "M", "L", "XL", "2XL", "3XL"]);
+		}
+		expect([tee.priceCents, hoodie.priceCents, merchProduct("MUG")!.priceCents]).toEqual([2999, 4999, 1999]);
+		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
+		const ids = MERCH.flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		expect(new Set(ids).size).toBe(ids.length);
+	});
+});
+
+describe("merch checkout", () => {
+	it("is closed (404) unless MERCH_CHECKOUT is on", async () => {
+		const res = await checkout({ product: "TEE", color: "Black", size: "M" });
+		expect(res.status).toBe(404);
+		expect(stripeCreates).toHaveLength(0);
+	});
+
+	it("creates a Stripe Checkout Session with the price, shipping and SKU", async () => {
+		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
+		const r = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "HOODIE", color: "Pink", size: "2XL", quantity: 2 },
+			"https://squishman.com",
+		);
+		expect(r).toEqual({ status: 200, body: { url: "https://checkout.stripe.com/c/pay/cs_test_new" } });
+		const f = stripeCreates[0];
+		expect(f.get("mode")).toBe("payment");
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("5199"); // $49.99 + $2 for 2XL
+		expect(f.get("line_items[0][quantity]")).toBe("2");
+		expect(f.get("line_items[0][price_data][product_data][name]")).toBe("Squish Squad Hoodie — Pink, 2XL");
+		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("1298"); // $9.99 + $2.99
+		expect(f.get("shipping_address_collection[allowed_countries][0]")).toBe("US");
+		expect(f.get("metadata[merch_sku]")).toBe("HOODIE|Pink|2XL");
+		expect(f.get("success_url")).toBe("https://squishman.com/?shop=thanks#merch");
+	});
+
+	it("rejects anything that isn't for sale without calling Stripe", async () => {
+		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
+		const e = sandboxEnv({ MERCH_CHECKOUT: "on" });
+		for (const bad of [
+			{ product: "TEE", color: "Purple", size: "M" },
+			{ product: "TEE", color: "Black", size: "5XL" },
+			{ product: "PLUSH", color: "Black", size: "M" },
+			{ product: "TEE", color: "Black", size: "M", quantity: 11 },
+			{ product: "TEE", color: "Black", size: "M", quantity: 0 },
+		]) {
+			expect((await createMerchCheckout(e, bad, "https://squishman.com")).status).toBe(400);
+		}
+		expect(stripeCreates).toHaveLength(0);
+	});
+});
+
+describe("merch orders → Printful", () => {
+	it("records but never sends merch orders while fulfillment is off", async () => {
+		merchSession("cs_test_moff");
+		const r = await deliver(sandboxEnv({ FULFILLMENT_MODE: "off" }), paidEvent("cs_test_moff"));
+		expect(r.body).toMatchObject({ fulfillment: "held", reason: "FULFILLMENT_OFF" });
+		expect(await store.get(env.ORDERS_DB!, "cs_test_moff")).toMatchObject({ provider: "printful", status: "HELD" });
+		expect(printful.creates + lulu.creates).toBe(0);
+	});
+
+	it("sends a test-mode order to Printful as a draft with the right item, artwork and address", async () => {
+		merchSession("cs_test_tee", TEE_SKU, { quantity: 2 });
+		const r = await deliver(sandboxEnv(), paidEvent("cs_test_tee"));
+		expect(r.body).toMatchObject({ fulfillment: "submitting" });
+		expect(printful.creates).toBe(1);
+		expect(printful.lastConfirm).toBe("false");
+		const order = printful.lastCreate as { external_id: string; recipient: unknown; items: unknown };
+		expect(order.external_id).toMatch(/^[0-9a-f]{32}$/);
+		expect(order.recipient).toEqual({
+			name: "Pat Parent",
+			address1: "100 Maple St",
+			city: "Austin",
+			state_code: "TX",
+			country_code: "US",
+			zip: "78701",
+			email: "parent@example.com",
+		});
+		expect(order.items).toEqual([
+			{
+				variant_id: 4017,
+				quantity: 2,
+				name: "Squish Squad T-Shirt — Black, M",
+				retail_price: "29.99",
+				files: [
+					{
+						type: "front",
+						id: 1090848214,
+						position: { area_width: 1800, area_height: 2400, width: 1226, height: 1283, top: 150, left: 287 },
+					},
+					{
+						type: "back",
+						id: 1090848220,
+						position: { area_width: 1800, area_height: 2400, width: 1366, height: 1152, top: 150, left: 217 },
+					},
+				],
+			},
+		]);
+		const rec = await store.get(env.ORDERS_DB!, "cs_test_tee");
+		expect(rec).toMatchObject({
+			provider: "printful",
+			status: "SUBMITTED",
+			printful_order_id: "7001",
+			printful_status: "draft",
+			attempts: 1,
+		});
+		expect(rec?.status_detail).toMatch(/^PRINTFUL_DRAFT/);
+		expect(lulu.creates).toBe(0);
+	});
+
+	it("DUPLICATE PROTECTION: redeliveries and retries never create a second Printful order", async () => {
+		merchSession("cs_test_teedup");
+		await deliver(sandboxEnv(), paidEvent("cs_test_teedup"));
+		const again = await deliver(sandboxEnv(), paidEvent("cs_test_teedup", "evt_other"));
+		expect(again.body).toMatchObject({ duplicate: true });
+		await store.update(env.ORDERS_DB!, "cs_test_teedup", { status: "FAILED" });
+		const rec = await retry(sandboxEnv(), "cs_test_teedup");
+		expect(rec?.status).toBe("SUBMITTED");
+		expect(printful.creates).toBe(1);
+	});
+
+	it("holds mugs until the wrap artwork is uploaded", async () => {
+		merchSession("cs_test_mug", "MUG|White|11 oz");
+		const r = await deliver(sandboxEnv(), paidEvent("cs_test_mug"));
+		expect(r.body).toMatchObject({ fulfillment: "held", reason: "PRINT_FILES_MISSING:MUG" });
+		expect(printful.creates).toBe(0);
+	});
+
+	it("never sends a live order in sandbox mode, and holds unknown SKUs", async () => {
+		merchSession("cs_test_mlive", TEE_SKU, { livemode: true });
+		const live = await deliver(sandboxEnv(), paidEvent("cs_test_mlive"));
+		expect(live.body).toMatchObject({ reason: "LIVE_ORDER_IN_SANDBOX_MODE" });
+		merchSession("cs_test_mbad", "TEE|Purple|M");
+		const bad = await deliver(sandboxEnv(), paidEvent("cs_test_mbad"));
+		expect(bad.body).toMatchObject({ reason: "UNKNOWN_MERCH_SKU" });
+		expect(printful.creates).toBe(0);
+	});
+
+	it("in production, live orders stay drafts until the product is enabled, then are confirmed", async () => {
+		const prod = sandboxEnv({ FULFILLMENT_MODE: "production" });
+		merchSession("cs_live_teedraft", TEE_SKU, { livemode: true });
+		await deliver(prod, paidEvent("cs_live_teedraft"));
+		expect(printful.lastConfirm).toBe("false");
+		const tee = merchProduct("TEE")!;
+		tee.productionEnabled = true;
+		try {
+			merchSession("cs_live_teego", TEE_SKU, { livemode: true });
+			await deliver(prod, paidEvent("cs_live_teego"));
+			expect(printful.lastConfirm).toBe("true");
+		} finally {
+			tee.productionEnabled = false;
+		}
+		expect(printful.creates).toBe(2);
+	});
+
+	it("the hourly reconcile stores Printful shipping and tracking", async () => {
+		merchSession("cs_test_teeship");
+		await deliver(sandboxEnv(), paidEvent("cs_test_teeship"));
+		const [order] = [...printful.orders.values()];
+		Object.assign(order, {
+			status: "fulfilled",
+			shipments: [{ carrier: "USPS", tracking_number: "9400111", tracking_url: "https://track.example/9400111" }],
+		});
+		await reconcile(sandboxEnv());
+		expect(await store.get(env.ORDERS_DB!, "cs_test_teeship")).toMatchObject({
+			status: "SHIPPED",
+			printful_status: "fulfilled",
+			carrier: "USPS",
+			tracking_id: "9400111",
+			tracking_urls: JSON.stringify(["https://track.example/9400111"]),
+		});
+	});
+});

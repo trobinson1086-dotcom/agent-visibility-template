@@ -3,7 +3,7 @@
  * key is what makes webhook processing idempotent — the first delivery claims
  * the row, every redelivery finds it and stops.
  *
- * Schema: migrations/0001_create_fulfillments.sql
+ * Schema: migrations/0001_create_fulfillments.sql, 0002_printful_merch.sql
  * (apply with `npx wrangler d1 migrations apply squishman-orders --remote`).
  */
 import type { FulfillmentRecord, FulfillmentStatus } from "./types";
@@ -18,6 +18,9 @@ export type NewRecord = Omit<
 	| "carrier"
 	| "tracking_id"
 	| "tracking_urls"
+	| "printful_order_id"
+	| "printful_status"
+	| "printful_cost_json"
 	| "attempts"
 	| "created_at"
 	| "updated_at"
@@ -28,13 +31,14 @@ export async function claim(db: D1Database, r: NewRecord): Promise<boolean> {
 	const t = now();
 	const res = await db
 		.prepare(
-			`INSERT INTO fulfillments (stripe_session_id, stripe_event_id, stripe_payment_intent, livemode,
+			`INSERT INTO fulfillments (stripe_session_id, provider, stripe_event_id, stripe_payment_intent, livemode,
 				status, status_detail, items_json, shipping_json, shipping_level, attempts, created_at, updated_at)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
 			 ON CONFLICT(stripe_session_id) DO NOTHING`,
 		)
 		.bind(
 			r.stripe_session_id,
+			r.provider,
 			r.stripe_event_id,
 			r.stripe_payment_intent,
 			r.livemode,
@@ -84,6 +88,17 @@ export async function open(db: D1Database): Promise<FulfillmentRecord[]> {
 		.prepare(
 			`SELECT * FROM fulfillments WHERE lulu_print_job_id IS NOT NULL
 			 AND status IN ('SUBMITTED', 'SHIPPED') ORDER BY updated_at ASC LIMIT 50`,
+		)
+		.all<FulfillmentRecord>();
+	return res.results;
+}
+
+/** Printful merch orders not shipped, canceled or failed yet. */
+export async function openPrintful(db: D1Database): Promise<FulfillmentRecord[]> {
+	const res = await db
+		.prepare(
+			`SELECT * FROM fulfillments WHERE printful_order_id IS NOT NULL
+			 AND status = 'SUBMITTED' ORDER BY updated_at ASC LIMIT 50`,
 		)
 		.all<FulfillmentRecord>();
 	return res.results;

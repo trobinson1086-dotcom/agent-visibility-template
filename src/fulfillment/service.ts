@@ -10,6 +10,9 @@
  * Lulu; "sandbox" sends only Stripe *test-mode* orders to Lulu's sandbox;
  * "production" sends only live orders, and only for products with
  * `productionEnabled`.
+ *
+ * Merch (Squish Squad Shop) checkouts share this webhook and are handed to
+ * merch-service.ts, which sends them to Printful under the same mode.
  */
 import type { Env } from "../lib/types";
 import { byKey, byPriceId, luluMapping, printFiles } from "./catalog";
@@ -31,6 +34,9 @@ import {
 	trackingOf,
 	verifyLuluSignature,
 } from "./lulu";
+import { BACK_CROWN_FILE, FRONT_BANNER_FILE, MERCH } from "./merch";
+import { reconcileMerch, recordMerchOrder, refreshMerch, retryMerch } from "./merch-service";
+import { getFile } from "./printful";
 import * as store from "./store";
 import {
 	fetchCheckoutSession,
@@ -165,6 +171,7 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 	}
 
 	result.printful = await printfulCheck(env.PRINTFUL_API_TOKEN);
+	result.merchCheckout = (env.MERCH_CHECKOUT ?? "").trim().toLowerCase() === "on" ? "on" : "off";
 
 	const checkEnv =
 		result.lulu === "ok"
@@ -181,8 +188,9 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 }
 
 /**
- * Printful token check: list one store product (read-only). Reports only
- * whether the token works and how many products the store holds.
+ * Printful token check: list one store product (read-only). Reports whether
+ * the token works and whether each merch artwork file is ready in the
+ * Printful file library ("missing" = not uploaded yet).
  */
 async function printfulCheck(token: string | undefined): Promise<string | Record<string, unknown>> {
 	const t = token?.trim();
@@ -194,7 +202,27 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 		});
 		if (!res.ok) return `auth_failed (HTTP ${res.status})`;
 		const body = (await res.json()) as { paging?: { total?: number } };
-		return { status: "ok", storeProducts: body.paging?.total ?? 0 };
+		const names = new Map([
+			[FRONT_BANNER_FILE, "frontBanner"],
+			[BACK_CROWN_FILE, "backCrown"],
+		]);
+		const printFiles: Record<string, string> = {};
+		for (const p of MERCH) {
+			for (const f of p.files) {
+				const name = (f.fileId && names.get(f.fileId)) || `${p.key.toLowerCase()}_${f.type}`;
+				if (name in printFiles) continue;
+				if (f.fileId === null) {
+					printFiles[name] = "missing";
+					continue;
+				}
+				try {
+					printFiles[name] = (await getFile(t, f.fileId)).status;
+				} catch {
+					printFiles[name] = "error";
+				}
+			}
+		}
+		return { status: "ok", storeProducts: body.paging?.total ?? 0, printFiles };
 	} catch {
 		return "unreachable";
 	}
@@ -358,6 +386,9 @@ export async function handleStripeWebhook(
 		log("awaiting_payment", { session: sessionId, payment_status: session.payment_status });
 		return { status: 200, body: { received: true, awaiting_payment: true } };
 	}
+	if (session.metadata?.merch_sku) {
+		return recordMerchOrder(env, mode(env), db, event.id, session);
+	}
 
 	const lineItems = session.line_items?.data ?? [];
 	const items: OrderItem[] = [];
@@ -386,6 +417,7 @@ export async function handleStripeWebhook(
 	const hold = holdReason(env, session.livemode, items, missing, session.line_items?.has_more);
 	const claimed = await store.claim(db, {
 		stripe_session_id: sessionId,
+		provider: "lulu",
 		stripe_event_id: event.id,
 		stripe_payment_intent: session.payment_intent,
 		livemode: session.livemode ? 1 : 0,
@@ -544,6 +576,7 @@ export async function retry(env: Env, sessionId: string): Promise<FulfillmentRec
 	const rec = await store.get(db, sessionId);
 	if (!rec) return null;
 	if (rec.status !== "HELD" && rec.status !== "FAILED") return rec;
+	if (rec.provider === "printful") return retryMerch(env, mode(env), rec);
 	const items = JSON.parse(rec.items_json) as OrderItem[];
 	if (rec.status_detail === "TOO_MANY_LINE_ITEMS") return rec; // needs manual handling
 	const missing = rec.shipping_json
@@ -560,22 +593,24 @@ export async function retry(env: Env, sessionId: string): Promise<FulfillmentRec
 	return submit(env, sessionId);
 }
 
-/** Pull the latest Lulu status for one order. */
+/** Pull the latest Lulu or Printful status for one order. */
 export async function refresh(env: Env, sessionId: string): Promise<FulfillmentRecord | null> {
 	const db = env.ORDERS_DB;
 	const creds = luluCredentials(env);
 	if (!db) return null;
 	const rec = await store.get(db, sessionId);
+	if (rec?.provider === "printful") return refreshMerch(env, rec);
 	if (!rec?.lulu_print_job_id || !creds) return rec;
 	await applyJob(db, sessionId, await getPrintJob(creds, rec.lulu_print_job_id));
 	return store.get(db, sessionId);
 }
 
-/** Hourly: refresh every order whose Lulu job isn't final yet. */
+/** Hourly: refresh every order whose Lulu job or Printful order isn't final yet. */
 export async function reconcile(env: Env): Promise<number> {
 	const db = env.ORDERS_DB;
-	if (!db || !luluCredentials(env)) return 0;
-	let n = 0;
+	if (!db) return 0;
+	let n = await reconcileMerch(env);
+	if (!luluCredentials(env)) return n;
 	for (const rec of await store.open(db)) {
 		try {
 			await refresh(env, rec.stripe_session_id);
@@ -627,6 +662,7 @@ export function present(rec: FulfillmentRecord) {
 	const shipping = rec.shipping_json ? (JSON.parse(rec.shipping_json) as ShippingInfo) : null;
 	return {
 		stripeSessionId: rec.stripe_session_id,
+		provider: rec.provider,
 		stripePaymentIntent: rec.stripe_payment_intent,
 		livemode: rec.livemode === 1,
 		customer: shipping ? { name: shipping.name, email: shipping.email } : null,
@@ -642,6 +678,9 @@ export function present(rec: FulfillmentRecord) {
 		luluPrintJobId: rec.lulu_print_job_id,
 		luluStatus: rec.lulu_status,
 		luluCost: rec.lulu_cost_json ? JSON.parse(rec.lulu_cost_json) : null,
+		printfulOrderId: rec.printful_order_id,
+		printfulStatus: rec.printful_status,
+		printfulCost: rec.printful_cost_json ? JSON.parse(rec.printful_cost_json) : null,
 		carrier: rec.carrier,
 		trackingId: rec.tracking_id,
 		trackingUrls: rec.tracking_urls ? (JSON.parse(rec.tracking_urls) as string[]) : [],

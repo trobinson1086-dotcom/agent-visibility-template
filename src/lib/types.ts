@@ -87,7 +87,7 @@ export interface Env {
 	LULU_SHIPPING_LEVEL?: string;
 	/** Shop contact email Lulu uses for print-job questions. */
 	FULFILLMENT_CONTACT_EMAIL?: string;
-	/** Secret: restricted Stripe key with read access to Checkout Sessions. */
+	/** Secret: restricted Stripe key with read access to Checkout Sessions (write for merch checkout). */
 	STRIPE_SECRET_KEY?: string;
 	/** Secret: signing secret of the Stripe webhook endpoint. */
 	STRIPE_WEBHOOK_SECRET?: string;
@@ -96,6 +96,8 @@ export interface Env {
 	LULU_CLIENT_SECRET?: string;
 	/** Secret: Printful API token for the SquishMan.com store (merch). */
 	PRINTFUL_API_TOKEN?: string;
+	/** "on" opens merch checkout (POST /api/merch/checkout); anything else keeps it closed. */
+	MERCH_CHECKOUT?: string;
 	/** Secret: JSON of print PDF URLs by catalog key, {"EN-PAPERBACK-1": {"cover": …, "interior": …}}. */
 	LULU_PRINT_FILES?: string;
 }
