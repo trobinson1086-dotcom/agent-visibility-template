@@ -700,11 +700,17 @@ describe("merch catalog", () => {
 	it("sells the approved six colors in S–3XL, a mug, and nothing in production yet", () => {
 		const tee = merchProduct("TEE")!;
 		const hoodie = merchProduct("HOODIE")!;
-		for (const p of [tee, hoodie]) {
+		const longSleeve = merchProduct("LONGSLEEVE")!;
+		for (const p of [tee, hoodie, longSleeve]) {
 			expect(p.colors.map((c) => c.name)).toEqual(["Black", "White", "Royal Blue", "Pink", "Grey", "Red"]);
-			for (const c of p.colors) expect(Object.keys(c.variants)).toEqual(["S", "M", "L", "XL", "2XL", "3XL"]);
+			for (const c of p.colors) {
+				const sizes = c.name === "Pink" && p === longSleeve ? ["S", "M", "L", "XL", "2XL"] : p.sizes;
+				expect(Object.keys(c.variants)).toEqual(sizes);
+			}
 		}
-		expect([tee.priceCents, hoodie.priceCents, merchProduct("MUG")!.priceCents]).toEqual([2999, 4999, 1999]);
+		expect([tee.priceCents, hoodie.priceCents, longSleeve.priceCents, merchProduct("MUG")!.priceCents]).toEqual([
+			2999, 4999, 3299, 1999,
+		]);
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
 		const ids = MERCH.flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
@@ -741,15 +747,18 @@ describe("merch checkout", () => {
 		const res = await SELF.fetch(`${BASE}/api/merch`);
 		const json = (await res.json()) as {
 			checkout: string;
-			products: Array<{ key: string; priceCents: number; colors: Array<{ name: string }> }>;
+			products: Array<{ key: string; priceCents: number; colors: Array<{ name: string; sizes: string[] }> }>;
 		};
 		expect(json.checkout).toBe("off");
 		expect(json.products.map((p) => [p.key, p.priceCents])).toEqual([
 			["TEE", 2999],
 			["HOODIE", 4999],
+			["LONGSLEEVE", 3299],
 			["MUG", 1999],
 		]);
 		expect(json.products[0].colors.map((c) => c.name)).toContain("Royal Blue");
+		const pink = json.products[2].colors.find((c) => c.name === "Pink");
+		expect(pink?.sizes).toEqual(["S", "M", "L", "XL", "2XL"]);
 		expect(JSON.stringify(json)).not.toMatch(/variants|fileId|1090848214/);
 	});
 
@@ -768,6 +777,7 @@ describe("merch checkout", () => {
 		for (const bad of [
 			{ product: "TEE", color: "Purple", size: "M" },
 			{ product: "TEE", color: "Black", size: "5XL" },
+			{ product: "LONGSLEEVE", color: "Pink", size: "3XL" },
 			{ product: "PLUSH", color: "Black", size: "M" },
 			{ product: "TEE", color: "Black", size: "M", quantity: 11 },
 			{ product: "TEE", color: "Black", size: "M", quantity: 0 },
