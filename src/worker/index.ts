@@ -58,7 +58,7 @@ import {
 	refresh,
 	retry,
 } from "../fulfillment/service";
-import { type CheckoutRequest, createMerchCheckout } from "../fulfillment/merch-service";
+import { type CheckoutRequest, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import * as orders from "../fulfillment/store";
 import {
 	directoryDocument,
@@ -318,6 +318,11 @@ app.post("/api/stripe/webhook", async (c) => {
 	);
 	if (result.background) c.executionCtx.waitUntil(result.background);
 	return c.json(result.body, result.status as 200);
+});
+
+/** Squish Squad Shop: checkout state, prices, sizes and colors for the shop page. */
+app.get("/api/merch", (c) => {
+	return c.json(merchCatalog(c.env), 200, { "Cache-Control": "no-store" });
 });
 
 /** Squish Squad Shop: create a Stripe Checkout Session for one merch item. */

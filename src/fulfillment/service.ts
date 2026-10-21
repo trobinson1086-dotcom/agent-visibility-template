@@ -35,7 +35,7 @@ import {
 	verifyLuluSignature,
 } from "./lulu";
 import { BACK_CROWN_FILE, FRONT_BANNER_FILE, MERCH } from "./merch";
-import { reconcileMerch, recordMerchOrder, refreshMerch, retryMerch } from "./merch-service";
+import { checkoutState, reconcileMerch, recordMerchOrder, refreshMerch, retryMerch } from "./merch-service";
 import { getFile } from "./printful";
 import * as store from "./store";
 import {
@@ -171,7 +171,7 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 	}
 
 	result.printful = await printfulCheck(env.PRINTFUL_API_TOKEN);
-	result.merchCheckout = (env.MERCH_CHECKOUT ?? "").trim().toLowerCase() === "on" ? "on" : "off";
+	result.merchCheckout = checkoutState(env);
 
 	const checkEnv =
 		result.lulu === "ok"

@@ -59,7 +59,9 @@ and the hourly cron. Admin routes live under `/api/admin/*` (ADMIN_TOKEN).
 
 ## Printful merch (Squish Squad Shop)
 
-`POST /api/merch/checkout` (only when `MERCH_CHECKOUT` is `on`) creates a
+`GET /api/merch` gives the shop page its prices, sizes, colors and checkout
+state. `POST /api/merch/checkout` (when `MERCH_CHECKOUT` is `preview` or `on`;
+`preview` shows the buy buttons only at `/?shop=preview`) creates a
 Stripe Checkout Session for one T-shirt/hoodie/mug choice with the SKU in
 `metadata.merch_sku`. The shared Stripe webhook hands those sessions to
 `fulfillment/merch-service.ts` → one D1 row (`provider = 'printful'`) →
