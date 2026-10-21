@@ -34,7 +34,7 @@ import {
 	trackingOf,
 	verifyLuluSignature,
 } from "./lulu";
-import { BACK_CROWN_FILE, FRONT_BANNER_FILE, MAPLE_HOLLOW_FILE, MERCH } from "./merch";
+import { BACK_CROWN_FILE, FRONT_BANNER_FILE, MAPLE_HOLLOW_FILE, MERCH, MUG_WRAP_MAPLE_CROWN_FILE } from "./merch";
 import { checkoutState, reconcileMerch, recordMerchOrder, refreshMerch, retryMerch } from "./merch-service";
 import { getFile } from "./printful";
 import * as store from "./store";
@@ -206,6 +206,7 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 			[FRONT_BANNER_FILE, "frontBanner"],
 			[BACK_CROWN_FILE, "backCrown"],
 			[MAPLE_HOLLOW_FILE, "mapleHollowLogo"],
+			[MUG_WRAP_MAPLE_CROWN_FILE, "mugWrapMapleCrown"],
 		]);
 		const printFiles: Record<string, string> = {};
 		for (const p of MERCH) {
