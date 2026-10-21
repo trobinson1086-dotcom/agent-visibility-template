@@ -82,6 +82,8 @@ const SHOP={
  'Squish Squad Long Sleeve':{key:'LONGSLEEVE',img:'longsleeve',facts:'Unisex S–3XL (pink to 2XL) · cotton'},
  'Squish Squad Tote Bags':{key:'TOTE',img:'tote',name:'Squish Squad Tote Bag',facts:'Organic cotton canvas · roomy everyday size',
   desc:'A sturdy organic cotton tote for books, library days and adventures, in black or natural canvas with your choice of Squish Man design.'},
+ 'Squish Squad Sticker Packs':{key:'STICKER',img:'sticker',name:'Squish Squad Sticker',facts:'Glossy kiss-cut vinyl · 3, 4 or 5.5 inches',shown:'Glossy sticker, cut to the shape of the art',
+  desc:'A glossy vinyl sticker cut around the artwork, for water bottles, notebooks and laptops. Pick Squish Man & Pudy, the crown logo or the Maple Hollow logo.'},
  'Squish Squad Mugs':{key:'MUG',img:'mug',name:'Squish Squad Mug',facts:'11 oz ceramic · dishwasher and microwave safe',
   desc:'A white glossy mug with Squish Man and Pudy on one side and the gold crown, SQUISHMAN wordmark and paw print on the other.'}
 };
@@ -94,7 +96,7 @@ const money=c=>'$'+(c/100).toFixed(2);
 // and photos.
 const design=p=>p.shop.designs[p.design||0];
 const unit=(p,size)=>design(p).priceCents+(p.shop.sizeUpchargeCents[size]||0);
-const DESIGN_NOTE='Every shirt, long sleeve, hoodie, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back.';
+const DESIGN_NOTE='Every shirt, long sleeve, hoodie, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in the three single designs.';
 const DESIGN_TITLE={FULL:'Squish Man & Pudy + Crown',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo',MAPLE:'Maple Hollow Logo',MAPLECROWN:'Maple Hollow + Crown'};
 // Designs that print on both sides (front + back, or both sides of the mug).
 const TWO_SIDED=new Set(['FULL','MAPLECROWN']);
@@ -127,10 +129,10 @@ function cardHtml(p,n){
 const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
 const sizeLabel=(m,v)=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v;
 const colorSizes=p=>p.shop.colors[p.active||0].sizes;
-const where=(m,d)=>TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
+const where=(m,d)=>m.key==='STICKER'?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
 function buyHtml(p,n){
  const m=p.shop,size=colorSizes(p)[0],one=m.sizes.length===1;
- return `<p class="merch-design-note">${m.designs.length} designs to choose from</p><div class="merch-designs" role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${esc(where(m,d))} · ${money(d.priceCents)}</span></button>`).join('')}</div>
+ return `<p class="merch-design-note">${m.designs.length} designs to choose from</p><div class="merch-designs" role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${where(m,d)?`${esc(where(m,d))} · `:''}${m.key==='STICKER'?'from ':''}${money(d.priceCents)}</span></button>`).join('')}</div>
  <dl class="merch-facts"><div><dt>Price</dt><dd class="merch-price">${money(unit(p,size))}</dd></div><div><dt>Sizes &amp; materials</dt><dd>${esc(p.facts)}</dd></div></dl>
  <div class="merch-buy">${one?'':`<label>Size <select class="merch-size" data-merch="${n}">${opts(colorSizes(p),v=>sizeLabel(m,v))}</select></label>`}<label>Quantity <select class="merch-qty" data-merch="${n}">${opts(Array.from({length:m.maxQuantity},(_,i)=>String(i+1)),v=>v)}</select></label></div>
  <p class="merch-ship">Shipping ${money(m.shipping.firstCents)}${m.shipping.additionalCents?`, plus ${money(m.shipping.additionalCents)} for each extra item`:''} · US only · printed to order, ships in about 1–2 weeks</p>
@@ -153,7 +155,7 @@ fetch('/api/merch',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{
  if(!data||!(data.checkout==='on'||(data.checkout==='preview'&&params.get('shop')==='preview')))return;
  products.forEach((p,n)=>{
   const s=SHOP[p.name],m=s&&data.products.find(x=>x.key===s.key);if(!m)return;
-  Object.assign(p,{shop:m,sheet:false,shown:null,active:0,design:0,imgBase:s.img,facts:s.facts,name:s.name||p.name,desc:s.desc||p.desc});
+  Object.assign(p,{shop:m,sheet:false,shown:s.shown||null,active:0,design:0,imgBase:s.img,facts:s.facts,name:s.name||p.name,desc:s.desc||p.desc});
   p.colors=shopColors(p);
   const el=document.getElementById('merch-item-'+n);if(el)el.outerHTML=cardHtml(p,n);
  });

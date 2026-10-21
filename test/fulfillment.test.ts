@@ -787,6 +787,7 @@ describe("merch checkout", () => {
 			["LONGSLEEVE", 3299, 2999, 2999, 2999, 3299],
 			["TOTE", 3299, 2999, 2999, 2999, 3299],
 			["MUG", 1999, 1799, 1799, 1799, 1999],
+			["STICKER", 499, 499, 499],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -977,6 +978,36 @@ describe("merch orders → Printful", () => {
 				position: { area_width: 1500, area_height: 1500, width: 1366, height: 1152, top: 174, left: 67 },
 			},
 		]);
+	});
+
+	it("sells stickers in three designs and sizes, fitted by Printful", async () => {
+		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
+		const r = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "STICKER", design: "MAPLE", color: "White", size: "5.5 in", quantity: 4 },
+			"https://squishman.com",
+		);
+		expect(r.status).toBe(200);
+		const f = stripeCreates[0];
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("699");
+		expect(f.get("line_items[0][price_data][product_data][name]")).toBe("Squish Squad Sticker, Maple Hollow Logo — 5.5 in");
+		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("574"); // $4.99 + 3 x $0.25
+		const full = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "STICKER", design: "FULL", color: "White", size: "3 in" },
+			"https://squishman.com",
+		);
+		expect(full.status).toBe(400);
+
+		merchSession("cs_test_sticker", "STICKER|White|3 in|LOGO", { quantity: 2 });
+		await deliver(sandboxEnv(), paidEvent("cs_test_sticker"));
+		expect((printful.lastCreate as { items: unknown[] }).items[0]).toEqual({
+			variant_id: 10163,
+			quantity: 2,
+			name: "Squish Squad Sticker, Crown Logo — 3 in",
+			retail_price: "4.99",
+			files: [{ type: "default", id: 1090848220 }],
+		});
 	});
 
 	it("sends Maple Hollow logo orders with just that logo on the front", async () => {
