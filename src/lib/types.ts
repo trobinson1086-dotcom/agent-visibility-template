@@ -94,6 +94,8 @@ export interface Env {
 	/** Secrets: Lulu API client key/secret for the environment FULFILLMENT_MODE selects. */
 	LULU_CLIENT_KEY?: string;
 	LULU_CLIENT_SECRET?: string;
+	/** Secret: Printful API token for the SquishMan.com store (merch). */
+	PRINTFUL_API_TOKEN?: string;
 	/** Secret: JSON of print PDF URLs by catalog key, {"EN-PAPERBACK-1": {"cover": …, "interior": …}}. */
 	LULU_PRINT_FILES?: string;
 }

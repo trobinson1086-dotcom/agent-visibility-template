@@ -46,6 +46,7 @@ function sandboxEnv(overrides: Partial<Env> = {}): Env {
 			},
 		}),
 		LULU_SHIPPING_LEVEL: "MAIL",
+		PRINTFUL_API_TOKEN: "pf-test-token",
 		FULFILLMENT_CONTACT_EMAIL: "orders@squishman.com",
 		...overrides,
 	};
@@ -122,6 +123,11 @@ beforeAll(() => {
 			const s = sessions.get(id);
 			return s ? { statusCode: 200, data: JSON.stringify(s) } : { statusCode: 404, data: "{}" };
 		})
+		.persist();
+	fetchMock
+		.get("https://api.printful.com")
+		.intercept({ path: "/store/products?limit=1", method: "GET" })
+		.reply(200, JSON.stringify({ code: 200, result: [], paging: { total: 0, offset: 0, limit: 1 } }))
 		.persist();
 	fetchMock
 		.get("https://api.stripe.com")
@@ -522,6 +528,7 @@ describe("configuration health check", () => {
 			stripeSecretKey: "test",
 			stripeKeyCanReadCheckout: true,
 			stripeWebhookSecret: "configured",
+			printful: { status: "ok", storeProducts: 0 },
 			luluClientKey: "set (id format)",
 			luluClientSecret: "set (id format)",
 			lulu: "ok",
@@ -570,6 +577,7 @@ describe("configuration health check", () => {
 			ordersDb: "ok",
 			stripeSecretKey: "missing",
 			stripeWebhookSecret: "missing",
+			printful: "missing",
 			luluClientKey: "missing",
 			lulu: "missing",
 		});
