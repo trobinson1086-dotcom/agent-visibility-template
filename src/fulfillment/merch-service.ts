@@ -1,7 +1,7 @@
 /**
  * Stripe → Printful merch fulfillment.
  *
- *   POST /api/merch/checkout (MERCH_CHECKOUT=on) → Stripe Checkout Session
+ *   POST /api/merch/checkout (MERCH_CHECKOUT=preview|on) → Stripe Checkout Session
  *   with the SKU in metadata → paid webhook (shared with books, see
  *   service.ts) → one D1 row per session (idempotent) → Printful order.
  *
@@ -13,6 +13,7 @@
 import type { Env } from "../lib/types";
 import {
 	MAX_MERCH_QUANTITY,
+	MERCH,
 	merchFromSku,
 	type MerchSelection,
 	merchSelection,
@@ -53,6 +54,34 @@ function token(env: Env): string | null {
 
 // --- Checkout ---------------------------------------------------------------
 
+export type CheckoutState = "off" | "preview" | "on";
+
+/**
+ * "off": closed. "preview": checkout works, but the shop page only shows it
+ * at ?shop=preview (for Travis's test order). "on": open to everyone.
+ */
+export function checkoutState(env: Env): CheckoutState {
+	const v = (env.MERCH_CHECKOUT ?? "").trim().toLowerCase();
+	return v === "on" || v === "preview" ? v : "off";
+}
+
+/** What the shop page needs to render: state, prices, sizes and colors. */
+export function merchCatalog(env: Env) {
+	return {
+		checkout: checkoutState(env),
+		products: MERCH.map((p) => ({
+			key: p.key,
+			name: p.name,
+			priceCents: p.priceCents,
+			sizeUpchargeCents: p.sizeUpchargeCents,
+			shipping: p.shipping,
+			sizes: p.sizes,
+			colors: p.colors.map((c) => ({ name: c.name, hex: c.hex })),
+			maxQuantity: MAX_MERCH_QUANTITY,
+		})),
+	};
+}
+
 export interface CheckoutRequest {
 	product?: unknown;
 	color?: unknown;
@@ -66,7 +95,7 @@ export async function createMerchCheckout(
 	req: CheckoutRequest,
 	origin: string,
 ): Promise<{ status: number; body: Record<string, unknown> }> {
-	if ((env.MERCH_CHECKOUT ?? "").trim().toLowerCase() !== "on") {
+	if (checkoutState(env) === "off") {
 		return { status: 404, body: { error: "The Squish Squad Shop is not open yet." } };
 	}
 	if (!env.STRIPE_SECRET_KEY) return { status: 503, body: { error: "Checkout is not configured." } };

@@ -1,6 +1,7 @@
-// Squish Squad Shop — merchandise design previews (Coming Soon).
-// Checkout stays disabled until approved prices, fulfillment details and
-// checkout links are supplied. Book checkout lives in app.js and is untouched.
+// Squish Squad Shop — merchandise design previews (Coming Soon), plus live
+// checkout for the Printful T-shirt, hoodie and mug once /api/merch says the
+// shop is open ("preview" shows it only at ?shop=preview). Book checkout lives
+// in app.js and is untouched.
 (function(){
 const M='assets/merch/';
 // One image asset: base name, full-size and 720w dimensions (sw=0: one size).
@@ -72,22 +73,87 @@ const srcset=i=>i.sw?`${M}${i.name}-720.webp 720w, ${M}${i.name}.webp ${i.w}w`:`
 const small=i=>i.sw?[`${M}${i.name}-720.webp`,i.sw,i.sh]:[`${M}${i.name}.webp`,i.w,i.h];
 const products=[];
 
+// Printful products sold on the site: card name → product key and the real
+// product photos (front and back of each color, from Printful's mockups).
+const SHOP={
+ 'Squish Squad T-Shirt':{key:'TEE',img:'tee',facts:'Unisex S–3XL · soft cotton tee'},
+ 'Squish Squad Hoodie':{key:'HOODIE',img:'hoodie',facts:'Unisex S–3XL · cotton-blend fleece'},
+ 'Squish Squad Mugs':{key:'MUG',img:'mug',name:'Squish Squad Mug',facts:'11 oz ceramic · dishwasher and microwave safe',
+  desc:'A white glossy mug with Squish Man and Pudy on one side and the gold crown, SQUISHMAN wordmark and paw print on the other.'}
+};
+const slug=s=>s.toLowerCase().replace(/\s+/g,'-');
+const money=c=>'$'+(c/100).toFixed(2);
+const unit=(m,size)=>m.priceCents+(m.sizeUpchargeCents[size]||0);
+
 function card(p){
- const n=products.push(p)-1,[first]=p.colors,[src,w,h]=small(first[2]);
+ const n=products.push(p)-1;
+ return cardHtml(p,n);
+}
+function cardHtml(p,n){
+ const [first]=p.colors,[src,w,h]=small(first[2]),m=p.shop;
  const multi=p.colors.length>1;
  const swatches=multi?`<div class="merch-colors" role="group" aria-label="${esc(p.name)} color">${p.colors.map((c,i)=>`<button type="button" class="merch-swatch" data-merch="${n}" data-color="${i}" aria-pressed="${i===0}" style="--sw:${c[1]}"><span class="merch-dot" aria-hidden="true"></span>${esc(c[0])}</button>`).join('')}</div>`:'';
  const shown=p.shown||`Shown in ${esc(first[0].toLowerCase())}`;
  return `<article class="merch-card${p.wide?' merch-card-wide':''}" id="merch-item-${n}">
  <div class="merch-art"><img src="${src}" srcset="${srcset(first[2])}" sizes="(max-width:700px) 92vw, ${p.wide?'1100px':'560px'}" width="${w}" height="${h}" alt="${esc(first[2].alt)}" loading="lazy" decoding="async"></div>
- <div class="merch-body"><span class="merch-badge">COMING SOON</span><h4>${esc(p.name)}</h4><p>${esc(p.desc)}</p>
+ <div class="merch-body"><span class="merch-badge">${m?'NOW AVAILABLE':'COMING SOON'}</span><h4>${esc(p.name)}</h4><p>${esc(p.desc)}</p>
  ${swatches}<p class="merch-shown" aria-live="polite">${esc(shown)}</p>
- <dl class="merch-facts"><div><dt>Price</dt><dd>To be announced</dd></div><div><dt>Sizes &amp; materials</dt><dd>To be announced</dd></div></dl>
- <div class="merch-actions"><button type="button" class="merch-explore" data-gallery="${n}" aria-label="Explore the design: ${esc(p.name)}">EXPLORE THE DESIGN</button><button type="button" class="merch-checkout" disabled aria-label="Checkout coming soon: ${esc(p.name)}">CHECKOUT COMING SOON</button></div></div>
+ ${m?buyHtml(p,n):`<dl class="merch-facts"><div><dt>Price</dt><dd>To be announced</dd></div><div><dt>Sizes &amp; materials</dt><dd>To be announced</dd></div></dl>
+ <div class="merch-actions"><button type="button" class="merch-explore" data-gallery="${n}" aria-label="Explore the design: ${esc(p.name)}">EXPLORE THE DESIGN</button><button type="button" class="merch-checkout" disabled aria-label="Checkout coming soon: ${esc(p.name)}">CHECKOUT COMING SOON</button></div>`}</div>
 </article>`;
+}
+function buyHtml(p,n){
+ const m=p.shop,size=m.sizes[0],one=m.sizes.length===1;
+ const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
+ return `<dl class="merch-facts"><div><dt>Price</dt><dd class="merch-price">${money(unit(m,size))}</dd></div><div><dt>Sizes &amp; materials</dt><dd>${esc(p.facts)}</dd></div></dl>
+ <div class="merch-buy">${one?'':`<label>Size <select class="merch-size" data-merch="${n}">${opts(m.sizes,v=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v)}</select></label>`}<label>Quantity <select class="merch-qty" data-merch="${n}">${opts(Array.from({length:m.maxQuantity},(_,i)=>String(i+1)),v=>v)}</select></label></div>
+ <p class="merch-ship">Shipping ${money(m.shipping.firstCents)}${m.shipping.additionalCents?`, plus ${money(m.shipping.additionalCents)} for each extra item`:''} · US only · printed to order, ships in about 1–2 weeks</p>
+ <div class="merch-actions"><button type="button" class="merch-explore" data-gallery="${n}" aria-label="See photos: ${esc(p.name)}">SEE PHOTOS</button><button type="button" class="merch-buy-now" data-buy="${n}" aria-label="Buy now: ${esc(p.name)}">BUY NOW</button></div>
+ <p class="merch-error" role="alert" hidden></p>`;
 }
 const root=document.getElementById('merchCategories');
 if(!root)return;
 root.innerHTML=categories.map(c=>`<section class="merch-cat" id="${c.id}" aria-labelledby="${c.id}-h"><div class="merch-cat-head"><h3 id="${c.id}-h">${esc(c.title)}</h3><p>${esc(c.blurb)}</p></div><div class="merch-grid">${c.items.filter(p=>!p.hidden).map(card).join('')}</div></section>`).join('');
+
+// Open the shop for the Printful products when /api/merch says so: real
+// colors and photos, size, quantity and a Stripe checkout button.
+const params=new URLSearchParams(location.search);
+if(params.get('shop')==='thanks'){
+ const t=document.createElement('div');t.className='merch-thanks';t.setAttribute('role','status');
+ t.innerHTML='<b>Thank you! Your Squish Squad order is confirmed.</b><span>It is printed just for you and usually ships within 1–2 weeks. Questions? Email <a href="mailto:orders@squishman.com">orders@squishman.com</a>.</span>';
+ root.before(t);
+}
+fetch('/api/merch',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{
+ if(!data||!(data.checkout==='on'||(data.checkout==='preview'&&params.get('shop')==='preview')))return;
+ products.forEach((p,n)=>{
+  const s=SHOP[p.name],m=s&&data.products.find(x=>x.key===s.key);if(!m)return;
+  Object.assign(p,{shop:m,sheet:false,shown:null,active:0,facts:s.facts,name:s.name||p.name,desc:s.desc||p.desc,
+   colors:m.colors.map(c=>[c.name,c.hex,img(`shop-${s.img}-${slug(c.name)}`,1400,700,720,360,`${s.name||p.name} in ${c.name.toLowerCase()}: front and back, as printed by our print partner`)])});
+  const el=document.getElementById('merch-item-'+n);if(el)el.outerHTML=cardHtml(p,n);
+ });
+}).catch(()=>{});
+
+root.addEventListener('change',e=>{
+ const sel=e.target.closest('.merch-size');if(!sel)return;
+ const p=products[+sel.dataset.merch];
+ sel.closest('.merch-card').querySelector('.merch-price').textContent=money(unit(p.shop,sel.value));
+});
+
+root.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-buy]');if(!b)return;
+ const p=products[+b.dataset.buy],cardEl=b.closest('.merch-card'),err=cardEl.querySelector('.merch-error');
+ const size=cardEl.querySelector('.merch-size')?.value||p.shop.sizes[0];
+ const quantity=+cardEl.querySelector('.merch-qty').value;
+ err.hidden=true;b.disabled=true;b.textContent='ONE MOMENT…';
+ try{
+  const r=await fetch('/api/merch/checkout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({product:p.shop.key,color:p.colors[p.active||0][0],size,quantity})});
+  const j=await r.json().catch(()=>({}));
+  if(r.ok&&j.url){location.href=j.url;return}
+  throw new Error(j.error||'Checkout is unavailable right now. Please try again.');
+ }catch(x){
+  err.textContent=x.message;err.hidden=false;b.disabled=false;b.textContent='BUY NOW';
+ }
+});
 
 // Color selector: only products with a separate image per color get swatches.
 root.addEventListener('click',e=>{

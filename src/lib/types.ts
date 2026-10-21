@@ -96,7 +96,7 @@ export interface Env {
 	LULU_CLIENT_SECRET?: string;
 	/** Secret: Printful API token for the SquishMan.com store (merch). */
 	PRINTFUL_API_TOKEN?: string;
-	/** "on" opens merch checkout (POST /api/merch/checkout); anything else keeps it closed. */
+	/** Merch checkout: "off" (default), "preview" (only at ?shop=preview) or "on". */
 	MERCH_CHECKOUT?: string;
 	/** Secret: JSON of print PDF URLs by catalog key, {"EN-PAPERBACK-1": {"cover": …, "interior": …}}. */
 	LULU_PRINT_FILES?: string;

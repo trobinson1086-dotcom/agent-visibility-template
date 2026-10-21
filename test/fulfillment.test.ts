@@ -737,6 +737,31 @@ describe("merch checkout", () => {
 		expect(f.get("success_url")).toBe("https://squishman.com/?shop=thanks#merch");
 	});
 
+	it("serves the shop page its prices and colors, with checkout closed by default", async () => {
+		const res = await SELF.fetch(`${BASE}/api/merch`);
+		const json = (await res.json()) as {
+			checkout: string;
+			products: Array<{ key: string; priceCents: number; colors: Array<{ name: string }> }>;
+		};
+		expect(json.checkout).toBe("off");
+		expect(json.products.map((p) => [p.key, p.priceCents])).toEqual([
+			["TEE", 2999],
+			["HOODIE", 4999],
+			["MUG", 1999],
+		]);
+		expect(json.products[0].colors.map((c) => c.name)).toContain("Royal Blue");
+		expect(JSON.stringify(json)).not.toMatch(/variants|fileId|1090848214/);
+	});
+
+	it("opens checkout in preview mode (the page shows it only at ?shop=preview)", async () => {
+		const { createMerchCheckout, merchCatalog } = await import("../src/fulfillment/merch-service");
+		const e = sandboxEnv({ MERCH_CHECKOUT: "preview" });
+		expect(merchCatalog(e).checkout).toBe("preview");
+		const r = await createMerchCheckout(e, { product: "MUG", color: "White", size: "11 oz" }, "https://squishman.com");
+		expect(r.status).toBe(200);
+		expect(stripeCreates[0].get("line_items[0][price_data][unit_amount]")).toBe("1999");
+	});
+
 	it("rejects anything that isn't for sale without calling Stripe", async () => {
 		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
 		const e = sandboxEnv({ MERCH_CHECKOUT: "on" });
