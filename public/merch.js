@@ -85,7 +85,16 @@ const SHOP={
 };
 const slug=s=>s.toLowerCase().replace(/\s+/g,'-');
 const money=c=>'$'+(c/100).toFixed(2);
-const unit=(m,size)=>m.priceCents+(m.sizeUpchargeCents[size]||0);
+// Every shop product comes in two designs: the full Squish Man & Pudy artwork
+// (FULL) or just the crown logo (LOGO), each with its own price and photos.
+const design=p=>p.shop.designs[p.design||0];
+const unit=(p,size)=>design(p).priceCents+(p.shop.sizeUpchargeCents[size]||0);
+const DESIGN_NOTE='Every shirt, long sleeve, hoodie and mug comes in two designs: the full Squish Man & Pudy artwork, or just the gold crown SQUISHMAN logo for a simpler look.';
+function shopColors(p){
+ const logo=design(p).key==='LOGO';
+ return p.shop.colors.map(c=>[c.name,c.hex,img(`shop-${p.imgBase}-${slug(c.name)}${logo?'-logo':''}`,1400,700,720,360,
+  logo?`${p.name} in ${c.name.toLowerCase()} with the crown logo on the front, and a close-up of the logo`:`${p.name} in ${c.name.toLowerCase()}: front and back, as printed by our print partner`)]);
+}
 
 function card(p){
  const n=products.push(p)-1;
@@ -107,9 +116,11 @@ function cardHtml(p,n){
 const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
 const sizeLabel=(m,v)=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v;
 const colorSizes=p=>p.shop.colors[p.active||0].sizes;
+const where=(m,d)=>m.key==='MUG'?(d.key==='LOGO'?'one side':'both sides'):(d.key==='LOGO'?'front only':'front + back');
 function buyHtml(p,n){
  const m=p.shop,size=colorSizes(p)[0],one=m.sizes.length===1;
- return `<dl class="merch-facts"><div><dt>Price</dt><dd class="merch-price">${money(unit(m,size))}</dd></div><div><dt>Sizes &amp; materials</dt><dd>${esc(p.facts)}</dd></div></dl>
+ return `<p class="merch-design-note">2 designs to choose from</p><div class="merch-designs" role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(d.key==='LOGO'?'Crown Logo':'Squish Man & Pudy')}</b><span>${esc(where(m,d))} · ${money(d.priceCents)}</span></button>`).join('')}</div>
+ <dl class="merch-facts"><div><dt>Price</dt><dd class="merch-price">${money(unit(p,size))}</dd></div><div><dt>Sizes &amp; materials</dt><dd>${esc(p.facts)}</dd></div></dl>
  <div class="merch-buy">${one?'':`<label>Size <select class="merch-size" data-merch="${n}">${opts(colorSizes(p),v=>sizeLabel(m,v))}</select></label>`}<label>Quantity <select class="merch-qty" data-merch="${n}">${opts(Array.from({length:m.maxQuantity},(_,i)=>String(i+1)),v=>v)}</select></label></div>
  <p class="merch-ship">Shipping ${money(m.shipping.firstCents)}${m.shipping.additionalCents?`, plus ${money(m.shipping.additionalCents)} for each extra item`:''} · US only · printed to order, ships in about 1–2 weeks</p>
  <div class="merch-actions"><button type="button" class="merch-explore" data-gallery="${n}" aria-label="See photos: ${esc(p.name)}">SEE PHOTOS</button><button type="button" class="merch-buy-now" data-buy="${n}" aria-label="Buy now: ${esc(p.name)}">BUY NOW</button></div>
@@ -131,16 +142,31 @@ fetch('/api/merch',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{
  if(!data||!(data.checkout==='on'||(data.checkout==='preview'&&params.get('shop')==='preview')))return;
  products.forEach((p,n)=>{
   const s=SHOP[p.name],m=s&&data.products.find(x=>x.key===s.key);if(!m)return;
-  Object.assign(p,{shop:m,sheet:false,shown:null,active:0,facts:s.facts,name:s.name||p.name,desc:s.desc||p.desc,
-   colors:m.colors.map(c=>[c.name,c.hex,img(`shop-${s.img}-${slug(c.name)}`,1400,700,720,360,`${s.name||p.name} in ${c.name.toLowerCase()}: front and back, as printed by our print partner`)])});
+  Object.assign(p,{shop:m,sheet:false,shown:null,active:0,design:0,imgBase:s.img,facts:s.facts,name:s.name||p.name,desc:s.desc||p.desc});
+  p.colors=shopColors(p);
   const el=document.getElementById('merch-item-'+n);if(el)el.outerHTML=cardHtml(p,n);
  });
+ const news=document.createElement('div');news.className='merch-news';news.setAttribute('role','note');
+ news.innerHTML=`<b>Now open: the Squish Squad Shop!</b><span>${esc(DESIGN_NOTE)}</span>`;
+ root.before(news);
 }).catch(()=>{});
+
+// Design picker: swap photos and price, keep the chosen color and size.
+root.addEventListener('click',e=>{
+ const b=e.target.closest('.merch-design');if(!b)return;
+ const p=products[+b.dataset.merch],cardEl=b.closest('.merch-card');
+ p.design=+b.dataset.design;p.colors=shopColors(p);
+ cardEl.querySelectorAll('.merch-design').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+ const c=p.colors[p.active||0][2],im=cardEl.querySelector('.merch-art img'),[src,w,h]=small(c);
+ im.src=src;im.srcset=srcset(c);im.width=w;im.height=h;im.alt=c.alt;
+ const sizeSel=cardEl.querySelector('.merch-size');
+ cardEl.querySelector('.merch-price').textContent=money(unit(p,sizeSel?sizeSel.value:p.shop.sizes[0]));
+});
 
 root.addEventListener('change',e=>{
  const sel=e.target.closest('.merch-size');if(!sel)return;
  const p=products[+sel.dataset.merch];
- sel.closest('.merch-card').querySelector('.merch-price').textContent=money(unit(p.shop,sel.value));
+ sel.closest('.merch-card').querySelector('.merch-price').textContent=money(unit(p,sel.value));
 });
 
 root.addEventListener('click',async e=>{
@@ -150,7 +176,7 @@ root.addEventListener('click',async e=>{
  const quantity=+cardEl.querySelector('.merch-qty').value;
  err.hidden=true;b.disabled=true;b.textContent='ONE MOMENT…';
  try{
-  const r=await fetch('/api/merch/checkout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({product:p.shop.key,color:p.colors[p.active||0][0],size,quantity})});
+  const r=await fetch('/api/merch/checkout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({product:p.shop.key,design:design(p).key,color:p.colors[p.active||0][0],size,quantity})});
   const j=await r.json().catch(()=>({}));
   if(r.ok&&j.url){location.href=j.url;return}
   throw new Error(j.error||'Checkout is unavailable right now. Please try again.');
@@ -172,7 +198,7 @@ root.addEventListener('click',e=>{
   const keep=sizeSel.value,sizes=colorSizes(p);
   sizeSel.innerHTML=opts(sizes,v=>sizeLabel(p.shop,v));
   sizeSel.value=sizes.includes(keep)?keep:sizes[0];
-  cardEl.querySelector('.merch-price').textContent=money(unit(p.shop,sizeSel.value));
+  cardEl.querySelector('.merch-price').textContent=money(unit(p,sizeSel.value));
  }
 });
 
