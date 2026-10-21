@@ -85,15 +85,18 @@ const SHOP={
 };
 const slug=s=>s.toLowerCase().replace(/\s+/g,'-');
 const money=c=>'$'+(c/100).toFixed(2);
-// Every shop product comes in two designs: the full Squish Man & Pudy artwork
-// (FULL) or just the crown logo (LOGO), each with its own price and photos.
+// Every shop product comes in three designs: the full design (FULL: Squish Man
+// & Pudy front, crown logo back), Squish Man & Pudy alone (PUDY) or the crown
+// logo alone (LOGO), each with its own price and photos.
 const design=p=>p.shop.designs[p.design||0];
 const unit=(p,size)=>design(p).priceCents+(p.shop.sizeUpchargeCents[size]||0);
-const DESIGN_NOTE='Every shirt, long sleeve, hoodie and mug comes in two designs: the full Squish Man & Pudy artwork, or just the gold crown SQUISHMAN logo for a simpler look.';
+const DESIGN_NOTE='Every shirt, long sleeve, hoodie and mug comes in three designs: the full design with Squish Man & Pudy on the front and the crown logo on the back, Squish Man & Pudy on their own, or just the gold crown SQUISHMAN logo for a simpler look.';
+const DESIGN_TITLE={FULL:'Full Design',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo'};
 function shopColors(p){
- const logo=design(p).key==='LOGO';
- return p.shop.colors.map(c=>[c.name,c.hex,img(`shop-${p.imgBase}-${slug(c.name)}${logo?'-logo':''}`,1400,700,720,360,
-  logo?`${p.name} in ${c.name.toLowerCase()} with the crown logo on the front, and a close-up of the logo`:`${p.name} in ${c.name.toLowerCase()}: front and back, as printed by our print partner`)]);
+ const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo'}[k];
+ const alt=c=>k==='FULL'?`${p.name} in ${c}: front and back, as printed by our print partner`
+  :`${p.name} in ${c} with ${k==='LOGO'?'the crown logo':'Squish Man and Pudy'} on the front, and a close-up of the artwork`;
+ return p.shop.colors.map(c=>[c.name,c.hex,img(`shop-${p.imgBase}-${slug(c.name)}${suffix}`,1400,700,720,360,alt(c.name.toLowerCase()))]);
 }
 
 function card(p){
@@ -116,10 +119,10 @@ function cardHtml(p,n){
 const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
 const sizeLabel=(m,v)=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v;
 const colorSizes=p=>p.shop.colors[p.active||0].sizes;
-const where=(m,d)=>m.key==='MUG'?(d.key==='LOGO'?'one side':'both sides'):(d.key==='LOGO'?'front only':'front + back');
+const where=(m,d)=>m.key==='MUG'?(d.key==='FULL'?'both sides':'one side'):(d.key==='FULL'?'front + back':'front only');
 function buyHtml(p,n){
  const m=p.shop,size=colorSizes(p)[0],one=m.sizes.length===1;
- return `<p class="merch-design-note">2 designs to choose from</p><div class="merch-designs" role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(d.key==='LOGO'?'Crown Logo':'Squish Man & Pudy')}</b><span>${esc(where(m,d))} · ${money(d.priceCents)}</span></button>`).join('')}</div>
+ return `<p class="merch-design-note">${m.designs.length} designs to choose from</p><div class="merch-designs" role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${esc(where(m,d))} · ${money(d.priceCents)}</span></button>`).join('')}</div>
  <dl class="merch-facts"><div><dt>Price</dt><dd class="merch-price">${money(unit(p,size))}</dd></div><div><dt>Sizes &amp; materials</dt><dd>${esc(p.facts)}</dd></div></dl>
  <div class="merch-buy">${one?'':`<label>Size <select class="merch-size" data-merch="${n}">${opts(colorSizes(p),v=>sizeLabel(m,v))}</select></label>`}<label>Quantity <select class="merch-qty" data-merch="${n}">${opts(Array.from({length:m.maxQuantity},(_,i)=>String(i+1)),v=>v)}</select></label></div>
  <p class="merch-ship">Shipping ${money(m.shipping.firstCents)}${m.shipping.additionalCents?`, plus ${money(m.shipping.additionalCents)} for each extra item`:''} · US only · printed to order, ships in about 1–2 weeks</p>
