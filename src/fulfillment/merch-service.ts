@@ -76,7 +76,7 @@ export function merchCatalog(env: Env) {
 			sizeUpchargeCents: p.sizeUpchargeCents,
 			shipping: p.shipping,
 			sizes: p.sizes,
-			colors: p.colors.map((c) => ({ name: c.name, hex: c.hex })),
+			colors: p.colors.map((c) => ({ name: c.name, hex: c.hex, sizes: p.sizes.filter((s) => s in c.variants) })),
 			maxQuantity: MAX_MERCH_QUANTITY,
 		})),
 	};

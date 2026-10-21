@@ -1,13 +1,14 @@
 /**
- * Squish Squad Shop merch fulfilled by Printful: the T-shirt, hoodie and mug
- * Travis approved (colors, prices and shipping as agreed on 2026-10-21).
+ * Squish Squad Shop merch fulfilled by Printful: the T-shirt, hoodie, long
+ * sleeve and mug Travis approved (colors, prices and shipping as agreed on
+ * 2026-10-21).
  *
- * Variant ids come from Printful's catalog (products 71, 146 and 19). File ids
+ * Variant ids come from Printful's catalog (products 71, 146, 57 and 19). File ids
  * are the artwork in the Printful file library, uploaded from the "Squishman
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "MUG";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "MUG";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -30,7 +31,7 @@ export interface MerchColor {
 	name: string;
 	/** Swatch for the shop page. */
 	hex: string;
-	/** Printful catalog variant id by size. */
+	/** Printful catalog variant id by size (only the sizes this color comes in). */
 	variants: Record<string, number>;
 }
 
@@ -107,6 +108,25 @@ export const MERCH: MerchProduct[] = [
 			{ name: "Red", hex: "#c8102e", variants: { S: 5538, M: 5539, L: 5540, XL: 5541, "2XL": 5542, "3XL": 5543 } },
 		],
 		files: [front(2100, 2100, 100), back],
+		productionEnabled: false,
+	},
+	{
+		key: "LONGSLEEVE",
+		name: "Squish Squad Long Sleeve",
+		priceCents: 3299,
+		sizeUpchargeCents: UPCHARGE,
+		shipping: { firstCents: 599, additionalCents: 249 },
+		sizes: SIZES,
+		colors: [
+			{ name: "Black", hex: "#111111", variants: { S: 3456, M: 3457, L: 3458, XL: 3459, "2XL": 3460, "3XL": 3461 } },
+			{ name: "White", hex: "#ffffff", variants: { S: 3448, M: 3449, L: 3450, XL: 3451, "2XL": 3452, "3XL": 3453 } },
+			{ name: "Royal Blue", hex: "#1d4fa8", variants: { S: 3576, M: 3577, L: 3578, XL: 3579, "2XL": 3580, "3XL": 3581 } },
+			// Gildan's Light Pink stops at 2XL.
+			{ name: "Pink", hex: "#f4c6d4", variants: { S: 3512, M: 3513, L: 3514, XL: 3515, "2XL": 3516 } },
+			{ name: "Grey", hex: "#c9c9c9", variants: { S: 3600, M: 3601, L: 3602, XL: 3603, "2XL": 3604, "3XL": 3605 } },
+			{ name: "Red", hex: "#c8102e", variants: { S: 3568, M: 3569, L: 3570, XL: 3571, "2XL": 3572, "3XL": 3573 } },
+		],
+		files: [front(1800, 2400, 150), back],
 		productionEnabled: false,
 	},
 	{

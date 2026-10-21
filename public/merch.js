@@ -75,9 +75,11 @@ const products=[];
 
 // Printful products sold on the site: card name → product key and the real
 // product photos (front and back of each color, from Printful's mockups).
+// Not every color comes in every size, so the size list follows the color.
 const SHOP={
  'Squish Squad T-Shirt':{key:'TEE',img:'tee',facts:'Unisex S–3XL · soft cotton tee'},
  'Squish Squad Hoodie':{key:'HOODIE',img:'hoodie',facts:'Unisex S–3XL · cotton-blend fleece'},
+ 'Squish Squad Long Sleeve':{key:'LONGSLEEVE',img:'longsleeve',facts:'Unisex S–3XL (pink to 2XL) · cotton'},
  'Squish Squad Mugs':{key:'MUG',img:'mug',name:'Squish Squad Mug',facts:'11 oz ceramic · dishwasher and microwave safe',
   desc:'A white glossy mug with Squish Man and Pudy on one side and the gold crown, SQUISHMAN wordmark and paw print on the other.'}
 };
@@ -102,11 +104,13 @@ function cardHtml(p,n){
  <div class="merch-actions"><button type="button" class="merch-explore" data-gallery="${n}" aria-label="Explore the design: ${esc(p.name)}">EXPLORE THE DESIGN</button><button type="button" class="merch-checkout" disabled aria-label="Checkout coming soon: ${esc(p.name)}">CHECKOUT COMING SOON</button></div>`}</div>
 </article>`;
 }
+const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
+const sizeLabel=(m,v)=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v;
+const colorSizes=p=>p.shop.colors[p.active||0].sizes;
 function buyHtml(p,n){
- const m=p.shop,size=m.sizes[0],one=m.sizes.length===1;
- const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
+ const m=p.shop,size=colorSizes(p)[0],one=m.sizes.length===1;
  return `<dl class="merch-facts"><div><dt>Price</dt><dd class="merch-price">${money(unit(m,size))}</dd></div><div><dt>Sizes &amp; materials</dt><dd>${esc(p.facts)}</dd></div></dl>
- <div class="merch-buy">${one?'':`<label>Size <select class="merch-size" data-merch="${n}">${opts(m.sizes,v=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v)}</select></label>`}<label>Quantity <select class="merch-qty" data-merch="${n}">${opts(Array.from({length:m.maxQuantity},(_,i)=>String(i+1)),v=>v)}</select></label></div>
+ <div class="merch-buy">${one?'':`<label>Size <select class="merch-size" data-merch="${n}">${opts(colorSizes(p),v=>sizeLabel(m,v))}</select></label>`}<label>Quantity <select class="merch-qty" data-merch="${n}">${opts(Array.from({length:m.maxQuantity},(_,i)=>String(i+1)),v=>v)}</select></label></div>
  <p class="merch-ship">Shipping ${money(m.shipping.firstCents)}${m.shipping.additionalCents?`, plus ${money(m.shipping.additionalCents)} for each extra item`:''} · US only · printed to order, ships in about 1–2 weeks</p>
  <div class="merch-actions"><button type="button" class="merch-explore" data-gallery="${n}" aria-label="See photos: ${esc(p.name)}">SEE PHOTOS</button><button type="button" class="merch-buy-now" data-buy="${n}" aria-label="Buy now: ${esc(p.name)}">BUY NOW</button></div>
  <p class="merch-error" role="alert" hidden></p>`;
@@ -163,6 +167,13 @@ root.addEventListener('click',e=>{
  cardEl.querySelectorAll('.merch-swatch').forEach(s=>s.setAttribute('aria-pressed',String(s===b)));
  cardEl.querySelector('.merch-shown').textContent='Shown in '+c[0].toLowerCase();
  p.active=+b.dataset.color;
+ const sizeSel=p.shop&&cardEl.querySelector('.merch-size');
+ if(sizeSel){ // keep the chosen size if this color has it
+  const keep=sizeSel.value,sizes=colorSizes(p);
+  sizeSel.innerHTML=opts(sizes,v=>sizeLabel(p.shop,v));
+  sizeSel.value=sizes.includes(keep)?keep:sizes[0];
+  cardEl.querySelector('.merch-price').textContent=money(unit(p.shop,sizeSel.value));
+ }
 });
 
 // Accessible gallery built on <dialog>: focus is contained while open, Escape
