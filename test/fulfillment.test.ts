@@ -708,9 +708,16 @@ describe("merch catalog", () => {
 				expect(Object.keys(c.variants)).toEqual(sizes);
 			}
 		}
-		expect([tee.priceCents, hoodie.priceCents, longSleeve.priceCents, merchProduct("MUG")!.priceCents]).toEqual([
-			2999, 4999, 3299, 1999,
-		]);
+		const prices = (key: string) => merchProduct(key)!.designs.map((d) => [d.key, d.priceCents]);
+		expect(prices("TEE")).toEqual([["FULL", 2999], ["LOGO", 2699]]);
+		expect(prices("HOODIE")).toEqual([["FULL", 4999], ["LOGO", 4699]]);
+		expect(prices("LONGSLEEVE")).toEqual([["FULL", 3299], ["LOGO", 2999]]);
+		expect(prices("MUG")).toEqual([["FULL", 1999], ["LOGO", 1799]]);
+		// The logo design prints only the crown logo, on the front.
+		for (const p of [tee, hoodie, longSleeve]) {
+			const logo = p.designs.find((d) => d.key === "LOGO")!;
+			expect(logo.files.map((f) => [f.type, f.fileId])).toEqual([["front", 1090848220]]);
+		}
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
 		const ids = MERCH.flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
@@ -739,7 +746,7 @@ describe("merch checkout", () => {
 		expect(f.get("line_items[0][price_data][product_data][name]")).toBe("Squish Squad Hoodie — Pink, 2XL");
 		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("1298"); // $9.99 + $2.99
 		expect(f.get("shipping_address_collection[allowed_countries][0]")).toBe("US");
-		expect(f.get("metadata[merch_sku]")).toBe("HOODIE|Pink|2XL");
+		expect(f.get("metadata[merch_sku]")).toBe("HOODIE|Pink|2XL|FULL");
 		expect(f.get("success_url")).toBe("https://squishman.com/?shop=thanks#merch");
 	});
 
@@ -747,14 +754,22 @@ describe("merch checkout", () => {
 		const res = await SELF.fetch(`${BASE}/api/merch`);
 		const json = (await res.json()) as {
 			checkout: string;
-			products: Array<{ key: string; priceCents: number; colors: Array<{ name: string; sizes: string[] }> }>;
+			products: Array<{
+				key: string;
+				designs: Array<{ key: string; label: string; priceCents: number }>;
+				colors: Array<{ name: string; sizes: string[] }>;
+			}>;
 		};
 		expect(json.checkout).toBe("off");
-		expect(json.products.map((p) => [p.key, p.priceCents])).toEqual([
-			["TEE", 2999],
-			["HOODIE", 4999],
-			["LONGSLEEVE", 3299],
-			["MUG", 1999],
+		expect(json.products.map((p) => [p.key, ...p.designs.map((d) => d.priceCents)])).toEqual([
+			["TEE", 2999, 2699],
+			["HOODIE", 4999, 4699],
+			["LONGSLEEVE", 3299, 2999],
+			["MUG", 1999, 1799],
+		]);
+		expect(json.products[0].designs.map((d) => d.label)).toEqual([
+			"Squish Man & Pudy (front + back)",
+			"Crown logo only (front)",
 		]);
 		expect(json.products[0].colors.map((c) => c.name)).toContain("Royal Blue");
 		const pink = json.products[2].colors.find((c) => c.name === "Pink");
@@ -771,6 +786,20 @@ describe("merch checkout", () => {
 		expect(stripeCreates[0].get("line_items[0][price_data][unit_amount]")).toBe("1999");
 	});
 
+	it("sells the crown-logo design for $3 less", async () => {
+		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
+		const r = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "TEE", design: "LOGO", color: "Grey", size: "M" },
+			"https://squishman.com",
+		);
+		expect(r.status).toBe(200);
+		const f = stripeCreates[0];
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("2699");
+		expect(f.get("line_items[0][price_data][product_data][name]")).toBe("Squish Squad T-Shirt, Crown Logo — Grey, M");
+		expect(f.get("metadata[merch_sku]")).toBe("TEE|Grey|M|LOGO");
+	});
+
 	it("rejects anything that isn't for sale without calling Stripe", async () => {
 		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
 		const e = sandboxEnv({ MERCH_CHECKOUT: "on" });
@@ -778,6 +807,7 @@ describe("merch checkout", () => {
 			{ product: "TEE", color: "Purple", size: "M" },
 			{ product: "TEE", color: "Black", size: "5XL" },
 			{ product: "LONGSLEEVE", color: "Pink", size: "3XL" },
+			{ product: "TEE", design: "BACK", color: "Black", size: "M" },
 			{ product: "PLUSH", color: "Black", size: "M" },
 			{ product: "TEE", color: "Black", size: "M", quantity: 11 },
 			{ product: "TEE", color: "Black", size: "M", quantity: 0 },
@@ -857,11 +887,36 @@ describe("merch orders → Printful", () => {
 		expect(printful.creates).toBe(1);
 	});
 
-	it("holds mugs until the wrap artwork is uploaded", async () => {
+	it("holds full-design mugs until the wrap artwork is uploaded", async () => {
 		merchSession("cs_test_mug", "MUG|White|11 oz");
 		const r = await deliver(sandboxEnv(), paidEvent("cs_test_mug"));
 		expect(r.body).toMatchObject({ fulfillment: "held", reason: "PRINT_FILES_MISSING:MUG" });
 		expect(printful.creates).toBe(0);
+	});
+
+	it("sends crown-logo orders with only the logo on the front", async () => {
+		merchSession("cs_test_logotee", "HOODIE|Red|L|LOGO");
+		await deliver(sandboxEnv(), paidEvent("cs_test_logotee"));
+		const tee = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0];
+		expect(tee).toMatchObject({ variant_id: 5540, name: "Squish Squad Hoodie, Crown Logo — Red, L", retail_price: "46.99" });
+		expect(tee.files).toEqual([
+			{
+				type: "front",
+				id: 1090848220,
+				position: { area_width: 2100, area_height: 2100, width: 1366, height: 1152, top: 100, left: 367 },
+			},
+		]);
+		merchSession("cs_test_logomug", "MUG|White|11 oz|LOGO");
+		const mug = await deliver(sandboxEnv(), paidEvent("cs_test_logomug"));
+		expect(mug.body).toMatchObject({ fulfillment: "submitting" });
+		expect((printful.lastCreate as { items: Array<{ files: unknown[] }> }).items[0].files).toEqual([
+			{
+				type: "default",
+				id: 1090848220,
+				position: { area_width: 2700, area_height: 1050, width: 1100, height: 927, top: 61, left: 1475 },
+			},
+		]);
+		expect(printful.creates).toBe(2);
 	});
 
 	it("never sends a live order in sandbox mode, and holds unknown SKUs", async () => {

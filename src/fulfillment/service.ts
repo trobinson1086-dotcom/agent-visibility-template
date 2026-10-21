@@ -208,7 +208,7 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 		]);
 		const printFiles: Record<string, string> = {};
 		for (const p of MERCH) {
-			for (const f of p.files) {
+			for (const f of p.designs.flatMap((d) => d.files)) {
 				const name = (f.fileId && names.get(f.fileId)) || `${p.key.toLowerCase()}_${f.type}`;
 				if (name in printFiles) continue;
 				if (f.fileId === null) {

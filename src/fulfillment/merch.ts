@@ -1,7 +1,8 @@
 /**
  * Squish Squad Shop merch fulfilled by Printful: the T-shirt, hoodie, long
  * sleeve and mug Travis approved (colors, prices and shipping as agreed on
- * 2026-10-21).
+ * 2026-10-21), each in two designs: the full Squish Man & Pudy design or the
+ * crown logo alone.
  *
  * Variant ids come from Printful's catalog (products 71, 146, 57 and 19). File ids
  * are the artwork in the Printful file library, uploaded from the "Squishman
@@ -35,17 +36,28 @@ export interface MerchColor {
 	variants: Record<string, number>;
 }
 
+export type DesignKey = "FULL" | "LOGO";
+
+/** One artwork option for a product, with its own price and print files. */
+export interface MerchDesign {
+	key: DesignKey;
+	/** Shown to customers, e.g. "Squish Man & Pudy (front + back)". */
+	label: string;
+	priceCents: number;
+	files: MerchFile[];
+}
+
 export interface MerchProduct {
 	key: MerchKey;
 	name: string;
-	priceCents: number;
+	/** Two designs, default first: the full design, or the crown logo alone. */
+	designs: MerchDesign[];
 	/** Added to the price for sizes Printful charges more for. */
 	sizeUpchargeCents: Record<string, number>;
 	/** Flat shipping charged at checkout: first item, then each additional one. */
 	shipping: { firstCents: number; additionalCents: number };
 	sizes: string[];
 	colors: MerchColor[];
-	files: MerchFile[];
 	/**
 	 * Live orders are sent to Printful as drafts until this is switched on:
 	 * Travis confirms each draft in the Printful dashboard (that is when
@@ -72,12 +84,26 @@ const back: MerchFile = {
 	fileId: BACK_CROWN_FILE,
 	position: { area_width: 1800, area_height: 2400, width: 1366, height: 1152, top: 150, left: 217 },
 };
+// The crown logo alone, on the front.
+const logoFront = (areaWidth: number, areaHeight: number, top: number): MerchFile => ({
+	type: "front",
+	fileId: BACK_CROWN_FILE,
+	position: { area_width: areaWidth, area_height: areaHeight, width: 1366, height: 1152, top, left: (areaWidth - 1366) / 2 },
+});
+
+const FULL_LABEL = "Squish Man & Pudy (front + back)";
+const LOGO_LABEL = "Crown logo only (front)";
+// Logo-only garments skip Printful's back-print charge, so they cost $3 less.
+const designs = (fullCents: number, full: MerchFile[], logo: MerchFile[], logoCents = fullCents - 300): MerchDesign[] => [
+	{ key: "FULL", label: FULL_LABEL, priceCents: fullCents, files: full },
+	{ key: "LOGO", label: LOGO_LABEL, priceCents: logoCents, files: logo },
+];
 
 export const MERCH: MerchProduct[] = [
 	{
 		key: "TEE",
 		name: "Squish Squad T-Shirt",
-		priceCents: 2999,
+		designs: designs(2999, [front(1800, 2400, 150), back], [logoFront(1800, 2400, 150)]),
 		sizeUpchargeCents: UPCHARGE,
 		shipping: { firstCents: 599, additionalCents: 249 },
 		sizes: SIZES,
@@ -89,13 +115,12 @@ export const MERCH: MerchProduct[] = [
 			{ name: "Grey", hex: "#c9c9c9", variants: { S: 6948, M: 6949, L: 6950, XL: 6951, "2XL": 6952, "3XL": 6953 } },
 			{ name: "Red", hex: "#c8102e", variants: { S: 4141, M: 4142, L: 4143, XL: 4144, "2XL": 4145, "3XL": 5304 } },
 		],
-		files: [front(1800, 2400, 150), back],
 		productionEnabled: false,
 	},
 	{
 		key: "HOODIE",
 		name: "Squish Squad Hoodie",
-		priceCents: 4999,
+		designs: designs(4999, [front(2100, 2100, 100), back], [logoFront(2100, 2100, 100)]),
 		sizeUpchargeCents: UPCHARGE,
 		shipping: { firstCents: 999, additionalCents: 299 },
 		sizes: SIZES,
@@ -107,13 +132,12 @@ export const MERCH: MerchProduct[] = [
 			{ name: "Grey", hex: "#c9c9c9", variants: { S: 5610, M: 5611, L: 5612, XL: 5613, "2XL": 5614, "3XL": 5615 } },
 			{ name: "Red", hex: "#c8102e", variants: { S: 5538, M: 5539, L: 5540, XL: 5541, "2XL": 5542, "3XL": 5543 } },
 		],
-		files: [front(2100, 2100, 100), back],
 		productionEnabled: false,
 	},
 	{
 		key: "LONGSLEEVE",
 		name: "Squish Squad Long Sleeve",
-		priceCents: 3299,
+		designs: designs(3299, [front(1800, 2400, 150), back], [logoFront(1800, 2400, 150)]),
 		sizeUpchargeCents: UPCHARGE,
 		shipping: { firstCents: 599, additionalCents: 249 },
 		sizes: SIZES,
@@ -126,20 +150,33 @@ export const MERCH: MerchProduct[] = [
 			{ name: "Grey", hex: "#c9c9c9", variants: { S: 3600, M: 3601, L: 3602, XL: 3603, "2XL": 3604, "3XL": 3605 } },
 			{ name: "Red", hex: "#c8102e", variants: { S: 3568, M: 3569, L: 3570, XL: 3571, "2XL": 3572, "3XL": 3573 } },
 		],
-		files: [front(1800, 2400, 150), back],
 		productionEnabled: false,
 	},
 	{
 		key: "MUG",
 		name: "Squish Squad Mug (11 oz)",
-		priceCents: 1999,
+		// Full: one 2700x1050 wrap, banner on one side and crown logo on the
+		// other (not uploaded yet, so those orders are held until it is).
+		// Logo: the crown logo alone on one side.
+		designs: [
+			{ key: "FULL", label: "Squish Man & Pudy + crown logo", priceCents: 1999, files: [{ type: "default", fileId: null }] },
+			{
+				key: "LOGO",
+				label: "Crown logo only",
+				priceCents: 1799,
+				files: [
+					{
+						type: "default",
+						fileId: BACK_CROWN_FILE,
+						position: { area_width: 2700, area_height: 1050, width: 1100, height: 927, top: 61, left: 1475 },
+					},
+				],
+			},
+		],
 		sizeUpchargeCents: {},
 		shipping: { firstCents: 799, additionalCents: 399 },
 		sizes: ["11 oz"],
 		colors: [{ name: "White", hex: "#ffffff", variants: { "11 oz": 1320 } }],
-		// One 2700x1050 wrap: banner on one side, crown logo on the other.
-		// Not uploaded yet, so mug orders are held until it is.
-		files: [{ type: "default", fileId: null }],
 		productionEnabled: false,
 	},
 ];
@@ -152,35 +189,45 @@ export function merchProduct(key: string): MerchProduct | undefined {
 
 export interface MerchSelection {
 	product: MerchProduct;
+	design: MerchDesign;
 	color: MerchColor;
 	size: string;
 	variantId: number;
 	unitCents: number;
-	/** "TEE|Black|M": stored in Stripe metadata and our order record. */
+	/** "TEE|Black|M|LOGO": stored in Stripe metadata and our order record. */
 	sku: string;
 	title: string;
 }
 
-/** Resolve a product/color/size choice, or null if it isn't for sale. */
-export function merchSelection(key: string, colorName: string, size: string): MerchSelection | null {
+/** Resolve a product/color/size/design choice, or null if it isn't for sale. */
+export function merchSelection(
+	key: string,
+	colorName: string,
+	size: string,
+	designKey = "FULL",
+): MerchSelection | null {
 	const product = merchProduct(key);
+	const design = product?.designs.find((d) => d.key === designKey);
 	const color = product?.colors.find((c) => c.name === colorName);
 	const variantId = color?.variants[size];
-	if (!product || !color || !variantId || !product.sizes.includes(size)) return null;
+	if (!product || !design || !color || !variantId || !product.sizes.includes(size)) return null;
+	const name = design.key === "LOGO" ? `${product.name}, Crown Logo` : product.name;
 	return {
 		product,
+		design,
 		color,
 		size,
 		variantId,
-		unitCents: product.priceCents + (product.sizeUpchargeCents[size] ?? 0),
-		sku: `${product.key}|${color.name}|${size}`,
-		title: product.key === "MUG" ? product.name : `${product.name} — ${color.name}, ${size}`,
+		unitCents: design.priceCents + (product.sizeUpchargeCents[size] ?? 0),
+		sku: `${product.key}|${color.name}|${size}|${design.key}`,
+		title: product.key === "MUG" ? name : `${name} — ${color.name}, ${size}`,
 	};
 }
 
+/** SKUs from before designs existed ("TEE|Black|M") are the full design. */
 export function merchFromSku(sku: string): MerchSelection | null {
-	const [key, color, size] = sku.split("|");
-	return key && color && size ? merchSelection(key, color, size) : null;
+	const [key, color, size, design = "FULL"] = sku.split("|");
+	return key && color && size ? merchSelection(key, color, size, design) : null;
 }
 
 /** Shipping charged for `quantity` of one product. */

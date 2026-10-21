@@ -72,7 +72,7 @@ export function merchCatalog(env: Env) {
 		products: MERCH.map((p) => ({
 			key: p.key,
 			name: p.name,
-			priceCents: p.priceCents,
+			designs: p.designs.map((d) => ({ key: d.key, label: d.label, priceCents: d.priceCents })),
 			sizeUpchargeCents: p.sizeUpchargeCents,
 			shipping: p.shipping,
 			sizes: p.sizes,
@@ -84,6 +84,7 @@ export function merchCatalog(env: Env) {
 
 export interface CheckoutRequest {
 	product?: unknown;
+	design?: unknown;
 	color?: unknown;
 	size?: unknown;
 	quantity?: unknown;
@@ -102,10 +103,10 @@ export async function createMerchCheckout(
 	const quantity = Number(req.quantity ?? 1);
 	const sel =
 		typeof req.product === "string" && typeof req.color === "string" && typeof req.size === "string"
-			? merchSelection(req.product, req.color, req.size)
+			? merchSelection(req.product, req.color, req.size, typeof req.design === "string" ? req.design : "FULL")
 			: null;
 	if (!sel || !Number.isInteger(quantity) || quantity < 1 || quantity > MAX_MERCH_QUANTITY) {
-		return { status: 400, body: { error: "Please choose a product, color, size and quantity." } };
+		return { status: 400, body: { error: "Please choose a product, design, color, size and quantity." } };
 	}
 	const p = sel.product;
 	try {
@@ -214,7 +215,7 @@ function holdReason(
 	if (!oneLine) return "TOO_MANY_LINE_ITEMS";
 	if (!sel) return "UNKNOWN_MERCH_SKU";
 	if (quantity < 1 || quantity > MAX_MERCH_QUANTITY) return "INVALID_QUANTITY";
-	if (sel.product.files.some((f) => f.fileId === null)) return `PRINT_FILES_MISSING:${sel.product.key}`;
+	if (sel.design.files.some((f) => f.fileId === null)) return `PRINT_FILES_MISSING:${sel.product.key}`;
 	const missing = missingForPrintful(shipping);
 	if (missing.length) return `INVALID_ADDRESS:${missing.join(",")}`;
 	if (!token(env)) return "PRINTFUL_NOT_CONFIGURED";
@@ -272,7 +273,7 @@ export async function submitMerch(
 						quantity: item.quantity,
 						name: sel.title,
 						retail_price: (sel.unitCents / 100).toFixed(2),
-						files: sel.product.files.map((f) => ({
+						files: sel.design.files.map((f) => ({
 							type: f.type,
 							id: f.fileId as number,
 							...(f.position ? { position: { ...f.position } } : {}),
