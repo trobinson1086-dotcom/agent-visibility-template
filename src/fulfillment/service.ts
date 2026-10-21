@@ -164,6 +164,8 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 		}
 	}
 
+	result.printful = await printfulCheck(env.PRINTFUL_API_TOKEN);
+
 	const checkEnv =
 		result.lulu === "ok"
 			? creds?.mode
@@ -176,6 +178,26 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 
 	await env.VISIBILITY_CACHE.put(HEALTH_KEY, JSON.stringify(result), { expirationTtl: HEALTH_TTL });
 	return result;
+}
+
+/**
+ * Printful token check: list one store product (read-only). Reports only
+ * whether the token works and how many products the store holds.
+ */
+async function printfulCheck(token: string | undefined): Promise<string | Record<string, unknown>> {
+	const t = token?.trim();
+	if (!t) return "missing";
+	try {
+		const res = await fetch("https://api.printful.com/store/products?limit=1", {
+			headers: { Authorization: `Bearer ${t}` },
+			signal: AbortSignal.timeout(10_000),
+		});
+		if (!res.ok) return `auth_failed (HTTP ${res.status})`;
+		const body = (await res.json()) as { paging?: { total?: number } };
+		return { status: "ok", storeProducts: body.paging?.total ?? 0 };
+	} catch {
+		return "unreachable";
+	}
 }
 
 /** A sample US destination for price checks (Lulu's own docs example address). */
