@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "MUG";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -110,6 +110,24 @@ const mapleFront = (areaWidth: number, areaHeight: number, top: number): MerchFi
 	position: { area_width: areaWidth, area_height: areaHeight, width: 1600, height: 800, top, left: (areaWidth - 1600) / 2 },
 });
 
+// Tote placements inside its 1500x1500 print area.
+const TOTE_AREA = { area_width: 1500, area_height: 1500 };
+const toteBanner: MerchFile = {
+	type: "front",
+	fileId: FRONT_BANNER_FILE,
+	position: { ...TOTE_AREA, width: 1226, height: 1283, top: 100, left: 137 },
+};
+const toteCrown = (type: "front" | "back"): MerchFile => ({
+	type,
+	fileId: BACK_CROWN_FILE,
+	position: { ...TOTE_AREA, width: 1366, height: 1152, top: 174, left: 67 },
+});
+const toteMaple: MerchFile = {
+	type: "front",
+	fileId: MAPLE_HOLLOW_FILE,
+	position: { ...TOTE_AREA, width: 1440, height: 720, top: 390, left: 30 },
+};
+
 // Front-only designs skip Printful's back-print charge, so they cost $3 less.
 const designs = (
 	fullCents: number,
@@ -197,6 +215,28 @@ export const MERCH: MerchProduct[] = [
 			{ name: "Pink", hex: "#f4c6d4", variants: { S: 3512, M: 3513, L: 3514, XL: 3515, "2XL": 3516 } },
 			{ name: "Grey", hex: "#c9c9c9", variants: { S: 3600, M: 3601, L: 3602, XL: 3603, "2XL": 3604, "3XL": 3605 } },
 			{ name: "Red", hex: "#c8102e", variants: { S: 3568, M: 3569, L: 3570, XL: 3571, "2XL": 3572, "3XL": 3573 } },
+		],
+		productionEnabled: false,
+	},
+	{
+		// Econscious EC8000 organic cotton tote (Printful product 367): a
+		// 1500x1500 (10 in) print area on each side.
+		key: "TOTE",
+		name: "Squish Squad Tote Bag",
+		designs: designs(
+			3299,
+			[toteBanner, toteCrown("back")],
+			[toteBanner],
+			[toteCrown("front")],
+			[toteMaple],
+			[toteMaple, toteCrown("back")],
+		),
+		sizeUpchargeCents: {},
+		shipping: { firstCents: 599, additionalCents: 249 },
+		sizes: ["One size"],
+		colors: [
+			{ name: "Black", hex: "#111111", variants: { "One size": 10457 } },
+			{ name: "Natural", hex: "#e9dcc3", variants: { "One size": 10458 } },
 		],
 		productionEnabled: false,
 	},

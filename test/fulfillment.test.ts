@@ -725,6 +725,7 @@ describe("merch catalog", () => {
 		expect(prices("TEE")).toEqual(five(2999, 2699));
 		expect(prices("HOODIE")).toEqual(five(4999, 4699));
 		expect(prices("LONGSLEEVE")).toEqual(five(3299, 2999));
+		expect(prices("TOTE")).toEqual(five(3299, 2999));
 		expect(prices("MUG")).toEqual(five(1999, 1799));
 		// The single-artwork designs print only that artwork, on the front.
 		for (const p of [tee, hoodie, longSleeve]) {
@@ -784,6 +785,7 @@ describe("merch checkout", () => {
 			["TEE", 2999, 2699, 2699, 2699, 2999],
 			["HOODIE", 4999, 4699, 4699, 4699, 4999],
 			["LONGSLEEVE", 3299, 2999, 2999, 2999, 3299],
+			["TOTE", 3299, 2999, 2999, 2999, 3299],
 			["MUG", 1999, 1799, 1799, 1799, 1999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
@@ -955,6 +957,25 @@ describe("merch orders → Printful", () => {
 		expect(mug.body).toMatchObject({ fulfillment: "submitting" });
 		expect((printful.lastCreate as { items: Array<{ files: unknown[] }> }).items[0].files).toEqual([
 			{ type: "default", id: 1090966931 },
+		]);
+	});
+
+	it("sends tote orders with the chosen artwork on the right sides", async () => {
+		merchSession("cs_test_tote", "TOTE|Natural|One size|MAPLECROWN");
+		await deliver(sandboxEnv(), paidEvent("cs_test_tote"));
+		const item = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0];
+		expect(item).toMatchObject({ variant_id: 10458, name: "Squish Squad Tote Bag, Maple Hollow + Crown — Natural, One size", retail_price: "32.99" });
+		expect(item.files).toEqual([
+			{
+				type: "front",
+				id: 1090919465,
+				position: { area_width: 1500, area_height: 1500, width: 1440, height: 720, top: 390, left: 30 },
+			},
+			{
+				type: "back",
+				id: 1090848220,
+				position: { area_width: 1500, area_height: 1500, width: 1366, height: 1152, top: 174, left: 67 },
+			},
 		]);
 	});
 
