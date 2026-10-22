@@ -831,7 +831,7 @@ describe("merch checkout", () => {
 			["HAT", 3099, 3099, 3099, 3099, 3099],
 			["DADHAT", 2799, 2799, 2799, 2799, 2799],
 			["KIDSTEE", 2699, 2399, 2399, 2399, 2699],
-			["KIDSHOODIE", 5499, 5499, 5499, 5499, 5499],
+			["KIDSHOODIE", 4999, 4999, 4999, 4999, 4999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1364,7 +1364,7 @@ describe("merch orders → Printful", () => {
 		merchSession("cs_test_kidshoodie", "KIDSHOODIE|Berry|Youth 10|FULL");
 		await deliver(sandboxEnv(), paidEvent("cs_test_kidshoodie"));
 		const item = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0];
-		expect(item).toMatchObject({ variant_id: 54101, retail_price: "54.99" });
+		expect(item).toMatchObject({ variant_id: 54101, retail_price: "49.99" });
 		expect(item.files).toEqual(
 			full.map((f) => ({
 				type: f.type,
