@@ -551,6 +551,15 @@ const COLOR_PILLOW_FILES: Record<string, Partial<Record<DesignKey | "BACK", numb
 		SM_VALUES: 1091680855,
 		BACK: 1091680863,
 	},
+	Pink: {
+		SM_ROYAL: 1091705216,
+		BEST_FRIENDS: 1091705234,
+		MH_PALS: 1091705246,
+		MH_WAVE: 1091705264,
+		PUDY: 1091705275,
+		SM_VALUES: 1091705282,
+		BACK: 1091705289,
+	},
 };
 const colorPillow = (key: DesignKey, label: string): MerchDesign => ({
 	key,
@@ -583,7 +592,10 @@ MERCH.push({
 	sizeUpchargeCents: { "18 in": 500 },
 	shipping: { firstCents: 1099, additionalCents: 449 },
 	sizes: ["16 in", "18 in"],
-	colors: [{ name: "Royal Blue", hex: "#1d4fa8", variants: { "16 in": 49854, "18 in": 4532 } }],
+	colors: [
+		{ name: "Royal Blue", hex: "#1d4fa8", variants: { "16 in": 49854, "18 in": 4532 } },
+		{ name: "Pink", hex: "#f4b6c7", variants: { "16 in": 49854, "18 in": 4532 } },
+	],
 	productionEnabled: false,
 });
 
