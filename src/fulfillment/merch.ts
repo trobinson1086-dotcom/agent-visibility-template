@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -57,6 +57,8 @@ export type DesignKey =
 	| "SM_ROYAL"
 	| "MH_SIGN"
 	| "BEST_FRIENDS"
+	// Hat-only embroidery designs.
+	| "HAT_PAW"
 	// Puzzle-only full-scene book art.
 	| "PZ_WELCOME"
 	| "PZ_ROYAL_HERO"
@@ -72,6 +74,8 @@ export interface MerchDesign {
 	label: string;
 	priceCents: number;
 	files: MerchFile[];
+	/** Printful item options sent with the order, e.g. embroidery thread colors. */
+	printfulOptions?: Record<string, unknown>;
 }
 
 export interface MerchProduct {
@@ -659,6 +663,124 @@ MERCH.push({
 	productionEnabled: false,
 });
 
+// Embroidered youth caps (Printful product 429, Valucap VC300Y). Embroidery
+// stitches flat thread colors, so each front is the picture simplified to at
+// most nine Printful threads (public/assets/merch/print/hats/), and every cap
+// has the crown + SQUISHMAN logo embroidered on the back. Printful charges a
+// one-time digitization fee the first time each design is ordered.
+export const HAT_FILES = {
+	CROWN_WORDMARK: 1091740166,
+	PAW: 1091740758,
+	SM_ROYAL: 1091757219,
+	BEST_FRIENDS: 1091757361,
+	MH_PALS: 1091757387,
+	MH_HIGHFIVE: 1091757424,
+};
+const LOGO_THREADS = ["#FFCC00", "#A67843", "#005397", "#333366"];
+const hatDesign = (
+	key: DesignKey,
+	label: string,
+	fileId: number | null,
+	width: number,
+	height: number,
+	threads: string[],
+): MerchDesign => ({
+	key,
+	label,
+	priceCents: 3099,
+	files: [
+		{
+			type: "embroidery_front",
+			fileId,
+			position: {
+				area_width: 1200,
+				area_height: 525,
+				width,
+				height,
+				top: Math.floor((525 - height) / 2),
+				left: Math.floor((1200 - width) / 2),
+			},
+		},
+		{
+			type: "embroidery_back",
+			fileId: HAT_FILES.CROWN_WORDMARK,
+			position: { area_width: 600, area_height: 300, width: 589, height: 300, top: 0, left: 5 },
+		},
+	],
+	printfulOptions: { thread_colors: threads, thread_colors_back: LOGO_THREADS },
+});
+const PICTURE_THREADS = ["#FFFFFF", "#000000", "#96A1A8", "#A67843", "#FFCC00", "#E25C27", "#CC3333", "#660000", "#005397"];
+MERCH.push({
+	key: "HAT",
+	name: "Squish Squad Youth Cap",
+	designs: [
+		hatDesign("SM_ROYAL", "Royal Squish Man", HAT_FILES.SM_ROYAL, 520, 525, [
+			"#FFFFFF",
+			"#000000",
+			"#96A1A8",
+			"#A67843",
+			"#FFCC00",
+			"#E25C27",
+			"#660000",
+			"#005397",
+			"#333366",
+		]),
+		hatDesign("BEST_FRIENDS", "Best friends", HAT_FILES.BEST_FRIENDS, 552, 525, PICTURE_THREADS),
+		hatDesign("MH_PALS", "Squish Man & Pudy in Maple Hollow", HAT_FILES.MH_PALS, 575, 525, PICTURE_THREADS),
+		hatDesign("MH_HIGHFIVE", "Squish Man & Pudy high five", HAT_FILES.MH_HIGHFIVE, 639, 525, PICTURE_THREADS),
+		hatDesign("HAT_PAW", "Paw print", HAT_FILES.PAW, 470, 450, ["#005397", "#333366"]),
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: ["Youth"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { Youth: 11457 } },
+		{ name: "Black", hex: "#171717", variants: { Youth: 11456 } },
+		{ name: "Light Pink", hex: "#ffdcdc", variants: { Youth: 11460 } },
+		{ name: "Baby Blue", hex: "#96bbe5", variants: { Youth: 11459 } },
+		{ name: "Khaki", hex: "#e3c7b1", variants: { Youth: 16509 } },
+	],
+	productionEnabled: false,
+});
+
+// Full-color dad hats (Printful product 206, Yupoong 6245CM, adjustable):
+// the picture printed (DTF) on the front in full color. Printful can't mix
+// printing and embroidery on one cap, so these have no back logo.
+const dadHat = (key: DesignKey, label: string, fileId: number, width: number): MerchDesign => ({
+	key,
+	label,
+	priceCents: 2799,
+	files: [
+		{
+			type: "front_dtf_hat",
+			fileId,
+			position: { area_width: 1500, area_height: 600, width, height: 600, top: 0, left: Math.floor((1500 - width) / 2) },
+		},
+	],
+});
+MERCH.push({
+	key: "DADHAT",
+	name: "Squish Squad Full-Color Cap",
+	designs: [
+		dadHat("SM_ROYAL", "Royal Squish Man", STICKER_FILES.SM_ROYAL, 640),
+		dadHat("BEST_FRIENDS", "Best friends", STICKER_FILES.BEST_FRIENDS, 600),
+		dadHat("MH_PALS", "Squish Man & Pudy in Maple Hollow", STICKER_FILES.MH_PALS, 657),
+		dadHat("MH_HIGHFIVE", "Squish Man & Pudy high five", STICKER_FILES.MH_HIGHFIVE, 720),
+		dadHat("PUDY", "Squish Man & Pudy", FRONT_BANNER_FILE, 573),
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: ["Adult"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { Adult: 7853 } },
+		{ name: "Black", hex: "#181717", variants: { Adult: 7854 } },
+		{ name: "Pink", hex: "#fab2ba", variants: { Adult: 7858 } },
+		{ name: "Light Blue", hex: "#b5cbda", variants: { Adult: 7856 } },
+		{ name: "Khaki", hex: "#b49771", variants: { Adult: 7855 } },
+	],
+	productionEnabled: false,
+});
+
 const BY_KEY = new Map(MERCH.map((p) => [p.key, p]));
 
 export function merchProduct(key: string): MerchProduct | undefined {
@@ -700,7 +822,9 @@ export function merchSelection(
 					? `${product.name}, Maple Hollow Logo`
 					: design.key === "MAPLECROWN"
 						? `${product.name}, Maple Hollow + Crown`
-						: product.name;
+						: design.key === "FULL"
+							? product.name
+							: `${product.name}, ${design.label}`;
 	return {
 		product,
 		design,
@@ -713,7 +837,7 @@ export function merchSelection(
 		// Single-color products leave the color out of the title.
 		title:
 			product.colors.length > 1
-				? `${name} — ${color.name}, ${size}`
+				? `${name} — ${color.name}${product.sizes.length > 1 ? `, ${size}` : ""}`
 				: product.sizes.length > 1
 					? `${name} — ${size}`
 					: name,

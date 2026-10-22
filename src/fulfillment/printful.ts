@@ -84,6 +84,7 @@ export interface PrintfulOrderItem {
 	name: string;
 	retail_price: string;
 	files: Array<{ type: string; id: number; position?: Record<string, number> }>;
+	options?: Array<{ id: string; value: unknown }>;
 }
 
 /**

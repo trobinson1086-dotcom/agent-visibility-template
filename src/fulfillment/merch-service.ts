@@ -277,6 +277,9 @@ export async function submitMerch(
 							const position = f.positionBySize?.[sel.size] ?? f.position;
 							return { type: f.type, id: f.fileId as number, ...(position ? { position: { ...position } } : {}) };
 						}),
+						...(sel.design.printfulOptions
+							? { options: Object.entries(sel.design.printfulOptions).map(([id, value]) => ({ id, value })) }
+							: {}),
 					},
 				],
 			},
