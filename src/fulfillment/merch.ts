@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -466,6 +466,46 @@ MERCH.push({
 	shipping: { firstCents: 849, additionalCents: 249 },
 	sizes: ["30 pcs", "110 pcs", "252 pcs"],
 	colors: [{ name: "White", hex: "#ffffff", variants: { "30 pcs": 23246, "110 pcs": 23245, "252 pcs": 23247 } }],
+	productionEnabled: false,
+});
+
+// Stainless steel water bottles (Printful product 382): one artwork on the
+// front of the 2557x1582 wrap, kept 850 px wide so it stays on the side
+// facing you instead of bending around the bottle.
+const bottle = (key: DesignKey, label: string, fileId: number, artWidth: number, artHeight: number): MerchDesign => {
+	const width = 850;
+	const height = Math.round((artHeight * width) / artWidth);
+	return {
+		key,
+		label,
+		priceCents: 3299,
+		files: [
+			{
+				type: "default",
+				fileId,
+				position: { area_width: 2557, area_height: 1582, width, height, top: Math.floor((1582 - height) / 2), left: 853 },
+			},
+		],
+	};
+};
+MERCH.push({
+	key: "BOTTLE",
+	name: "Squish Squad Water Bottle",
+	designs: [
+		bottle("PUDY", "Squish Man & Pudy", FRONT_BANNER_FILE, 1226, 1283),
+		bottle("LOGO", "Crown logo", BACK_CROWN_FILE, 1366, 1152),
+		bottle("MAPLE", "Maple Hollow logo", MAPLE_HOLLOW_FILE, 1774, 887),
+		bottle("MH_PALS", "Squish Man & Pudy in Maple Hollow", STICKER_FILES.MH_PALS, 1312, 1199),
+		bottle("SM_ROYAL", "Royal Squish Man", STICKER_FILES.SM_ROYAL, 1295, 1214),
+		bottle("BEST_FRIENDS", "Best friends", STICKER_FILES.BEST_FRIENDS, 1254, 1254),
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 1099, additionalCents: 449 },
+	sizes: ["17 oz"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "17 oz": 10798 } },
+		{ name: "Black", hex: "#111111", variants: { "17 oz": 16030 } },
+	],
 	productionEnabled: false,
 });
 
