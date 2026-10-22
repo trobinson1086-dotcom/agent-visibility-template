@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -839,6 +839,31 @@ MERCH.push({
 		{ name: "Sunshine Yellow", hex: "#e6a133", variants: { "Youth S": 17612, "Youth M": 17613, "Youth L": 17614, "Youth XL": 17615 } },
 		{ name: "Kelly Green", hex: "#0e7b4e", variants: { "Youth S": 10628, "Youth M": 10629, "Youth L": 10630, "Youth XL": 10631 } },
 		{ name: "Berry", hex: "#c02773", variants: { "Youth S": 11209, "Youth M": 11210, "Youth L": 11211, "Youth XL": 11212 } },
+	],
+	productionEnabled: false,
+});
+
+// Kids' long sleeves (Printful product 511, Bella + Canvas 3501Y, youth S-L)
+// with the kids' tee designs and placements. It only comes in a few colors;
+// White, Heather Grey and Red are the closest to the kids' tee colors.
+MERCH.push({
+	key: "KIDSLONGSLEEVE",
+	name: "Squish Squad Kids' Long Sleeve",
+	designs: designs(
+		2899,
+		[youthBanner, youthCrown("back")],
+		[youthBanner],
+		[youthCrown("front")],
+		[youthMaple],
+		[youthMaple, youthCrown("back")],
+	),
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: ["Youth S", "Youth M", "Youth L"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "Youth S": 12868, "Youth M": 12869, "Youth L": 12870 } },
+		{ name: "Heather Grey", hex: "#b5b5b7", variants: { "Youth S": 12853, "Youth M": 12854, "Youth L": 12855 } },
+		{ name: "Red", hex: "#d20e2a", variants: { "Youth S": 12865, "Youth M": 12866, "Youth L": 12867 } },
 	],
 	productionEnabled: false,
 });
