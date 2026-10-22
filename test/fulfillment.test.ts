@@ -804,7 +804,7 @@ describe("merch checkout", () => {
 			["STICKER", 499, 499, 499, 499, 499, 499, 499, 499, 499, 499, 499],
 			["POSTER", 1499, 1499, 1499, 1499, 1499, 1499, 1499, 1499],
 			["PUZZLE", 2999, 2999, 2999, 2999, 2999, 2999],
-			["BOTTLE", 3299, 3299, 3299, 3299, 3299, 3299],
+			["BOTTLE", 2999, 2999, 2999, 2999, 2999, 2999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1134,7 +1134,7 @@ describe("merch orders → Printful", () => {
 		);
 		expect(r.status).toBe(200);
 		const f = stripeCreates[0];
-		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("3299");
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("2999");
 		expect(f.get("metadata[merch_sku]")).toBe("BOTTLE|Black|17 oz|SM_ROYAL");
 		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("1548"); // $10.99 + $4.49
 
@@ -1142,7 +1142,7 @@ describe("merch orders → Printful", () => {
 		await deliver(sandboxEnv(), paidEvent("cs_test_bottle"));
 		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
 			variant_id: 10798,
-			retail_price: "32.99",
+			retail_price: "29.99",
 			files: [
 				{
 					type: "default",

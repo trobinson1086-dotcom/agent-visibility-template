@@ -478,7 +478,7 @@ const bottle = (key: DesignKey, label: string, fileId: number, artWidth: number,
 	return {
 		key,
 		label,
-		priceCents: 3299,
+		priceCents: 2999,
 		files: [
 			{
 				type: "default",
