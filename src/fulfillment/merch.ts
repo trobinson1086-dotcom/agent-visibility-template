@@ -48,7 +48,11 @@ export type DesignKey =
 	| "MH_PALS"
 	| "MH_HIGHFIVE"
 	| "MH_WAVE"
-	| "MH_SQUARE";
+	| "MH_SQUARE"
+	| "SM_VALUES"
+	| "SM_ROYAL"
+	| "MH_SIGN"
+	| "BEST_FRIENDS";
 
 /** One artwork option for a product, with its own price and print files. */
 export interface MerchDesign {
@@ -95,6 +99,11 @@ export const STICKER_FILES = {
 	MH_HIGHFIVE: 1091358914,
 	MH_WAVE: 1091358916,
 	MH_SQUARE: 1091358933,
+	// Uploaded from the "Squishman Merch" Drive folder (files 08, 20, 24, 26).
+	SM_VALUES: 1091547694,
+	SM_ROYAL: 1091547742,
+	MH_SIGN: 1091547777,
+	BEST_FRIENDS: 1091547785,
 } as const;
 
 const SIZES = ["S", "M", "L", "XL", "2XL", "3XL"];
@@ -336,6 +345,10 @@ MERCH.push({
 		sticker("MH_HIGHFIVE", "Squish Man & Pudy high five", STICKER_FILES.MH_HIGHFIVE),
 		sticker("MH_WAVE", "Squish Man & Pudy waving", STICKER_FILES.MH_WAVE),
 		sticker("MH_SQUARE", "Maple Hollow town square", STICKER_FILES.MH_SQUARE),
+		sticker("SM_VALUES", "Squish Man values signpost", STICKER_FILES.SM_VALUES),
+		sticker("SM_ROYAL", "Royal Squish Man", STICKER_FILES.SM_ROYAL),
+		sticker("MH_SIGN", "Maple Hollow sign", STICKER_FILES.MH_SIGN),
+		sticker("BEST_FRIENDS", "Best friends", STICKER_FILES.BEST_FRIENDS),
 	],
 	sizeUpchargeCents: { "4 in": 100, "5.5 in": 200 },
 	// Printful ships any number of stickers for about the same price.
