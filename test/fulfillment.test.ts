@@ -804,6 +804,7 @@ describe("merch checkout", () => {
 			["STICKER", 499, 499, 499, 499, 499, 499, 499, 499, 499, 499, 499],
 			["POSTER", 1499, 1499, 1499, 1499, 1499, 1499, 1499, 1499],
 			["PUZZLE", 2999, 2999, 2999, 2999, 2999, 2999],
+			["BOTTLE", 2999, 2999, 2999, 2999, 2999, 2999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1119,6 +1120,34 @@ describe("merch orders → Printful", () => {
 					type: "front",
 					id: 1091600741,
 					position: { area_width: 4200, area_height: 3300, width: 4950, height: 3300, top: 0, left: -375 },
+				},
+			],
+		});
+	});
+
+	it("sells water bottles in white or black with the art on the front", async () => {
+		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
+		const r = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "BOTTLE", design: "SM_ROYAL", color: "Black", size: "17 oz", quantity: 2 },
+			"https://squishman.com",
+		);
+		expect(r.status).toBe(200);
+		const f = stripeCreates[0];
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("2999");
+		expect(f.get("metadata[merch_sku]")).toBe("BOTTLE|Black|17 oz|SM_ROYAL");
+		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("1548"); // $10.99 + $4.49
+
+		merchSession("cs_test_bottle", "BOTTLE|White|17 oz|PUDY");
+		await deliver(sandboxEnv(), paidEvent("cs_test_bottle"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 10798,
+			retail_price: "29.99",
+			files: [
+				{
+					type: "default",
+					id: 1090848214,
+					position: { area_width: 2557, area_height: 1582, width: 850, height: 890, top: 346, left: 853 },
 				},
 			],
 		});

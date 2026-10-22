@@ -62,7 +62,7 @@ and the hourly cron. Admin routes live under `/api/admin/*` (ADMIN_TOKEN).
 `GET /api/merch` gives the shop page its prices, sizes, colors and checkout
 state. `POST /api/merch/checkout` (when `MERCH_CHECKOUT` is `preview` or `on`;
 `preview` shows the buy buttons only at `/?shop=preview`) creates a
-Stripe Checkout Session for one T-shirt/hoodie/long-sleeve/tote/mug/sticker/poster/puzzle choice with the SKU in
+Stripe Checkout Session for one T-shirt/hoodie/long-sleeve/tote/mug/sticker/poster/puzzle/bottle choice with the SKU in
 `metadata.merch_sku`. The shared Stripe webhook hands those sessions to
 `fulfillment/merch-service.ts` → one D1 row (`provider = 'printful'`) →
 Printful order, under the same `FULFILLMENT_MODE` gate as Lulu.
