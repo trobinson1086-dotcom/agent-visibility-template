@@ -218,6 +218,10 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 			[STICKER_FILES.MH_HIGHFIVE, "stickerMapleHollowHighFive"],
 			[STICKER_FILES.MH_WAVE, "stickerMapleHollowWave"],
 			[STICKER_FILES.MH_SQUARE, "stickerMapleHollowTownSquare"],
+			[STICKER_FILES.SM_VALUES, "stickerValuesSignpost"],
+			[STICKER_FILES.SM_ROYAL, "stickerRoyalSquishMan"],
+			[STICKER_FILES.MH_SIGN, "stickerMapleHollowSign"],
+			[STICKER_FILES.BEST_FRIENDS, "stickerBestFriends"],
 		]);
 		const printFiles: Record<string, string> = {};
 		for (const p of MERCH) {

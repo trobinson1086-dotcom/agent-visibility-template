@@ -83,7 +83,7 @@ const SHOP={
  'Squish Squad Tote Bags':{key:'TOTE',img:'tote',name:'Squish Squad Tote Bag',facts:'Organic cotton canvas · roomy everyday size',
   desc:'A sturdy organic cotton tote for books, library days and adventures, in black or natural canvas with your choice of Squish Man design.'},
  'Squish Squad Sticker Packs':{key:'STICKER',img:'sticker',name:'Squish Squad Sticker',facts:'Glossy kiss-cut vinyl · 3, 4 or 5.5 inches',shown:'Glossy sticker, cut to the shape of the art',
-  desc:'A glossy vinyl sticker cut around the artwork, for water bottles, notebooks and laptops. Pick Squish Man & Pudy, the crown logo or the Maple Hollow logo.'},
+  desc:'A glossy vinyl sticker cut around the artwork, for water bottles, notebooks and laptops. Pick your favorite: Squish Man, Pudy and friends in Maple Hollow, the logos and more.'},
  'Squish Squad Mugs':{key:'MUG',img:'mug',name:'Squish Squad Mug',facts:'11 oz ceramic · dishwasher and microwave safe',
   desc:'A white glossy mug with Squish Man and Pudy on one side and the gold crown, SQUISHMAN wordmark and paw print on the other.'}
 };
@@ -96,15 +96,19 @@ const money=c=>'$'+(c/100).toFixed(2);
 // and photos.
 const design=p=>p.shop.designs[p.design||0];
 const unit=(p,size)=>design(p).priceCents+(p.shop.sizeUpchargeCents[size]||0);
-const DESIGN_NOTE='Every shirt, long sleeve, hoodie, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in seven designs, including four Squish Man & Pudy in Maple Hollow scenes.';
+const DESIGN_NOTE='Every shirt, long sleeve, hoodie, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in eleven designs, from Royal Squish Man to Squish Man\'s values signpost.';
+const MAX_DESIGN_BUTTONS=6;
 const DESIGN_TITLE={FULL:'Squish Man & Pudy + Crown',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo',MAPLE:'Maple Hollow Logo',MAPLECROWN:'Maple Hollow + Crown',
- MH_PALS:'Maple Hollow Pals',MH_HIGHFIVE:'Maple Hollow High Five',MH_WAVE:'Maple Hollow Wave',MH_SQUARE:'Maple Hollow Town Square'};
+ MH_PALS:'Maple Hollow Pals',MH_HIGHFIVE:'Maple Hollow High Five',MH_WAVE:'Maple Hollow Wave',MH_SQUARE:'Maple Hollow Town Square',
+ SM_VALUES:'Squish Man Values',SM_ROYAL:'Royal Squish Man',MH_SIGN:'Maple Hollow Sign',BEST_FRIENDS:'Best Friends'};
 // Designs that print on both sides (front + back, or both sides of the mug).
 const TWO_SIDED=new Set(['FULL','MAPLECROWN']);
 const DESIGN_ART={PUDY:'Squish Man and Pudy',LOGO:'the crown logo',MAPLE:'the Squish Man Maple Hollow logo',
- MH_PALS:'Squish Man and Pudy in Maple Hollow',MH_HIGHFIVE:'Squish Man and Pudy giving a high five',MH_WAVE:'Squish Man and Pudy waving',MH_SQUARE:'Squish Man and Pudy in the Maple Hollow town square'};
+ MH_PALS:'Squish Man and Pudy in Maple Hollow',MH_HIGHFIVE:'Squish Man and Pudy giving a high five',MH_WAVE:'Squish Man and Pudy waving',MH_SQUARE:'Squish Man and Pudy in the Maple Hollow town square',
+ SM_VALUES:'Squish Man and Pudy by a signpost of values: kindness, courage, creativity, persistence, confidence, communication, responsibility, self-control and teamwork',
+ SM_ROYAL:'Squish Man in his crown and royal-blue cape',MH_SIGN:'Squish Man and Pudy above a Maple Hollow sign',BEST_FRIENDS:'Squish Man and Pudy cuddled up as best friends'};
 function shopColors(p){
- const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square'}[k];
+ const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square',SM_VALUES:'-values',SM_ROYAL:'-royal',MH_SIGN:'-sign',BEST_FRIENDS:'-bestfriends'}[k];
  const alt=c=>k==='FULL'?`${p.name} in ${c}: front and back, as printed by our print partner`
   :k==='MAPLECROWN'?`${p.name} in ${c}: the Maple Hollow logo on the front and the crown logo on the back`
   :`${p.name} in ${c} with ${DESIGN_ART[k]} on the front, and a close-up of the artwork`;
@@ -134,7 +138,7 @@ const colorSizes=p=>p.shop.colors[p.active||0].sizes;
 const where=(m,d)=>m.key==='STICKER'?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
 function buyHtml(p,n){
  const m=p.shop,size=colorSizes(p)[0],one=m.sizes.length===1;
- return `<p class="merch-design-note">${m.designs.length} designs to choose from</p><div class="merch-designs" role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${where(m,d)?`${esc(where(m,d))} · `:''}${m.key==='STICKER'?'from ':''}${money(d.priceCents)}</span></button>`).join('')}</div>
+ return `<p class="merch-design-note">${m.designs.length} designs to choose from</p>${m.designs.length>MAX_DESIGN_BUTTONS?`<label class="merch-design-list">Design <select class="merch-design-select" data-merch="${n}">${m.designs.map((d,i)=>`<option value="${i}"${i===(p.design||0)?' selected':''}>${esc(DESIGN_TITLE[d.key]||d.label)}</option>`).join('')}</select></label>`:''}<div class="merch-designs"${m.designs.length>MAX_DESIGN_BUTTONS?' hidden':''} role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${where(m,d)?`${esc(where(m,d))} · `:''}${m.key==='STICKER'?'from ':''}${money(d.priceCents)}</span></button>`).join('')}</div>
  <dl class="merch-facts"><div><dt>Price</dt><dd class="merch-price">${money(unit(p,size))}</dd></div><div><dt>Sizes &amp; materials</dt><dd>${esc(p.facts)}</dd></div></dl>
  <div class="merch-buy">${one?'':`<label>Size <select class="merch-size" data-merch="${n}">${opts(colorSizes(p),v=>sizeLabel(m,v))}</select></label>`}<label>Quantity <select class="merch-qty" data-merch="${n}">${opts(Array.from({length:m.maxQuantity},(_,i)=>String(i+1)),v=>v)}</select></label></div>
  <p class="merch-ship">Shipping ${money(m.shipping.firstCents)}${m.shipping.additionalCents?`, plus ${money(m.shipping.additionalCents)} for each extra item`:''} · US only · printed to order, ships in about 1–2 weeks</p>
@@ -167,15 +171,22 @@ fetch('/api/merch',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{
 }).catch(()=>{});
 
 // Design picker: swap photos and price, keep the chosen color and size.
-root.addEventListener('click',e=>{
- const b=e.target.closest('.merch-design');if(!b)return;
- const p=products[+b.dataset.merch],cardEl=b.closest('.merch-card');
- p.design=+b.dataset.design;p.colors=shopColors(p);
- cardEl.querySelectorAll('.merch-design').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+// Products with many designs (stickers) use a dropdown instead of buttons.
+function pickDesign(p,cardEl,i){
+ p.design=i;p.colors=shopColors(p);
+ cardEl.querySelectorAll('.merch-design').forEach(x=>x.setAttribute('aria-pressed',String(+x.dataset.design===i)));
  const c=p.colors[p.active||0][2],im=cardEl.querySelector('.merch-art img'),[src,w,h]=small(c);
  im.src=src;im.srcset=srcset(c);im.width=w;im.height=h;im.alt=c.alt;
  const sizeSel=cardEl.querySelector('.merch-size');
  cardEl.querySelector('.merch-price').textContent=money(unit(p,sizeSel?sizeSel.value:p.shop.sizes[0]));
+}
+root.addEventListener('click',e=>{
+ const b=e.target.closest('.merch-design');if(!b)return;
+ pickDesign(products[+b.dataset.merch],b.closest('.merch-card'),+b.dataset.design);
+});
+root.addEventListener('change',e=>{
+ const d=e.target.closest('.merch-design-select');if(!d)return;
+ pickDesign(products[+d.dataset.merch],d.closest('.merch-card'),+d.value);
 });
 
 root.addEventListener('change',e=>{

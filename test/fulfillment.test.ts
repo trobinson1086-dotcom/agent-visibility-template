@@ -608,6 +608,10 @@ describe("configuration health check", () => {
 					stickerMapleHollowHighFive: "ok",
 					stickerMapleHollowWave: "ok",
 					stickerMapleHollowTownSquare: "ok",
+					stickerValuesSignpost: "ok",
+					stickerRoyalSquishMan: "ok",
+					stickerMapleHollowSign: "ok",
+					stickerBestFriends: "ok",
 				},
 			},
 			merchCheckout: "off",
@@ -791,7 +795,7 @@ describe("merch checkout", () => {
 			["LONGSLEEVE", 3299, 2999, 2999, 2999, 3299],
 			["TOTE", 3299, 2999, 2999, 2999, 3299],
 			["MUG", 1999, 1799, 1799, 1799, 1999],
-			["STICKER", 499, 499, 499, 499, 499, 499, 499],
+			["STICKER", 499, 499, 499, 499, 499, 499, 499, 499, 499, 499, 499],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
