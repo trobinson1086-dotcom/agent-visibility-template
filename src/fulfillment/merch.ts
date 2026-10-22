@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -63,6 +63,7 @@ export type DesignKey =
 	// Hat-only embroidery designs.
 	| "HAT_CROWN"
 	| "HAT_PAW"
+	| "SOCK_PATTERN"
 	// Puzzle-only full-scene book art.
 	| "PZ_WELCOME"
 	| "PZ_ROYAL_HERO"
@@ -1033,6 +1034,61 @@ MERCH.push({
 		{ name: "Pink", hex: "#f4b6c7", variants: BLANKET_VARIANTS },
 		{ name: "Sky Blue", hex: "#8fcbef", variants: BLANKET_VARIANTS },
 		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: BLANKET_VARIANTS },
+	],
+	productionEnabled: false,
+});
+
+// Socks (Printful product 882, all-over print crew socks, S-L): the color with
+// a pattern of stars and paw prints on every panel, and the art under the cuff
+// on the outside of each leg. Printful's sock file runs toe to cuff, so the
+// files are drawn cuff-up and flipped (public/assets/merch/print/socks/).
+type SockArt = "pattern" | "SM_ROYAL" | "BEST_FRIENDS";
+const SOCK_FILES: Record<string, Record<SockArt, number>> = {
+	"Royal Blue": { pattern: 1092316211, SM_ROYAL: 1092316216, BEST_FRIENDS: 1092316222 },
+	"Pink": { pattern: 1092316224, SM_ROYAL: 1092316227, BEST_FRIENDS: 1092316229 },
+	"Sky Blue": { pattern: 1092316233, SM_ROYAL: 1092316240, BEST_FRIENDS: 1092316273 },
+	"Sunshine Yellow": { pattern: 1092316279, SM_ROYAL: 1092316283, BEST_FRIENDS: 1092316290 },
+};
+const SOCK_SIZES = { S: 22786, M: 22787, L: 22788 };
+// The panels are a few pixels shorter in S and L; the extra is trimmed at the cuff.
+const SOCK_PANEL = { area_width: 1348, width: 1348, height: 5657, top: 0, left: 0 };
+const sockPanel = (type: string, art: SockArt): MerchFile => ({
+	type,
+	fileId: null,
+	positionBySize: {
+		S: { ...SOCK_PANEL, area_height: 5610 },
+		M: { ...SOCK_PANEL, area_height: 5657 },
+		L: { ...SOCK_PANEL, area_height: 5595 },
+	},
+	fileIdByColor: Object.fromEntries(Object.entries(SOCK_FILES).map(([color, files]) => [color, files[art]])),
+});
+const sock = (key: DesignKey, label: string, art: SockArt): MerchDesign => ({
+	key,
+	label,
+	priceCents: 1699,
+	files: [
+		sockPanel("leg_front_right", art),
+		sockPanel("leg_front_left", art),
+		sockPanel("leg_back_right", "pattern"),
+		sockPanel("leg_back_left", "pattern"),
+	],
+});
+MERCH.push({
+	key: "SOCKS",
+	name: "Squish Squad Socks",
+	designs: [
+		sock("SM_ROYAL", "Royal Squish Man", "SM_ROYAL"),
+		sock("BEST_FRIENDS", "Best friends", "BEST_FRIENDS"),
+		sock("SOCK_PATTERN", "Stars & paw prints", "pattern"),
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: Object.keys(SOCK_SIZES),
+	colors: [
+		{ name: "Royal Blue", hex: "#1d4fa8", variants: SOCK_SIZES },
+		{ name: "Pink", hex: "#f4b6c7", variants: SOCK_SIZES },
+		{ name: "Sky Blue", hex: "#8fcbef", variants: SOCK_SIZES },
+		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: SOCK_SIZES },
 	],
 	productionEnabled: false,
 });

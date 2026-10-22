@@ -52,6 +52,7 @@ const categories=[
   {name:'Squish Squad Lunch Boxes',hidden:true,desc:'A zip-around lunch box with full-color Squish Man and Pudy artwork, navy trim and a carry handle. Open it up to find a silver lining inside.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-lunch-boxes',764,393,'Squish Man lunch boxes in white, pink and royal blue with Squish Man and Pudy artwork and navy trim, shown from the front, back and open with a silver lining'))},
   {name:'Squish Squad Water Bottles',desc:'Squish Man and Pudy wrap around the front, with the crown, wordmark and “Big Heart. Tiny Hero. Endless Adventures!” on the back. Topped with a navy flip-straw lid and carry loop.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-water-bottles',771,397,'Squish Man water bottles in white, pink and royal blue with Squish Man and Pudy artwork on the front, the crown, wordmark and slogan on the back, and a navy flip-straw lid'))},
   {name:'Squish Squad Hats',desc:'A classic cap with Squish Man, Pudy and the SQUISHMAN wordmark on the front, a crown-and-paw patch on the side and “Big Heart. Tiny Hero.” across the back.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-hats',764,393,'Squish Man baseball caps in white, pink and royal blue with Squish Man, Pudy and the SQUISHMAN wordmark on the front, a crown and paw patch on the side and Big Heart. Tiny Hero. on the back'))},
+  {name:'Squish Squad Socks',hidden:true,desc:'Socks.',colors:[]},
   {name:'Squish Squad Full-Color Caps',hidden:true,desc:'Full-color caps.',colors:[]},
   {name:'Squish Squad Tote Bags',desc:'Roomy totes with navy handles and base, showing Squish Man and Pudy with the series banner on the front and the crown, wordmark and paw print on the back.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-tote-bags',777,400,'Squish Man tote bags in white, pink and royal blue with navy handles and base, Squish Man and Pudy artwork on the front and the crown, wordmark and paw print on the back'))}
  ]},
@@ -114,6 +115,8 @@ const SHOP={
   desc:'A soft, low-profile cotton cap with your favorite Squish Man picture printed in full color on the front and an adjustable strap. Sized for grown-ups.'},
  'Squish Squad Blankets':{key:'BLANKET',img:'blanket',name:'Squish Squad Sherpa Blanket',facts:'Smooth printed front · fluffy sherpa back · 3 sizes',shown:'50×60″ shown · border of stars and paw prints',
   desc:'A cozy sherpa blanket with your favorite Squish Man art on a bright color, framed by gold stars and paw prints, with soft, fluffy sherpa on the back. Kid size 37×57″, throw 50×60″, or big 60×80″.'},
+ 'Squish Squad Socks':{key:'SOCKS',img:'socks',name:'Squish Squad Socks',facts:'Crew socks · S (women 6–8, men 5–6.5, big kids), M, L',shown:'Outside and back of the sock',
+  desc:'Soft, stretchy crew socks covered in gold stars and paw prints, with Squish Man under the cuff and a cushioned sole. Size S fits big kids and smaller grown-ups.'},
  'Squish Squad Mugs':{key:'MUG',img:'mug',name:'Squish Squad Mug',facts:'11 oz ceramic · dishwasher and microwave safe',
   desc:'A white glossy mug with Squish Man and Pudy on one side and the gold crown, SQUISHMAN wordmark and paw print on the other.'}
 };
@@ -132,7 +135,7 @@ const DESIGN_TITLE={FULL:'Squish Man & Pudy + Crown',PUDY:'Squish Man & Pudy',LO
  MH_PALS:'Maple Hollow Pals',MH_HIGHFIVE:'Maple Hollow High Five',MH_WAVE:'Maple Hollow Wave',MH_SQUARE:'Maple Hollow Town Square',
  SM_VALUES:'Squish Man Values',SM_ROYAL:'Royal Squish Man',MH_SIGN:'Maple Hollow Sign',BEST_FRIENDS:'Best Friends',
  PZ_WELCOME:'Welcome to Maple Hollow',PZ_ROYAL_HERO:'The Little Royal Hero',PZ_PAW_PRINTS:'Follow the Paw Prints',PZ_GARDEN_GATE:'The Secret Garden Gate',PZ_GOODNIGHT:'Goodnight, Squish Man',PZ_MOONLIGHT:'Moonlight Over Maple Hollow',
- HAT_CROWN:'Crown',HAT_PAW:'Paw Print'};
+ HAT_CROWN:'Crown',HAT_PAW:'Paw Print',SOCK_PATTERN:'Stars & Paw Prints'};
 // Designs that print on both sides (front + back, or both sides of the mug).
 const TWO_SIDED=new Set(['FULL','MAPLECROWN']);
 const DESIGN_ART={PUDY:'Squish Man and Pudy',LOGO:'the crown logo',MAPLE:'the Squish Man Maple Hollow logo',
@@ -141,9 +144,9 @@ const DESIGN_ART={PUDY:'Squish Man and Pudy',LOGO:'the crown logo',MAPLE:'the Sq
  SM_ROYAL:'Squish Man in his crown and royal-blue cape',MH_SIGN:'Squish Man and Pudy above a Maple Hollow sign',BEST_FRIENDS:'Squish Man and Pudy cuddled up as best friends',
  PZ_WELCOME:'Squish Man strolling down a sunny Maple Hollow street',PZ_ROYAL_HERO:'Squish Man in his crown and cape, running toward you',PZ_PAW_PRINTS:'Squish Man following paw prints along a garden path',
  PZ_GARDEN_GATE:'Squish Man peeking through an old garden gate',PZ_GOODNIGHT:'Squish Man curled up in his royal-blue bed',PZ_MOONLIGHT:'Squish Man asleep in a cottage window under a full moon',
- HAT_CROWN:'the gold crown',HAT_PAW:'a blue paw print'};
+ HAT_CROWN:'the gold crown',HAT_PAW:'a blue paw print',SOCK_PATTERN:'gold stars and paw prints all over'};
 function shopColors(p){
- const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square',SM_VALUES:'-values',SM_ROYAL:'-royal',MH_SIGN:'-sign',BEST_FRIENDS:'-bestfriends',PZ_WELCOME:'-welcome',PZ_ROYAL_HERO:'-royalhero',PZ_PAW_PRINTS:'-pawprints',PZ_GARDEN_GATE:'-gardengate',PZ_GOODNIGHT:'-goodnight',PZ_MOONLIGHT:'-moonlight',HAT_CROWN:'-crown',HAT_PAW:'-paw'}[k];
+ const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square',SM_VALUES:'-values',SM_ROYAL:'-royal',MH_SIGN:'-sign',BEST_FRIENDS:'-bestfriends',PZ_WELCOME:'-welcome',PZ_ROYAL_HERO:'-royalhero',PZ_PAW_PRINTS:'-pawprints',PZ_GARDEN_GATE:'-gardengate',PZ_GOODNIGHT:'-goodnight',PZ_MOONLIGHT:'-moonlight',HAT_CROWN:'-crown',HAT_PAW:'-paw',SOCK_PATTERN:'-pattern'}[k];
  const alt=c=>k==='FULL'?`${p.name} in ${c}: front and back, as printed by our print partner`
   :k==='MAPLECROWN'?`${p.name} in ${c}: the Maple Hollow logo on the front and the crown logo on the back`
   :p.shop.key==='HAT'?`${p.name} in ${c} with ${DESIGN_ART[k]} embroidered on the front and ${k==='LOGO'?'a paw print':'the crown SQUISHMAN logo'} on the back`
@@ -174,7 +177,7 @@ function cardHtml(p,n){
 const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
 const sizeLabel=(m,v)=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v;
 const colorSizes=p=>p.shop.colors[p.active||0].sizes;
-const where=(m,d)=>m.key==='HAT'?'front + back':m.key==='DADHAT'?'front':['STICKER','POSTER','PUZZLE','BOTTLE','PILLOW','COLORPILLOW','LUMBAR','BLANKET'].includes(m.key)?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
+const where=(m,d)=>m.key==='HAT'?'front + back':m.key==='DADHAT'?'front':['STICKER','POSTER','PUZZLE','BOTTLE','PILLOW','COLORPILLOW','LUMBAR','BLANKET','SOCKS'].includes(m.key)?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
 function buyHtml(p,n){
  const m=p.shop,size=colorSizes(p)[0],one=m.sizes.length===1;
  return `<p class="merch-design-note">${m.designs.length} designs to choose from</p>${m.designs.length>MAX_DESIGN_BUTTONS?`<label class="merch-design-list">Design <select class="merch-design-select" data-merch="${n}">${m.designs.map((d,i)=>`<option value="${i}"${i===(p.design||0)?' selected':''}>${esc(DESIGN_TITLE[d.key]||d.label)}</option>`).join('')}</select></label>`:''}<div class="merch-designs"${m.designs.length>MAX_DESIGN_BUTTONS?' hidden':''} role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${where(m,d)?`${esc(where(m,d))} · `:''}${['STICKER','POSTER','PUZZLE','PILLOW','COLORPILLOW','BLANKET'].includes(m.key)?'from ':''}${money(d.priceCents)}</span></button>`).join('')}</div>
