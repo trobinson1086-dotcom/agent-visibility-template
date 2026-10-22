@@ -599,6 +599,8 @@ const colorPillow = (key: DesignKey, label: string): MerchDesign => ({
 			fileIdByColor: Object.fromEntries(Object.entries(COLOR_PILLOW_FILES).map(([c, ids]) => [c, ids.BACK ?? null])),
 		},
 	],
+	// Printful requires a zipper and stitch color on its all-over pillows.
+	printfulOptions: { stitch_color: "white" },
 });
 MERCH.push({
 	key: "COLORPILLOW",
@@ -643,6 +645,7 @@ const lumbar = (
 			{ type: "front", fileId: PUZZLE_FILES[key], position },
 			{ type: "back", fileId: PUZZLE_FILES[key], position },
 		],
+		printfulOptions: { stitch_color: "white" },
 	};
 };
 MERCH.push({
@@ -665,16 +668,16 @@ MERCH.push({
 
 // Embroidered youth caps (Printful product 429, Valucap VC300Y). Embroidery
 // stitches flat thread colors, so each front is the picture simplified to at
-// most nine Printful threads (public/assets/merch/print/hats/), and every cap
+// most six Printful threads (the youth cap's limit) (public/assets/merch/print/hats/), and every cap
 // has the crown + SQUISHMAN logo embroidered on the back. Printful charges a
 // one-time digitization fee the first time each design is ordered.
 export const HAT_FILES = {
 	CROWN_WORDMARK: 1091740166,
 	PAW: 1091740758,
-	SM_ROYAL: 1091757219,
-	BEST_FRIENDS: 1091757361,
-	MH_PALS: 1091757387,
-	MH_HIGHFIVE: 1091757424,
+	SM_ROYAL: 1092034656,
+	BEST_FRIENDS: 1092034703,
+	MH_PALS: 1092034788,
+	MH_HIGHFIVE: 1092034877,
 };
 const LOGO_THREADS = ["#FFCC00", "#A67843", "#005397", "#333366"];
 const hatDesign = (
@@ -709,23 +712,27 @@ const hatDesign = (
 	],
 	printfulOptions: { thread_colors: threads, thread_colors_back: LOGO_THREADS },
 });
-const PICTURE_THREADS = ["#FFFFFF", "#000000", "#96A1A8", "#A67843", "#FFCC00", "#E25C27", "#CC3333", "#660000", "#005397"];
+const PICTURE_THREADS = ["#FFFFFF", "#FFCC00", "#005397", "#000000", "#660000", "#E25C27"];
 MERCH.push({
 	key: "HAT",
 	name: "Squish Squad Youth Cap",
 	designs: [
 		hatDesign("SM_ROYAL", "Royal Squish Man", HAT_FILES.SM_ROYAL, 520, 525, [
 			"#FFFFFF",
-			"#000000",
 			"#96A1A8",
-			"#A67843",
 			"#FFCC00",
-			"#E25C27",
-			"#660000",
 			"#005397",
-			"#333366",
+			"#000000",
+			"#E25C27",
 		]),
-		hatDesign("BEST_FRIENDS", "Best friends", HAT_FILES.BEST_FRIENDS, 552, 525, PICTURE_THREADS),
+		hatDesign("BEST_FRIENDS", "Best friends", HAT_FILES.BEST_FRIENDS, 552, 525, [
+			"#FFFFFF",
+			"#FFCC00",
+			"#005397",
+			"#000000",
+			"#660000",
+			"#A67843",
+		]),
 		hatDesign("MH_PALS", "Squish Man & Pudy in Maple Hollow", HAT_FILES.MH_PALS, 575, 525, PICTURE_THREADS),
 		hatDesign("MH_HIGHFIVE", "Squish Man & Pudy high five", HAT_FILES.MH_HIGHFIVE, 639, 525, PICTURE_THREADS),
 		hatDesign("HAT_PAW", "Paw print", HAT_FILES.PAW, 470, 450, ["#005397", "#333366"]),
@@ -869,6 +876,8 @@ const kidsHoodie = (key: DesignKey, label: string, front: KidsHoodieArt, back: b
 		kidsHoodiePanel("back", back ? "back" : "solid"),
 		...["sleeve_right", "sleeve_left", "pocket", "hood", "label_panel"].map((type) => kidsHoodiePanel(type, "solid")),
 	],
+	// Printful requires a drawcord and stitch color on its all-over hoodies.
+	printfulOptions: { stitch_color: "white" },
 });
 MERCH.push({
 	key: "KIDSHOODIE",
