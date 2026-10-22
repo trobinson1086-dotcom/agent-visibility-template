@@ -62,7 +62,7 @@ and the hourly cron. Admin routes live under `/api/admin/*` (ADMIN_TOKEN).
 `GET /api/merch` gives the shop page its prices, sizes, colors and checkout
 state. `POST /api/merch/checkout` (when `MERCH_CHECKOUT` is `preview` or `on`;
 `preview` shows the buy buttons only at `/?shop=preview`) creates a
-Stripe Checkout Session for one T-shirt/hoodie/long-sleeve/tote/mug/sticker/poster/puzzle/bottle/pillow choice with the SKU in
+Stripe Checkout Session for one T-shirt/hoodie/long-sleeve/tote/mug/sticker/poster/puzzle/bottle/pillow/color-pillow choice with the SKU in
 `metadata.merch_sku`. The shared Stripe webhook hands those sessions to
 `fulfillment/merch-service.ts` → one D1 row (`provider = 'printful'`) →
 Printful order, under the same `FULFILLMENT_MODE` gate as Lulu.
@@ -75,6 +75,8 @@ Printful order, under the same `FULFILLMENT_MODE` gate as Lulu.
 - Stickers and posters use the Maple Hollow scene art; posters center it on
   each size's print area with `positionBySize`. Puzzles use full-scene book
   art that fills (and is cropped to) each puzzle size.
+- Color pillows print the art on a solid color, so each color has its own
+  files (`fileIdByColor`, sources in `public/assets/merch/print/pillows/`).
 - Printful has no sandbox: test-mode orders, and live orders for products
   without `productionEnabled`, are created as Printful **drafts** (nothing is
   charged or printed until confirmed in the Printful dashboard).

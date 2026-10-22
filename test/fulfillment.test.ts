@@ -12,7 +12,7 @@ import {
 	health,
 	retry,
 } from "../src/fulfillment/service";
-import { MERCH, merchProduct } from "../src/fulfillment/merch";
+import { MERCH, merchProduct, merchSelection } from "../src/fulfillment/merch";
 import { reconcile } from "../src/fulfillment/service";
 import * as store from "../src/fulfillment/store";
 import { verifyStripeSignature } from "../src/fulfillment/stripe";
@@ -618,6 +618,7 @@ describe("configuration health check", () => {
 					puzzleGardenGate: "ok",
 					puzzleGoodnight: "ok",
 					puzzleMoonlight: "ok",
+					colorpillow_royal_blue: "ok",
 				},
 			},
 			merchCheckout: "off",
@@ -806,6 +807,7 @@ describe("merch checkout", () => {
 			["PUZZLE", 2999, 2999, 2999, 2999, 2999, 2999],
 			["BOTTLE", 2999, 2999, 2999, 2999, 2999, 2999],
 			["PILLOW", 2499, 2499, 2499, 2499, 2499, 2499],
+			["COLORPILLOW", 2999, 2999, 2999, 2999, 2999, 2999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1173,6 +1175,31 @@ describe("merch orders → Printful", () => {
 			variant_id: 19122,
 			retail_price: "24.99",
 			files: [{ type: "default", id: 1091547742 }],
+		});
+	});
+
+	it("sends color pillows with that color's front and back files", async () => {
+		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
+		const r = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "COLORPILLOW", design: "PUDY", color: "Royal Blue", size: "18 in", quantity: 2 },
+			"https://squishman.com",
+		);
+		expect(r.status).toBe(200);
+		const f = stripeCreates[0];
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("3499");
+		expect(f.get("metadata[merch_sku]")).toBe("COLORPILLOW|Royal Blue|18 in|PUDY");
+		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("1548"); // $10.99 + $4.49
+
+		const sel = merchSelection("COLORPILLOW", "Royal Blue", "16 in", "SM_ROYAL")!;
+		expect(sel.files.map((x) => x.type)).toEqual(["front", "back"]);
+		expect(sel.files.every((x) => typeof x.fileId === "number")).toBe(true);
+		merchSession("cs_test_colorpillow", "COLORPILLOW|Royal Blue|16 in|SM_ROYAL");
+		await deliver(sandboxEnv(), paidEvent("cs_test_colorpillow"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 49854,
+			retail_price: "29.99",
+			files: sel.files.map((x) => ({ type: x.type, id: x.fileId })),
 		});
 	});
 
