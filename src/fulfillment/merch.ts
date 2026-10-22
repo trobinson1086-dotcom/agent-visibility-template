@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -30,6 +30,8 @@ export interface MerchFile {
 	position?: PrintfulPosition;
 	/** Per-size position, for products whose print area changes with size. */
 	positionBySize?: Record<string, PrintfulPosition>;
+	/** Per-color file ids, for products whose color is printed into the art. */
+	fileIdByColor?: Record<string, number | null>;
 }
 
 export interface MerchColor {
@@ -536,6 +538,47 @@ MERCH.push({
 	productionEnabled: false,
 });
 
+// Square color pillows (Printful product 83, all-over print): the art
+// centered on a solid color on the front, the same color on the back. Each
+// color has its own print files (public/assets/merch/print/pillows/).
+const COLOR_PILLOW_FILES: Record<string, Partial<Record<DesignKey | "BACK", number>>> = {
+	"Royal Blue": {},
+};
+const colorPillow = (key: DesignKey, label: string): MerchDesign => ({
+	key,
+	label,
+	priceCents: 2999,
+	files: [
+		{
+			type: "front",
+			fileId: null,
+			fileIdByColor: Object.fromEntries(Object.entries(COLOR_PILLOW_FILES).map(([c, ids]) => [c, ids[key] ?? null])),
+		},
+		{
+			type: "back",
+			fileId: null,
+			fileIdByColor: Object.fromEntries(Object.entries(COLOR_PILLOW_FILES).map(([c, ids]) => [c, ids.BACK ?? null])),
+		},
+	],
+});
+MERCH.push({
+	key: "COLORPILLOW",
+	name: "Squish Squad Color Pillow",
+	designs: [
+		colorPillow("SM_ROYAL", "Royal Squish Man"),
+		colorPillow("BEST_FRIENDS", "Best friends"),
+		colorPillow("MH_PALS", "Squish Man & Pudy in Maple Hollow"),
+		colorPillow("MH_WAVE", "Squish Man & Pudy waving"),
+		colorPillow("PUDY", "Squish Man & Pudy"),
+		colorPillow("SM_VALUES", "Squish Man values signpost"),
+	],
+	sizeUpchargeCents: { "18 in": 500 },
+	shipping: { firstCents: 1099, additionalCents: 449 },
+	sizes: ["16 in", "18 in"],
+	colors: [{ name: "Royal Blue", hex: "#1d4fa8", variants: { "16 in": 49854, "18 in": 4532 } }],
+	productionEnabled: false,
+});
+
 const BY_KEY = new Map(MERCH.map((p) => [p.key, p]));
 
 export function merchProduct(key: string): MerchProduct | undefined {
@@ -548,6 +591,8 @@ export interface MerchSelection {
 	color: MerchColor;
 	size: string;
 	variantId: number;
+	/** The design's print files, with per-color files resolved for this color. */
+	files: MerchFile[];
 	unitCents: number;
 	/** "TEE|Black|M|LOGO": stored in Stripe metadata and our order record. */
 	sku: string;
@@ -582,6 +627,7 @@ export function merchSelection(
 		color,
 		size,
 		variantId,
+		files: design.files.map((f) => (f.fileIdByColor ? { ...f, fileId: f.fileIdByColor[color.name] ?? null } : f)),
 		unitCents: design.priceCents + (product.sizeUpchargeCents[size] ?? 0),
 		sku: `${product.key}|${color.name}|${size}|${design.key}`,
 		// Single-color products leave the color out of the title.

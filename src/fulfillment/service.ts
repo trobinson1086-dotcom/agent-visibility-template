@@ -231,8 +231,23 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 			[PUZZLE_FILES.PZ_MOONLIGHT, "puzzleMoonlight"],
 		]);
 		const printFiles: Record<string, string> = {};
+		const checked = new Set<number>();
 		for (const p of MERCH) {
 			for (const f of p.designs.flatMap((d) => d.files)) {
+				if (f.fileIdByColor) {
+					// Per-color files (color pillows) are reported as one entry per color.
+					for (const [color, id] of Object.entries(f.fileIdByColor)) {
+						const name = `${p.key.toLowerCase()}_${color.toLowerCase().replace(/\s+/g, "_")}`;
+						if ((printFiles[name] && printFiles[name] !== "ok") || (id !== null && checked.has(id))) continue;
+						if (id !== null) checked.add(id);
+						try {
+							printFiles[name] = id === null ? "missing" : (await getFile(t, id)).status;
+						} catch {
+							printFiles[name] = "error";
+						}
+					}
+					continue;
+				}
 				const name = (f.fileId && names.get(f.fileId)) || `${p.key.toLowerCase()}_${f.type}`;
 				if (name in printFiles) continue;
 				if (f.fileId === null) {

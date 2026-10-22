@@ -215,7 +215,7 @@ function holdReason(
 	if (!oneLine) return "TOO_MANY_LINE_ITEMS";
 	if (!sel) return "UNKNOWN_MERCH_SKU";
 	if (quantity < 1 || quantity > MAX_MERCH_QUANTITY) return "INVALID_QUANTITY";
-	if (sel.design.files.some((f) => f.fileId === null)) return `PRINT_FILES_MISSING:${sel.product.key}`;
+	if (sel.files.some((f) => f.fileId === null)) return `PRINT_FILES_MISSING:${sel.product.key}`;
 	const missing = missingForPrintful(shipping);
 	if (missing.length) return `INVALID_ADDRESS:${missing.join(",")}`;
 	if (!token(env)) return "PRINTFUL_NOT_CONFIGURED";
@@ -273,7 +273,7 @@ export async function submitMerch(
 						quantity: item.quantity,
 						name: sel.title,
 						retail_price: (sel.unitCents / 100).toFixed(2),
-						files: sel.design.files.map((f) => {
+						files: sel.files.map((f) => {
 							const position = f.positionBySize?.[sel.size] ?? f.position;
 							return { type: f.type, id: f.fileId as number, ...(position ? { position: { ...position } } : {}) };
 						}),
