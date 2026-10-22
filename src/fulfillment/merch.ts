@@ -58,6 +58,7 @@ export type DesignKey =
 	| "MH_SIGN"
 	| "BEST_FRIENDS"
 	// Hat-only embroidery designs.
+	| "HAT_CROWN"
 	| "HAT_PAW"
 	// Puzzle-only full-scene book art.
 	| "PZ_WELCOME"
@@ -667,20 +668,21 @@ MERCH.push({
 	productionEnabled: false,
 });
 
-// Embroidered youth caps (Printful product 429, Valucap VC300Y). Embroidery
-// stitches flat thread colors, so each front is the picture simplified to at
-// most six Printful threads (the youth cap's limit) (public/assets/merch/print/hats/), and every cap
-// has the crown + SQUISHMAN logo embroidered on the back. Printful charges a
-// one-time digitization fee the first time each design is ordered.
+// Embroidered youth caps (Printful product 429, Valucap VC300Y). The cap takes
+// at most six thread colors, so the pictures are simplified to six Printful
+// threads (public/assets/merch/print/hats/). Every cap has a back design: the
+// crown + SQUISHMAN logo, or the paw print when the logo is on the front.
+// Printful charges a one-time digitization fee the first time each design is
+// ordered.
 export const HAT_FILES = {
 	CROWN_WORDMARK: 1091740166,
 	PAW: 1091740758,
 	SM_ROYAL: 1092034656,
 	BEST_FRIENDS: 1092034703,
-	MH_PALS: 1092034788,
-	MH_HIGHFIVE: 1092034877,
+	CROWN: 1091741028,
 };
 const LOGO_THREADS = ["#FFCC00", "#A67843", "#005397", "#333366"];
+const PAW_THREADS = ["#005397", "#333366"];
 const hatDesign = (
 	key: DesignKey,
 	label: string,
@@ -688,6 +690,7 @@ const hatDesign = (
 	width: number,
 	height: number,
 	threads: string[],
+	back: "logo" | "paw" = "logo",
 ): MerchDesign => ({
 	key,
 	label,
@@ -705,15 +708,20 @@ const hatDesign = (
 				left: Math.floor((1200 - width) / 2),
 			},
 		},
-		{
-			type: "embroidery_back",
-			fileId: HAT_FILES.CROWN_WORDMARK,
-			position: { area_width: 600, area_height: 300, width: 589, height: 300, top: 0, left: 5 },
-		},
+		back === "logo"
+			? {
+					type: "embroidery_back",
+					fileId: HAT_FILES.CROWN_WORDMARK,
+					position: { area_width: 600, area_height: 300, width: 589, height: 300, top: 0, left: 5 },
+				}
+			: {
+					type: "embroidery_back",
+					fileId: HAT_FILES.PAW,
+					position: { area_width: 600, area_height: 300, width: 314, height: 300, top: 0, left: 143 },
+				},
 	],
-	printfulOptions: { thread_colors: threads, thread_colors_back: LOGO_THREADS },
+	printfulOptions: { thread_colors: threads, thread_colors_back: back === "logo" ? LOGO_THREADS : PAW_THREADS },
 });
-const PICTURE_THREADS = ["#FFFFFF", "#FFCC00", "#005397", "#000000", "#660000", "#E25C27"];
 MERCH.push({
 	key: "HAT",
 	name: "Squish Squad Youth Cap",
@@ -734,9 +742,9 @@ MERCH.push({
 			"#660000",
 			"#A67843",
 		]),
-		hatDesign("MH_PALS", "Squish Man & Pudy in Maple Hollow", HAT_FILES.MH_PALS, 575, 525, PICTURE_THREADS),
-		hatDesign("MH_HIGHFIVE", "Squish Man & Pudy high five", HAT_FILES.MH_HIGHFIVE, 639, 525, PICTURE_THREADS),
-		hatDesign("HAT_PAW", "Paw print", HAT_FILES.PAW, 470, 450, ["#005397", "#333366"]),
+		hatDesign("LOGO", "Crown + SQUISHMAN, paw print back", HAT_FILES.CROWN_WORDMARK, 1031, 525, LOGO_THREADS, "paw"),
+		hatDesign("HAT_CROWN", "Crown", HAT_FILES.CROWN, 720, 525, LOGO_THREADS),
+		hatDesign("HAT_PAW", "Paw print", HAT_FILES.PAW, 470, 450, PAW_THREADS),
 	],
 	sizeUpchargeCents: {},
 	shipping: { firstCents: 499, additionalCents: 199 },

@@ -241,8 +241,7 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 			[HAT_FILES.PAW, "hatPaw"],
 			[HAT_FILES.SM_ROYAL, "hatRoyalSquishMan"],
 			[HAT_FILES.BEST_FRIENDS, "hatBestFriends"],
-			[HAT_FILES.MH_PALS, "hatMapleHollowPals"],
-			[HAT_FILES.MH_HIGHFIVE, "hatHighFive"],
+			[HAT_FILES.CROWN, "hatCrown"],
 		]);
 		const printFiles: Record<string, string> = {};
 		const checked = new Set<number>();
