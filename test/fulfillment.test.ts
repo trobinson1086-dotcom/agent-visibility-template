@@ -618,6 +618,12 @@ describe("configuration health check", () => {
 					puzzleGardenGate: "ok",
 					puzzleGoodnight: "ok",
 					puzzleMoonlight: "ok",
+					lumbarWelcome: "ok",
+					lumbarRoyalHero: "ok",
+					lumbarPawPrints: "ok",
+					lumbarGardenGate: "ok",
+					lumbarGoodnight: "ok",
+					lumbarMoonlight: "ok",
 					colorpillow_royal_blue: "ok",
 					colorpillow_pink: "ok",
 					colorpillow_sky_blue: "ok",
@@ -755,11 +761,11 @@ describe("merch catalog", () => {
 			["MAPLE", one],
 			["MAPLECROWN", full],
 		];
-		expect(prices("TEE")).toEqual(five(2999, 2699));
-		expect(prices("HOODIE")).toEqual(five(4999, 4699));
+		expect(prices("TEE")).toEqual(five(2799, 2499));
+		expect(prices("HOODIE")).toEqual(five(4499, 4199));
 		expect(prices("LONGSLEEVE")).toEqual(five(3299, 2999));
 		expect(prices("TOTE")).toEqual(five(3299, 2999));
-		expect(prices("MUG")).toEqual(five(1999, 1799));
+		expect(prices("MUG")).toEqual(five(1599, 1599));
 		// The single-artwork designs print only that artwork, on the front.
 		for (const p of [tee, hoodie, longSleeve]) {
 			const files = (k: string) => p.designs.find((d) => d.key === k)!.files.map((f) => [f.type, f.fileId]);
@@ -795,7 +801,7 @@ describe("merch checkout", () => {
 		expect(r).toEqual({ status: 200, body: { url: "https://checkout.stripe.com/c/pay/cs_test_new" } });
 		const f = stripeCreates[0];
 		expect(f.get("mode")).toBe("payment");
-		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("5199"); // $49.99 + $2 for 2XL
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("4699"); // $44.99 + $2 for 2XL
 		expect(f.get("line_items[0][quantity]")).toBe("2");
 		expect(f.get("line_items[0][price_data][product_data][name]")).toBe("Squish Squad Hoodie — Pink, 2XL");
 		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("1298"); // $9.99 + $2.99
@@ -816,11 +822,11 @@ describe("merch checkout", () => {
 		};
 		expect(json.checkout).toBe("off");
 		expect(json.products.map((p) => [p.key, ...p.designs.map((d) => d.priceCents)])).toEqual([
-			["TEE", 2999, 2699, 2699, 2699, 2999],
-			["HOODIE", 4999, 4699, 4699, 4699, 4999],
+			["TEE", 2799, 2499, 2499, 2499, 2799],
+			["HOODIE", 4499, 4199, 4199, 4199, 4499],
 			["LONGSLEEVE", 3299, 2999, 2999, 2999, 3299],
 			["TOTE", 3299, 2999, 2999, 2999, 3299],
-			["MUG", 1999, 1799, 1799, 1799, 1999],
+			["MUG", 1599, 1599, 1599, 1599, 1599],
 			["STICKER", 499, 499, 499, 499, 499, 499, 499, 499, 499, 499, 499],
 			["POSTER", 1499, 1499, 1499, 1499, 1499, 1499, 1499, 1499],
 			["PUZZLE", 2999, 2999, 2999, 2999, 2999, 2999],
@@ -829,7 +835,7 @@ describe("merch checkout", () => {
 			["COLORPILLOW", 2999, 2999, 2999, 2999, 2999, 2999],
 			["LUMBAR", 3499, 3499, 3499, 3499, 3499, 3499],
 			["HAT", 3099, 3099, 3099, 3099, 3099],
-			["DADHAT", 2799, 2799, 2799, 2799, 2799],
+			["DADHAT", 2499, 2499, 2499, 2499, 2499],
 			["KIDSTEE", 2699, 2399, 2399, 2399, 2699],
 			["KIDSHOODIE", 4999, 4999, 4999, 4999, 4999],
 		]);
@@ -852,7 +858,7 @@ describe("merch checkout", () => {
 		expect(merchCatalog(e).checkout).toBe("preview");
 		const r = await createMerchCheckout(e, { product: "MUG", color: "White", size: "11 oz" }, "https://squishman.com");
 		expect(r.status).toBe(200);
-		expect(stripeCreates[0].get("line_items[0][price_data][unit_amount]")).toBe("1999");
+		expect(stripeCreates[0].get("line_items[0][price_data][unit_amount]")).toBe("1599");
 	});
 
 	it("sells the crown-logo design for $3 less", async () => {
@@ -864,7 +870,7 @@ describe("merch checkout", () => {
 		);
 		expect(r.status).toBe(200);
 		const f = stripeCreates[0];
-		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("2699");
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("2499");
 		expect(f.get("line_items[0][price_data][product_data][name]")).toBe("Squish Squad T-Shirt, Crown Logo — Grey, M");
 		expect(f.get("metadata[merch_sku]")).toBe("TEE|Grey|M|LOGO");
 	});
@@ -918,7 +924,7 @@ describe("merch orders → Printful", () => {
 				variant_id: 4017,
 				quantity: 2,
 				name: "Squish Squad T-Shirt — Black, M",
-				retail_price: "29.99",
+				retail_price: "27.99",
 				files: [
 					{
 						type: "front",
@@ -967,7 +973,7 @@ describe("merch orders → Printful", () => {
 		merchSession("cs_test_logotee", "HOODIE|Red|L|LOGO");
 		await deliver(sandboxEnv(), paidEvent("cs_test_logotee"));
 		const tee = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0];
-		expect(tee).toMatchObject({ variant_id: 5540, name: "Squish Squad Hoodie, Crown Logo — Red, L", retail_price: "46.99" });
+		expect(tee).toMatchObject({ variant_id: 5540, name: "Squish Squad Hoodie, Crown Logo — Red, L", retail_price: "41.99" });
 		expect(tee.files).toEqual([
 			{
 				type: "front",
@@ -992,7 +998,7 @@ describe("merch orders → Printful", () => {
 		merchSession("cs_test_maplecrown", "HOODIE|Black|XL|MAPLECROWN");
 		await deliver(sandboxEnv(), paidEvent("cs_test_maplecrown"));
 		const item = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0];
-		expect(item).toMatchObject({ variant_id: 5533, name: "Squish Squad Hoodie, Maple Hollow + Crown — Black, XL", retail_price: "49.99" });
+		expect(item).toMatchObject({ variant_id: 5533, name: "Squish Squad Hoodie, Maple Hollow + Crown — Black, XL", retail_price: "44.99" });
 		expect((item.files as Array<{ type: string; id: number }>).map((f) => [f.type, f.id])).toEqual([
 			["front", 1090919465],
 			["back", 1090848220],
@@ -1132,8 +1138,8 @@ describe("merch orders → Printful", () => {
 			files: [
 				{
 					type: "front",
-					id: 1091600709,
-					position: { area_width: 2953, area_height: 2350, width: 3038, height: 2350, top: 0, left: -43 },
+					id: 1092037835,
+					position: { area_width: 2953, area_height: 2350, width: 2953, height: 2350, top: 0, left: 0 },
 				},
 			],
 		});
@@ -1145,8 +1151,8 @@ describe("merch orders → Printful", () => {
 			files: [
 				{
 					type: "front",
-					id: 1091600741,
-					position: { area_width: 4200, area_height: 3300, width: 4950, height: 3300, top: 0, left: -375 },
+					id: 1092038035,
+					position: { area_width: 4200, area_height: 3300, width: 4200, height: 3342, top: 0, left: 0 },
 				},
 			],
 		});
@@ -1237,24 +1243,15 @@ describe("merch orders → Printful", () => {
 	it("sends storybook lumbar pillows with the scene covering front and back", async () => {
 		merchSession("cs_test_lumbar", "LUMBAR|White|20×12 in|PZ_ROYAL_HERO");
 		await deliver(sandboxEnv(), paidEvent("cs_test_lumbar"));
-		const position = { area_width: 3150, area_height: 1950, width: 3150, height: 2437, top: 0, left: 0 };
+		const position = { area_width: 3150, area_height: 1950, width: 3150, height: 1950, top: 0, left: 0 };
 		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
 			variant_id: 9513,
 			retail_price: "34.99",
 			files: [
-				{ type: "front", id: 1091600731, position },
-				{ type: "back", id: 1091600731, position },
+				{ type: "front", id: 1092038311, position },
+				{ type: "back", id: 1092038311, position },
 			],
-		});
-		merchSession("cs_test_lumbar2", "LUMBAR|White|20×12 in|PZ_PAW_PRINTS");
-		await deliver(sandboxEnv(), paidEvent("cs_test_lumbar2"));
-		expect((printful.lastCreate as { items: Array<{ files: Array<{ position: unknown }> }> }).items[0].files[0].position).toEqual({
-			area_width: 3150,
-			area_height: 1950,
-			width: 3150,
-			height: 2100,
-			top: -75,
-			left: 0,
+			options: [{ id: "stitch_color", value: "white" }],
 		});
 	});
 
@@ -1269,7 +1266,7 @@ describe("merch orders → Printful", () => {
 			files: [
 				{
 					type: "embroidery_front",
-					id: 1091757219,
+					id: 1092034656,
 					position: { area_width: 1200, area_height: 525, width: 520, height: 525, top: 0, left: 340 },
 				},
 				{
@@ -1281,7 +1278,7 @@ describe("merch orders → Printful", () => {
 			options: [
 				{
 					id: "thread_colors",
-					value: ["#FFFFFF", "#000000", "#96A1A8", "#A67843", "#FFCC00", "#E25C27", "#660000", "#005397", "#333366"],
+					value: ["#FFFFFF", "#96A1A8", "#FFCC00", "#005397", "#000000", "#E25C27"],
 				},
 				{ id: "thread_colors_back", value: ["#FFCC00", "#A67843", "#005397", "#333366"] },
 			],
@@ -1295,7 +1292,7 @@ describe("merch orders → Printful", () => {
 			variant_id: 7854,
 			quantity: 1,
 			name: "Squish Squad Full-Color Cap, Squish Man & Pudy in Maple Hollow — Black",
-			retail_price: "27.99",
+			retail_price: "24.99",
 			files: [
 				{
 					type: "front_dtf_hat",
@@ -1374,6 +1371,25 @@ describe("merch orders → Printful", () => {
 		);
 	});
 
+	it("only sends orders Printful accepts: no negative offsets, ≤6 cap threads, a stitch color on all-over prints", () => {
+		for (const p of MERCH) {
+			for (const d of p.designs) {
+				for (const f of d.files) {
+					for (const pos of [f.position, ...Object.values(f.positionBySize ?? {})].filter(Boolean)) {
+						expect(pos!.top, `${p.key} ${d.key}`).toBeGreaterThanOrEqual(0);
+						expect(pos!.left, `${p.key} ${d.key}`).toBeGreaterThanOrEqual(0);
+					}
+				}
+				if (p.key === "HAT") {
+					for (const v of Object.values(d.printfulOptions ?? {})) expect((v as string[]).length).toBeLessThanOrEqual(6);
+				}
+				if (["COLORPILLOW", "LUMBAR", "KIDSHOODIE"].includes(p.key)) {
+					expect(d.printfulOptions?.stitch_color, `${p.key} ${d.key}`).toBe("white");
+				}
+			}
+		}
+	});
+
 	it("sends Maple Hollow logo orders with just that logo on the front", async () => {
 		merchSession("cs_test_mapletee", "TEE|Royal Blue|2XL|MAPLE");
 		await deliver(sandboxEnv(), paidEvent("cs_test_mapletee"));
@@ -1381,7 +1397,7 @@ describe("merch orders → Printful", () => {
 		expect(item).toMatchObject({
 			variant_id: 4175,
 			name: "Squish Squad T-Shirt, Maple Hollow Logo — Royal Blue, 2XL",
-			retail_price: "28.99",
+			retail_price: "26.99",
 		});
 		expect(item.files).toEqual([
 			{
