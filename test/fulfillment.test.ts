@@ -622,6 +622,15 @@ describe("configuration health check", () => {
 					colorpillow_pink: "ok",
 					colorpillow_sky_blue: "ok",
 					colorpillow_sunshine_yellow: "ok",
+					kidshoodie_white: "ok",
+					kidshoodie_pink: "ok",
+					kidshoodie_sky_blue: "ok",
+					kidshoodie_sunshine_yellow: "ok",
+					kidshoodie_kelly_green: "ok",
+					kidshoodie_berry: "ok",
+					kidshoodie_royal_blue: "ok",
+					kidshoodie_lavender: "ok",
+					kidshoodie_mint_green: "ok",
 					hatCrownWordmark: "ok",
 					hatPaw: "ok",
 					hatRoyalSquishMan: "ok",
@@ -764,7 +773,7 @@ describe("merch catalog", () => {
 		}
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
 		// Color pillows print the color into the art, so their colors share one blank.
-		const ids = MERCH.filter((p) => p.key !== "COLORPILLOW").flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		const ids = MERCH.filter((p) => p.key !== "COLORPILLOW" && p.key !== "KIDSHOODIE").flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 });
@@ -822,6 +831,7 @@ describe("merch checkout", () => {
 			["HAT", 3099, 3099, 3099, 3099, 3099],
 			["DADHAT", 2799, 2799, 2799, 2799, 2799],
 			["KIDSTEE", 2699, 2399, 2399, 2399, 2699],
+			["KIDSHOODIE", 5499, 5499, 5499, 5499, 5499],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1329,6 +1339,39 @@ describe("merch orders → Printful", () => {
 				},
 			],
 		});
+	});
+
+	it("sends kids' hoodies with every panel printed in the chosen color", async () => {
+		const files = (sku: string) => {
+			const [key, color, size, design] = sku.split("|");
+			return merchSelection(key, color, size, design)!.files;
+		};
+		const full = files("KIDSHOODIE|Berry|Youth 10|FULL");
+		expect(full.map((f) => f.type)).toEqual([
+			"front",
+			"back",
+			"sleeve_right",
+			"sleeve_left",
+			"pocket",
+			"hood",
+			"label_panel",
+		]);
+		// Front art, back logo, and one solid file for the other panels.
+		expect(new Set(full.map((f) => f.fileId)).size).toBe(3);
+		expect(files("KIDSHOODIE|Berry|Youth 10|PUDY")[1].fileId).toBe(full[2].fileId);
+		expect(files("KIDSHOODIE|Kelly Green|Youth 10|FULL")[0].fileId).not.toBe(full[0].fileId);
+
+		merchSession("cs_test_kidshoodie", "KIDSHOODIE|Berry|Youth 10|FULL");
+		await deliver(sandboxEnv(), paidEvent("cs_test_kidshoodie"));
+		const item = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0];
+		expect(item).toMatchObject({ variant_id: 54101, retail_price: "54.99" });
+		expect(item.files).toEqual(
+			full.map((f) => ({
+				type: f.type,
+				id: f.fileId,
+				position: { area_width: 4800, area_height: 6000, width: 4800, height: 6000, top: 0, left: 0 },
+			})),
+		);
 	});
 
 	it("sends Maple Hollow logo orders with just that logo on the front", async () => {

@@ -42,6 +42,7 @@ const categories=[
   {name:'Squish Squad T-Shirt',desc:'Squish Man in his gold crown and royal-blue cape poses with best friend Pudy on the front, framed by stars, paw prints and The Amazing Adventures of Squish Man banner. The back keeps it simple with a gold crown, the SQUISHMAN wordmark and a paw print.',colors:[['White','#ffffff',tee.white],['Pink','#f59ac4',tee.pink],['Royal Blue','#1747d8',tee.blue]]},
   {name:'Squish Squad Kids’ T-Shirts',hidden:true,desc:'Kids’ tees.',colors:[]},
   {name:'Squish Squad Hoodie',desc:'The same bold, full-color Squish Man and Pudy artwork on a cozy pullover hoodie with a front pocket, plus the crown, wordmark and paw print across the back.',colors:[['White','#ffffff',hoodie.white],['Pink','#f59ac4',hoodie.pink],['Royal Blue','#1747d8',hoodie.royal]]},
+  {name:'Squish Squad Kids’ Hoodies',hidden:true,desc:'Kids’ hoodies.',colors:[]},
   {name:'Squish Squad Long Sleeve',desc:'A long-sleeve take on the Squish Squad design: Squish Man and Pudy on the front, and the gold crown, SQUISHMAN wordmark and paw print on the back.',colors:[['White','#ffffff',sleeve.white],['Pink','#f59ac4',sleeve.pink],['Royal Blue','#1747d8',sleeve.royal]]},
   {name:'Squish Squad Pajama Sets',hidden:true,desc:'Bedtime in Maple Hollow: a long-sleeve top with Squish Man and Pudy on the front and the crown and wordmark on the back, paired with pants covered in Squish Man and Pudy faces, gold crowns, stars and paw prints.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-pajama-sets',722,371,'Squish Man pajama sets in white, pink and royal blue: long-sleeve tops with Squish Man and Pudy on the front and a crown, SQUISHMAN wordmark and paw print on the back, with matching pants patterned with character faces, crowns, stars and paws'))}
  ]},
@@ -82,6 +83,8 @@ const products=[];
 // Not every color comes in every size, so the size list follows the color.
 const SHOP={
  'Squish Squad T-Shirt':{key:'TEE',img:'tee',facts:'Unisex S–3XL · soft cotton tee'},
+ 'Squish Squad Kids’ Hoodies':{key:'KIDSHOODIE',img:'kidshoodie',name:'Squish Squad Kids’ Hoodie',facts:'Youth 8–20 · soft brushed fleece inside',
+  desc:'A cozy kids’ hoodie in nine bright colors, with the color printed all over and your favorite Squish Man design on the front. Soft brushed fleece inside and a double-layer hood.'},
  'Squish Squad Kids’ T-Shirts':{key:'KIDSTEE',img:'kidstee',name:'Squish Squad Kids’ T-Shirt',facts:'Youth S–XL · soft cotton tee',
   desc:'The Squish Squad tee in kids’ sizes: the same five designs as the grown-up shirt in bright, kid-friendly colors, on a soft Bella + Canvas youth tee.'},
  'Squish Squad Hoodie':{key:'HOODIE',img:'hoodie',facts:'Unisex S–3XL · cotton-blend fleece'},
@@ -118,7 +121,7 @@ const money=c=>'$'+(c/100).toFixed(2);
 // and photos.
 const design=p=>p.shop.designs[p.design||0];
 const unit=(p,size)=>design(p).priceCents+(p.shop.sizeUpchargeCents[size]||0);
-const DESIGN_NOTE='Every shirt (grown-up and kids’), long sleeve, hoodie, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in eleven designs, from Royal Squish Man to Squish Man\'s values signpost, posters in eight, water bottles, shaped pillows and color pillows in six each, and jigsaw puzzles and lumbar pillows in six storybook scenes. Caps come embroidered for kids, with the SQUISHMAN logo on the back, or printed in full color for grown-ups.';
+const DESIGN_NOTE='Every shirt and hoodie (grown-up and kids’), long sleeve, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in eleven designs, from Royal Squish Man to Squish Man\'s values signpost, posters in eight, water bottles, shaped pillows and color pillows in six each, and jigsaw puzzles and lumbar pillows in six storybook scenes. Caps come embroidered for kids, with the SQUISHMAN logo on the back, or printed in full color for grown-ups.';
 const MAX_DESIGN_BUTTONS=6;
 const DESIGN_TITLE={FULL:'Squish Man & Pudy + Crown',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo',MAPLE:'Maple Hollow Logo',MAPLECROWN:'Maple Hollow + Crown',
  MH_PALS:'Maple Hollow Pals',MH_HIGHFIVE:'Maple Hollow High Five',MH_WAVE:'Maple Hollow Wave',MH_SQUARE:'Maple Hollow Town Square',
