@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -616,6 +616,46 @@ MERCH.push({
 		{ name: "Sky Blue", hex: "#8fcbef", variants: { "16 in": 49854, "18 in": 4532 } },
 		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: { "16 in": 49854, "18 in": 4532 } },
 	],
+	productionEnabled: false,
+});
+
+// Storybook lumbar pillows (Printful product 83, 20x12): a puzzle scene
+// covering the front and back. Scenes with a crown near the top are anchored
+// to the top edge so the crop doesn't cut it off.
+const lumbar = (
+	key: keyof typeof PUZZLE_FILES,
+	label: string,
+	artWidth: number,
+	artHeight: number,
+	anchor: "center" | "top" = "center",
+): MerchDesign => {
+	const position = centeredBySize({ "20×12 in": [3150, 1950] }, artWidth, artHeight, "cover")["20×12 in"];
+	if (anchor === "top") position.top = 0;
+	return {
+		key,
+		label,
+		priceCents: 3499,
+		files: [
+			{ type: "front", fileId: PUZZLE_FILES[key], position },
+			{ type: "back", fileId: PUZZLE_FILES[key], position },
+		],
+	};
+};
+MERCH.push({
+	key: "LUMBAR",
+	name: "Storybook Lumbar Pillow",
+	designs: [
+		lumbar("PZ_WELCOME", "Welcome to Maple Hollow", 1426, 1103),
+		lumbar("PZ_ROYAL_HERO", "The Little Royal Hero", 1426, 1103, "top"),
+		lumbar("PZ_PAW_PRINTS", "Follow the Paw Prints", 1536, 1024),
+		lumbar("PZ_GARDEN_GATE", "The Secret Garden Gate", 1536, 1024),
+		lumbar("PZ_GOODNIGHT", "Goodnight, Squish Man", 1402, 1122, "top"),
+		lumbar("PZ_MOONLIGHT", "Moonlight Over Maple Hollow", 1402, 1122),
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 1099, additionalCents: 449 },
+	sizes: ["20×12 in"],
+	colors: [{ name: "White", hex: "#ffffff", variants: { "20×12 in": 9513 } }],
 	productionEnabled: false,
 });
 

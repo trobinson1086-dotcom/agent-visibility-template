@@ -812,6 +812,7 @@ describe("merch checkout", () => {
 			["BOTTLE", 2999, 2999, 2999, 2999, 2999, 2999],
 			["PILLOW", 2499, 2499, 2499, 2499, 2499, 2499],
 			["COLORPILLOW", 2999, 2999, 2999, 2999, 2999, 2999],
+			["LUMBAR", 3499, 3499, 3499, 3499, 3499, 3499],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1211,6 +1212,30 @@ describe("merch orders → Printful", () => {
 			variant_id: 49854,
 			retail_price: "29.99",
 			files: sel.files.map((x) => ({ type: x.type, id: x.fileId })),
+		});
+	});
+
+	it("sends storybook lumbar pillows with the scene covering front and back", async () => {
+		merchSession("cs_test_lumbar", "LUMBAR|White|20×12 in|PZ_ROYAL_HERO");
+		await deliver(sandboxEnv(), paidEvent("cs_test_lumbar"));
+		const position = { area_width: 3150, area_height: 1950, width: 3150, height: 2437, top: 0, left: 0 };
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 9513,
+			retail_price: "34.99",
+			files: [
+				{ type: "front", id: 1091600731, position },
+				{ type: "back", id: 1091600731, position },
+			],
+		});
+		merchSession("cs_test_lumbar2", "LUMBAR|White|20×12 in|PZ_PAW_PRINTS");
+		await deliver(sandboxEnv(), paidEvent("cs_test_lumbar2"));
+		expect((printful.lastCreate as { items: Array<{ files: Array<{ position: unknown }> }> }).items[0].files[0].position).toEqual({
+			area_width: 3150,
+			area_height: 1950,
+			width: 3150,
+			height: 2100,
+			top: -75,
+			left: 0,
 		});
 	});
 
