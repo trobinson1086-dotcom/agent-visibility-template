@@ -836,6 +836,7 @@ describe("merch checkout", () => {
 			["HAT", 3099, 3099, 3099, 3099, 3099],
 			["DADHAT", 2499, 2499, 2499, 2499, 2499],
 			["KIDSTEE", 2699, 2399, 2399, 2399, 2699],
+			["KIDSLONGSLEEVE", 2899, 2599, 2599, 2599, 2899],
 			["KIDSHOODIE", 4999, 4999, 4999, 4999, 4999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
