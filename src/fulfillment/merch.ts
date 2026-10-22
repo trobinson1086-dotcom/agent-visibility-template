@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -777,6 +777,52 @@ MERCH.push({
 		{ name: "Pink", hex: "#fab2ba", variants: { Adult: 7858 } },
 		{ name: "Light Blue", hex: "#b5cbda", variants: { Adult: 7856 } },
 		{ name: "Khaki", hex: "#b49771", variants: { Adult: 7855 } },
+	],
+	productionEnabled: false,
+});
+
+// Kids' tees (Printful product 307, Bella + Canvas 3001Y, youth S-XL) in the
+// same five designs as the adult tee, in lighter, brighter colors. The youth print area is
+// 1500x1800, so the artwork sits at full size and the Maple Hollow logo is
+// scaled to fit.
+const YOUTH_AREA = { area_width: 1500, area_height: 1800 };
+const youthBanner: MerchFile = {
+	type: "front",
+	fileId: FRONT_BANNER_FILE,
+	position: { ...YOUTH_AREA, width: 1226, height: 1283, top: 100, left: 137 },
+};
+const youthCrown = (type: "front" | "back"): MerchFile => ({
+	type,
+	fileId: BACK_CROWN_FILE,
+	position: { ...YOUTH_AREA, width: 1366, height: 1152, top: 100, left: 67 },
+});
+const youthMaple: MerchFile = {
+	type: "front",
+	fileId: MAPLE_HOLLOW_FILE,
+	position: { ...YOUTH_AREA, width: 1400, height: 700, top: 100, left: 50 },
+};
+MERCH.push({
+	key: "KIDSTEE",
+	name: "Squish Squad Kids' T-Shirt",
+	designs: designs(
+		2699,
+		[youthBanner, youthCrown("back")],
+		[youthBanner],
+		[youthCrown("front")],
+		[youthMaple],
+		[youthMaple, youthCrown("back")],
+	),
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: ["Youth S", "Youth M", "Youth L", "Youth XL"],
+	// Lighter, brighter colors than the grown-up tee.
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "Youth S": 9426, "Youth M": 9427, "Youth L": 9428, "Youth XL": 9429 } },
+		{ name: "Pink", hex: "#ffcccf", variants: { "Youth S": 10616, "Youth M": 10617, "Youth L": 10618, "Youth XL": 10619 } },
+		{ name: "Sky Blue", hex: "#6495ff", variants: { "Youth S": 10620, "Youth M": 10621, "Youth L": 10622, "Youth XL": 10623 } },
+		{ name: "Sunshine Yellow", hex: "#e6a133", variants: { "Youth S": 17612, "Youth M": 17613, "Youth L": 17614, "Youth XL": 17615 } },
+		{ name: "Kelly Green", hex: "#0e7b4e", variants: { "Youth S": 10628, "Youth M": 10629, "Youth L": 10630, "Youth XL": 10631 } },
+		{ name: "Berry", hex: "#c02773", variants: { "Youth S": 11209, "Youth M": 11210, "Youth L": 11211, "Youth XL": 11212 } },
 	],
 	productionEnabled: false,
 });

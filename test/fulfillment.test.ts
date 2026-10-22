@@ -821,6 +821,7 @@ describe("merch checkout", () => {
 			["LUMBAR", 3499, 3499, 3499, 3499, 3499, 3499],
 			["HAT", 3099, 3099, 3099, 3099, 3099],
 			["DADHAT", 2799, 2799, 2799, 2799, 2799],
+			["KIDSTEE", 2699, 2399, 2399, 2399, 2699],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1290,6 +1291,41 @@ describe("merch orders → Printful", () => {
 					type: "front_dtf_hat",
 					id: 1091358905,
 					position: { area_width: 1500, area_height: 600, width: 657, height: 600, top: 0, left: 421 },
+				},
+			],
+		});
+	});
+
+	it("sends kids' tees with the adult designs sized for the youth print area", async () => {
+		merchSession("cs_test_kidstee", "KIDSTEE|Sky Blue|Youth M|FULL");
+		await deliver(sandboxEnv(), paidEvent("cs_test_kidstee"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 10621,
+			name: "Squish Squad Kids' T-Shirt — Sky Blue, Youth M",
+			retail_price: "26.99",
+			files: [
+				{
+					type: "front",
+					id: 1090848214,
+					position: { area_width: 1500, area_height: 1800, width: 1226, height: 1283, top: 100, left: 137 },
+				},
+				{
+					type: "back",
+					id: 1090848220,
+					position: { area_width: 1500, area_height: 1800, width: 1366, height: 1152, top: 100, left: 67 },
+				},
+			],
+		});
+		merchSession("cs_test_kidstee2", "KIDSTEE|Berry|Youth S|MAPLE");
+		await deliver(sandboxEnv(), paidEvent("cs_test_kidstee2"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 11209,
+			retail_price: "23.99",
+			files: [
+				{
+					type: "front",
+					id: 1090919465,
+					position: { area_width: 1500, area_height: 1800, width: 1400, height: 700, top: 100, left: 50 },
 				},
 			],
 		});
