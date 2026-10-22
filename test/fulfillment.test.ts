@@ -618,6 +618,7 @@ describe("configuration health check", () => {
 					puzzleGardenGate: "ok",
 					puzzleGoodnight: "ok",
 					puzzleMoonlight: "ok",
+					colorpillow_royal_blue: "ok",
 				},
 			},
 			merchCheckout: "off",

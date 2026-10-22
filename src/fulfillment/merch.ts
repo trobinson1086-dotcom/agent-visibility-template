@@ -542,7 +542,15 @@ MERCH.push({
 // centered on a solid color on the front, the same color on the back. Each
 // color has its own print files (public/assets/merch/print/pillows/).
 const COLOR_PILLOW_FILES: Record<string, Partial<Record<DesignKey | "BACK", number>>> = {
-	"Royal Blue": {},
+	"Royal Blue": {
+		SM_ROYAL: 1091680797,
+		BEST_FRIENDS: 1091680805,
+		MH_PALS: 1091680814,
+		MH_WAVE: 1091680827,
+		PUDY: 1091680847,
+		SM_VALUES: 1091680855,
+		BACK: 1091680863,
+	},
 };
 const colorPillow = (key: DesignKey, label: string): MerchDesign => ({
 	key,
