@@ -641,6 +641,10 @@ describe("configuration health check", () => {
 					blanket_pink: "ok",
 					blanket_sky_blue: "ok",
 					blanket_sunshine_yellow: "ok",
+					socks_royal_blue: "ok",
+					socks_pink: "ok",
+					socks_sky_blue: "ok",
+					socks_sunshine_yellow: "ok",
 					hatCrownWordmark: "ok",
 					hatPaw: "ok",
 					hatRoyalSquishMan: "ok",
@@ -782,7 +786,7 @@ describe("merch catalog", () => {
 		}
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
 		// Color pillows print the color into the art, so their colors share one blank.
-		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 });
@@ -843,6 +847,7 @@ describe("merch checkout", () => {
 			["KIDSLONGSLEEVE", 2899, 2599, 2599, 2599, 2899],
 			["KIDSHOODIE", 4999, 4999, 4999, 4999, 4999],
 			["BLANKET", 4999, 4999, 4999, 4999, 4999, 4999],
+			["SOCKS", 1699, 1699, 1699],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1413,6 +1418,27 @@ describe("merch orders → Printful", () => {
 					position: { area_width: 12451, area_height: 9376, width: 12451, height: 9376, top: 0, left: 0 },
 				},
 			],
+		});
+	});
+
+	it("sends socks with the art on the outside panels and the pattern on the back", async () => {
+		const files = merchSelection("SOCKS", "Pink", "L", "SM_ROYAL")!.files;
+		expect(files.map((f) => f.type)).toEqual(["leg_front_right", "leg_front_left", "leg_back_right", "leg_back_left"]);
+		expect(files[0].fileId).toBe(files[1].fileId);
+		expect(files[2].fileId).toBe(merchSelection("SOCKS", "Pink", "L", "SOCK_PATTERN")!.files[0].fileId);
+		expect(files[0].fileId).not.toBe(files[2].fileId);
+
+		merchSession("cs_test_socks", "SOCKS|Pink|L|SM_ROYAL");
+		await deliver(sandboxEnv(), paidEvent("cs_test_socks"));
+		const item = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0];
+		expect(item).toMatchObject({ variant_id: 22788, retail_price: "16.99" });
+		expect((item.files as Array<{ position: unknown }>)[0].position).toEqual({
+			area_width: 1348,
+			area_height: 5595,
+			width: 1348,
+			height: 5657,
+			top: 0,
+			left: 0,
 		});
 	});
 
