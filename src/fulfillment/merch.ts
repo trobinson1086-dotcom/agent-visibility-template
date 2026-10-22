@@ -58,6 +58,7 @@ export type DesignKey =
 	| "MH_SIGN"
 	| "BEST_FRIENDS"
 	// Hat-only embroidery designs.
+	| "HAT_CROWN"
 	| "HAT_PAW"
 	// Puzzle-only full-scene book art.
 	| "PZ_WELCOME"
@@ -121,15 +122,28 @@ export const STICKER_FILES = {
 	BEST_FRIENDS: 1091547785,
 } as const;
 
-/** Full-scene book art for puzzles, from the "Squish Man Puzzles" Drive folder. */
+/**
+ * Full-scene book art from the "Squish Man Puzzles" Drive folder, cropped to
+ * the puzzle shape (public/assets/merch/print/scenes/). Printful rejects
+ * negative crop offsets, so each scene is pre-cropped to fill the print area.
+ */
 export const PUZZLE_FILES = {
-	PZ_WELCOME: 1091600709,
-	PZ_ROYAL_HERO: 1091600731,
-	PZ_PAW_PRINTS: 1091600741,
-	PZ_GARDEN_GATE: 1091600767,
-	PZ_GOODNIGHT: 1091600776,
-	PZ_MOONLIGHT: 1091600783,
+	PZ_WELCOME: 1092037835,
+	PZ_ROYAL_HERO: 1092037885,
+	PZ_PAW_PRINTS: 1092038035,
+	PZ_GARDEN_GATE: 1092038104,
+	PZ_GOODNIGHT: 1092038175,
+	PZ_MOONLIGHT: 1092038213,
 } as const;
+/** The same scenes cropped to the 20x12 lumbar pillow (top-anchored where a crown is near the top). */
+export const LUMBAR_FILES: Record<keyof typeof PUZZLE_FILES, number> = {
+	PZ_WELCOME: 1092038261,
+	PZ_ROYAL_HERO: 1092038311,
+	PZ_PAW_PRINTS: 1092038368,
+	PZ_GARDEN_GATE: 1092038433,
+	PZ_GOODNIGHT: 1092038506,
+	PZ_MOONLIGHT: 1092038644,
+};
 
 const SIZES = ["S", "M", "L", "XL", "2XL", "3XL"];
 const UPCHARGE = { "2XL": 200, "3XL": 400 };
@@ -200,7 +214,7 @@ export const MERCH: MerchProduct[] = [
 		key: "TEE",
 		name: "Squish Squad T-Shirt",
 		designs: designs(
-			2999,
+			2799,
 			[front(1800, 2400, 150), back],
 			[pudyFront(1800, 2400, 150)],
 			[logoFront(1800, 2400, 150)],
@@ -224,7 +238,7 @@ export const MERCH: MerchProduct[] = [
 		key: "HOODIE",
 		name: "Squish Squad Hoodie",
 		designs: designs(
-			4999,
+			4499,
 			[front(2100, 2100, 100), back],
 			[pudyFront(2100, 2100, 100)],
 			[logoFront(2100, 2100, 100)],
@@ -298,11 +312,11 @@ export const MERCH: MerchProduct[] = [
 		// other (not uploaded yet, so those orders are held until it is).
 		// Pudy / Logo: that artwork alone on one side.
 		designs: [
-			{ key: "FULL", label: "Squish Man & Pudy + crown logo", priceCents: 1999, files: [{ type: "default", fileId: null }] },
+			{ key: "FULL", label: "Squish Man & Pudy + crown logo", priceCents: 1599, files: [{ type: "default", fileId: null }] },
 			{
 				key: "PUDY",
 				label: "Squish Man & Pudy only",
-				priceCents: 1799,
+				priceCents: 1599,
 				files: [
 					{
 						type: "default",
@@ -314,7 +328,7 @@ export const MERCH: MerchProduct[] = [
 			{
 				key: "LOGO",
 				label: "Crown logo only",
-				priceCents: 1799,
+				priceCents: 1599,
 				files: [
 					{
 						type: "default",
@@ -326,7 +340,7 @@ export const MERCH: MerchProduct[] = [
 			{
 				key: "MAPLE",
 				label: "Maple Hollow logo only",
-				priceCents: 1799,
+				priceCents: 1599,
 				files: [
 					{
 						type: "default",
@@ -338,7 +352,7 @@ export const MERCH: MerchProduct[] = [
 			{
 				key: "MAPLECROWN",
 				label: "Maple Hollow logo + crown logo",
-				priceCents: 1999,
+				priceCents: 1599,
 				files: [{ type: "default", fileId: MUG_WRAP_MAPLE_CROWN_FILE }],
 			},
 		],
@@ -385,22 +399,15 @@ MERCH.push({
 
 // Enhanced matte posters (Printful product 1): the art centered on white with
 // a half-inch margin, sized to each poster's 300 DPI print area.
-/**
- * The art centered on each size's print area. "contain" fits it inside a
- * half-inch margin; "cover" fills the area edge to edge, cropping the overflow.
- */
+/** The art centered on each size's print area, inside a half-inch margin. */
 function centeredBySize(
 	areas: Record<string, [number, number]>,
 	artWidth: number,
 	artHeight: number,
-	fit: "contain" | "cover",
 ): Record<string, PrintfulPosition> {
 	return Object.fromEntries(
 		Object.entries(areas).map(([size, [areaWidth, areaHeight]]) => {
-			const scale =
-				fit === "contain"
-					? Math.min((areaWidth - 300) / artWidth, (areaHeight - 300) / artHeight)
-					: Math.max(areaWidth / artWidth, areaHeight / artHeight);
+			const scale = Math.min((areaWidth - 300) / artWidth, (areaHeight - 300) / artHeight);
 			const width = Math.round(artWidth * scale);
 			const height = Math.round(artHeight * scale);
 			const position = {
@@ -420,7 +427,7 @@ const poster = (key: DesignKey, label: string, fileId: number, artWidth: number,
 	key,
 	label,
 	priceCents: 1499,
-	files: [{ type: "default", fileId, positionBySize: centeredBySize(POSTER_AREAS, artWidth, artHeight, "contain") }],
+	files: [{ type: "default", fileId, positionBySize: centeredBySize(POSTER_AREAS, artWidth, artHeight) }],
 });
 MERCH.push({
 	key: "POSTER",
@@ -442,31 +449,36 @@ MERCH.push({
 	productionEnabled: false,
 });
 
-// Jigsaw puzzles in a gift tin (Printful product 906): full-scene book art
-// filling the whole puzzle, cropped evenly on the long side.
-const PUZZLE_AREAS: Record<string, [number, number]> = {
-	"30 pcs": [2953, 2350],
-	"110 pcs": [2953, 2350],
-	"252 pcs": [4200, 3300],
-};
-const puzzle = (key: keyof typeof PUZZLE_FILES, label: string, artWidth: number, artHeight: number): MerchDesign => ({
+// Jigsaw puzzles in a gift tin (Printful product 906): a book scene filling
+// the whole puzzle. The 14x11 puzzle is a touch squarer, so its bottom edge
+// loses about 1%.
+const PUZZLE_FULL = { top: 0, left: 0 };
+const puzzle = (key: keyof typeof PUZZLE_FILES, label: string): MerchDesign => ({
 	key,
 	label,
 	priceCents: 2999,
 	files: [
-		{ type: "front", fileId: PUZZLE_FILES[key], positionBySize: centeredBySize(PUZZLE_AREAS, artWidth, artHeight, "cover") },
+		{
+			type: "front",
+			fileId: PUZZLE_FILES[key],
+			positionBySize: {
+				"30 pcs": { area_width: 2953, area_height: 2350, width: 2953, height: 2350, ...PUZZLE_FULL },
+				"110 pcs": { area_width: 2953, area_height: 2350, width: 2953, height: 2350, ...PUZZLE_FULL },
+				"252 pcs": { area_width: 4200, area_height: 3300, width: 4200, height: 3342, ...PUZZLE_FULL },
+			},
+		},
 	],
 });
 MERCH.push({
 	key: "PUZZLE",
 	name: "Maple Hollow Puzzle",
 	designs: [
-		puzzle("PZ_WELCOME", "Welcome to Maple Hollow", 1426, 1103),
-		puzzle("PZ_ROYAL_HERO", "The Little Royal Hero", 1426, 1103),
-		puzzle("PZ_PAW_PRINTS", "Follow the Paw Prints", 1536, 1024),
-		puzzle("PZ_GARDEN_GATE", "The Secret Garden Gate", 1536, 1024),
-		puzzle("PZ_GOODNIGHT", "Goodnight, Squish Man", 1402, 1122),
-		puzzle("PZ_MOONLIGHT", "Moonlight Over Maple Hollow", 1402, 1122),
+		puzzle("PZ_WELCOME", "Welcome to Maple Hollow"),
+		puzzle("PZ_ROYAL_HERO", "The Little Royal Hero"),
+		puzzle("PZ_PAW_PRINTS", "Follow the Paw Prints"),
+		puzzle("PZ_GARDEN_GATE", "The Secret Garden Gate"),
+		puzzle("PZ_GOODNIGHT", "Goodnight, Squish Man"),
+		puzzle("PZ_MOONLIGHT", "Moonlight Over Maple Hollow"),
 	],
 	sizeUpchargeCents: { "252 pcs": 500 },
 	shipping: { firstCents: 849, additionalCents: 249 },
@@ -599,6 +611,8 @@ const colorPillow = (key: DesignKey, label: string): MerchDesign => ({
 			fileIdByColor: Object.fromEntries(Object.entries(COLOR_PILLOW_FILES).map(([c, ids]) => [c, ids.BACK ?? null])),
 		},
 	],
+	// Printful requires a zipper and stitch color on its all-over pillows.
+	printfulOptions: { stitch_color: "white" },
 });
 MERCH.push({
 	key: "COLORPILLOW",
@@ -623,38 +637,29 @@ MERCH.push({
 	productionEnabled: false,
 });
 
-// Storybook lumbar pillows (Printful product 83, 20x12): a puzzle scene
-// covering the front and back. Scenes with a crown near the top are anchored
-// to the top edge so the crop doesn't cut it off.
-const lumbar = (
-	key: keyof typeof PUZZLE_FILES,
-	label: string,
-	artWidth: number,
-	artHeight: number,
-	anchor: "center" | "top" = "center",
-): MerchDesign => {
-	const position = centeredBySize({ "20×12 in": [3150, 1950] }, artWidth, artHeight, "cover")["20×12 in"];
-	if (anchor === "top") position.top = 0;
-	return {
-		key,
-		label,
-		priceCents: 3499,
-		files: [
-			{ type: "front", fileId: PUZZLE_FILES[key], position },
-			{ type: "back", fileId: PUZZLE_FILES[key], position },
-		],
-	};
-};
+// Storybook lumbar pillows (Printful product 83, 20x12): a scene, cropped to
+// the pillow (LUMBAR_FILES), covering the front and back.
+const LUMBAR_POSITION = { area_width: 3150, area_height: 1950, width: 3150, height: 1950, top: 0, left: 0 };
+const lumbar = (key: keyof typeof PUZZLE_FILES, label: string): MerchDesign => ({
+	key,
+	label,
+	priceCents: 3499,
+	files: [
+		{ type: "front", fileId: LUMBAR_FILES[key], position: LUMBAR_POSITION },
+		{ type: "back", fileId: LUMBAR_FILES[key], position: LUMBAR_POSITION },
+	],
+	printfulOptions: { stitch_color: "white" },
+});
 MERCH.push({
 	key: "LUMBAR",
 	name: "Storybook Lumbar Pillow",
 	designs: [
-		lumbar("PZ_WELCOME", "Welcome to Maple Hollow", 1426, 1103),
-		lumbar("PZ_ROYAL_HERO", "The Little Royal Hero", 1426, 1103, "top"),
-		lumbar("PZ_PAW_PRINTS", "Follow the Paw Prints", 1536, 1024),
-		lumbar("PZ_GARDEN_GATE", "The Secret Garden Gate", 1536, 1024),
-		lumbar("PZ_GOODNIGHT", "Goodnight, Squish Man", 1402, 1122, "top"),
-		lumbar("PZ_MOONLIGHT", "Moonlight Over Maple Hollow", 1402, 1122),
+		lumbar("PZ_WELCOME", "Welcome to Maple Hollow"),
+		lumbar("PZ_ROYAL_HERO", "The Little Royal Hero"),
+		lumbar("PZ_PAW_PRINTS", "Follow the Paw Prints"),
+		lumbar("PZ_GARDEN_GATE", "The Secret Garden Gate"),
+		lumbar("PZ_GOODNIGHT", "Goodnight, Squish Man"),
+		lumbar("PZ_MOONLIGHT", "Moonlight Over Maple Hollow"),
 	],
 	sizeUpchargeCents: {},
 	shipping: { firstCents: 1099, additionalCents: 449 },
@@ -663,20 +668,21 @@ MERCH.push({
 	productionEnabled: false,
 });
 
-// Embroidered youth caps (Printful product 429, Valucap VC300Y). Embroidery
-// stitches flat thread colors, so each front is the picture simplified to at
-// most nine Printful threads (public/assets/merch/print/hats/), and every cap
-// has the crown + SQUISHMAN logo embroidered on the back. Printful charges a
-// one-time digitization fee the first time each design is ordered.
+// Embroidered youth caps (Printful product 429, Valucap VC300Y). The cap takes
+// at most six thread colors, so the pictures are simplified to six Printful
+// threads (public/assets/merch/print/hats/). Every cap has a back design: the
+// crown + SQUISHMAN logo, or the paw print when the logo is on the front.
+// Printful charges a one-time digitization fee the first time each design is
+// ordered.
 export const HAT_FILES = {
 	CROWN_WORDMARK: 1091740166,
 	PAW: 1091740758,
-	SM_ROYAL: 1091757219,
-	BEST_FRIENDS: 1091757361,
-	MH_PALS: 1091757387,
-	MH_HIGHFIVE: 1091757424,
+	SM_ROYAL: 1092034656,
+	BEST_FRIENDS: 1092034703,
+	CROWN: 1091741028,
 };
 const LOGO_THREADS = ["#FFCC00", "#A67843", "#005397", "#333366"];
+const PAW_THREADS = ["#005397", "#333366"];
 const hatDesign = (
 	key: DesignKey,
 	label: string,
@@ -684,6 +690,7 @@ const hatDesign = (
 	width: number,
 	height: number,
 	threads: string[],
+	back: "logo" | "paw" = "logo",
 ): MerchDesign => ({
 	key,
 	label,
@@ -701,34 +708,43 @@ const hatDesign = (
 				left: Math.floor((1200 - width) / 2),
 			},
 		},
-		{
-			type: "embroidery_back",
-			fileId: HAT_FILES.CROWN_WORDMARK,
-			position: { area_width: 600, area_height: 300, width: 589, height: 300, top: 0, left: 5 },
-		},
+		back === "logo"
+			? {
+					type: "embroidery_back",
+					fileId: HAT_FILES.CROWN_WORDMARK,
+					position: { area_width: 600, area_height: 300, width: 589, height: 300, top: 0, left: 5 },
+				}
+			: {
+					type: "embroidery_back",
+					fileId: HAT_FILES.PAW,
+					position: { area_width: 600, area_height: 300, width: 314, height: 300, top: 0, left: 143 },
+				},
 	],
-	printfulOptions: { thread_colors: threads, thread_colors_back: LOGO_THREADS },
+	printfulOptions: { thread_colors: threads, thread_colors_back: back === "logo" ? LOGO_THREADS : PAW_THREADS },
 });
-const PICTURE_THREADS = ["#FFFFFF", "#000000", "#96A1A8", "#A67843", "#FFCC00", "#E25C27", "#CC3333", "#660000", "#005397"];
 MERCH.push({
 	key: "HAT",
 	name: "Squish Squad Youth Cap",
 	designs: [
 		hatDesign("SM_ROYAL", "Royal Squish Man", HAT_FILES.SM_ROYAL, 520, 525, [
 			"#FFFFFF",
-			"#000000",
 			"#96A1A8",
-			"#A67843",
 			"#FFCC00",
-			"#E25C27",
-			"#660000",
 			"#005397",
-			"#333366",
+			"#000000",
+			"#E25C27",
 		]),
-		hatDesign("BEST_FRIENDS", "Best friends", HAT_FILES.BEST_FRIENDS, 552, 525, PICTURE_THREADS),
-		hatDesign("MH_PALS", "Squish Man & Pudy in Maple Hollow", HAT_FILES.MH_PALS, 575, 525, PICTURE_THREADS),
-		hatDesign("MH_HIGHFIVE", "Squish Man & Pudy high five", HAT_FILES.MH_HIGHFIVE, 639, 525, PICTURE_THREADS),
-		hatDesign("HAT_PAW", "Paw print", HAT_FILES.PAW, 470, 450, ["#005397", "#333366"]),
+		hatDesign("BEST_FRIENDS", "Best friends", HAT_FILES.BEST_FRIENDS, 552, 525, [
+			"#FFFFFF",
+			"#FFCC00",
+			"#005397",
+			"#000000",
+			"#660000",
+			"#A67843",
+		]),
+		hatDesign("LOGO", "Crown + SQUISHMAN, paw print back", HAT_FILES.CROWN_WORDMARK, 1031, 525, LOGO_THREADS, "paw"),
+		hatDesign("HAT_CROWN", "Crown", HAT_FILES.CROWN, 720, 525, LOGO_THREADS),
+		hatDesign("HAT_PAW", "Paw print", HAT_FILES.PAW, 470, 450, PAW_THREADS),
 	],
 	sizeUpchargeCents: {},
 	shipping: { firstCents: 499, additionalCents: 199 },
@@ -749,7 +765,7 @@ MERCH.push({
 const dadHat = (key: DesignKey, label: string, fileId: number, width: number): MerchDesign => ({
 	key,
 	label,
-	priceCents: 2799,
+	priceCents: 2499,
 	files: [
 		{
 			type: "front_dtf_hat",
@@ -869,6 +885,8 @@ const kidsHoodie = (key: DesignKey, label: string, front: KidsHoodieArt, back: b
 		kidsHoodiePanel("back", back ? "back" : "solid"),
 		...["sleeve_right", "sleeve_left", "pocket", "hood", "label_panel"].map((type) => kidsHoodiePanel(type, "solid")),
 	],
+	// Printful requires a drawcord and stitch color on its all-over hoodies.
+	printfulOptions: { stitch_color: "white" },
 });
 MERCH.push({
 	key: "KIDSHOODIE",

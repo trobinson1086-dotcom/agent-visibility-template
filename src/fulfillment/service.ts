@@ -41,6 +41,7 @@ import {
 	MERCH,
 	MUG_WRAP_MAPLE_CROWN_FILE,
 	HAT_FILES,
+	LUMBAR_FILES,
 	PUZZLE_FILES,
 	STICKER_FILES,
 } from "./merch";
@@ -230,12 +231,17 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 			[PUZZLE_FILES.PZ_GARDEN_GATE, "puzzleGardenGate"],
 			[PUZZLE_FILES.PZ_GOODNIGHT, "puzzleGoodnight"],
 			[PUZZLE_FILES.PZ_MOONLIGHT, "puzzleMoonlight"],
+			[LUMBAR_FILES.PZ_WELCOME, "lumbarWelcome"],
+			[LUMBAR_FILES.PZ_ROYAL_HERO, "lumbarRoyalHero"],
+			[LUMBAR_FILES.PZ_PAW_PRINTS, "lumbarPawPrints"],
+			[LUMBAR_FILES.PZ_GARDEN_GATE, "lumbarGardenGate"],
+			[LUMBAR_FILES.PZ_GOODNIGHT, "lumbarGoodnight"],
+			[LUMBAR_FILES.PZ_MOONLIGHT, "lumbarMoonlight"],
 			[HAT_FILES.CROWN_WORDMARK, "hatCrownWordmark"],
 			[HAT_FILES.PAW, "hatPaw"],
 			[HAT_FILES.SM_ROYAL, "hatRoyalSquishMan"],
 			[HAT_FILES.BEST_FRIENDS, "hatBestFriends"],
-			[HAT_FILES.MH_PALS, "hatMapleHollowPals"],
-			[HAT_FILES.MH_HIGHFIVE, "hatHighFive"],
+			[HAT_FILES.CROWN, "hatCrown"],
 		]);
 		const printFiles: Record<string, string> = {};
 		const checked = new Set<number>();
