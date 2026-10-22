@@ -40,6 +40,7 @@ import {
 	MAPLE_HOLLOW_FILE,
 	MERCH,
 	MUG_WRAP_MAPLE_CROWN_FILE,
+	PUZZLE_FILES,
 	STICKER_FILES,
 } from "./merch";
 import { checkoutState, reconcileMerch, recordMerchOrder, refreshMerch, retryMerch } from "./merch-service";
@@ -222,6 +223,12 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 			[STICKER_FILES.SM_ROYAL, "stickerRoyalSquishMan"],
 			[STICKER_FILES.MH_SIGN, "stickerMapleHollowSign"],
 			[STICKER_FILES.BEST_FRIENDS, "stickerBestFriends"],
+			[PUZZLE_FILES.PZ_WELCOME, "puzzleWelcome"],
+			[PUZZLE_FILES.PZ_ROYAL_HERO, "puzzleRoyalHero"],
+			[PUZZLE_FILES.PZ_PAW_PRINTS, "puzzlePawPrints"],
+			[PUZZLE_FILES.PZ_GARDEN_GATE, "puzzleGardenGate"],
+			[PUZZLE_FILES.PZ_GOODNIGHT, "puzzleGoodnight"],
+			[PUZZLE_FILES.PZ_MOONLIGHT, "puzzleMoonlight"],
 		]);
 		const printFiles: Record<string, string> = {};
 		for (const p of MERCH) {

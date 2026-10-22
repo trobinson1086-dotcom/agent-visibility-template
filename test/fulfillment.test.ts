@@ -612,6 +612,12 @@ describe("configuration health check", () => {
 					stickerRoyalSquishMan: "ok",
 					stickerMapleHollowSign: "ok",
 					stickerBestFriends: "ok",
+					puzzleWelcome: "ok",
+					puzzleRoyalHero: "ok",
+					puzzlePawPrints: "ok",
+					puzzleGardenGate: "ok",
+					puzzleGoodnight: "ok",
+					puzzleMoonlight: "ok",
 				},
 			},
 			merchCheckout: "off",
@@ -797,6 +803,7 @@ describe("merch checkout", () => {
 			["MUG", 1999, 1799, 1799, 1799, 1999],
 			["STICKER", 499, 499, 499, 499, 499, 499, 499, 499, 499, 499, 499],
 			["POSTER", 1499, 1499, 1499, 1499, 1499, 1499, 1499, 1499],
+			["PUZZLE", 2999, 2999, 2999, 2999, 2999, 2999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1071,6 +1078,47 @@ describe("merch orders → Printful", () => {
 					type: "default",
 					id: 1090919465,
 					position: { area_width: 3000, area_height: 3000, width: 2700, height: 1350, top: 825, left: 150 },
+				},
+			],
+		});
+	});
+
+	it("sells puzzles in three sizes, with the art filling each puzzle", async () => {
+		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
+		const r = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "PUZZLE", design: "PZ_GOODNIGHT", color: "White", size: "252 pcs", quantity: 2 },
+			"https://squishman.com",
+		);
+		expect(r.status).toBe(200);
+		const f = stripeCreates[0];
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("3499");
+		expect(f.get("metadata[merch_sku]")).toBe("PUZZLE|White|252 pcs|PZ_GOODNIGHT");
+		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("1098"); // $8.49 + $2.49
+
+		merchSession("cs_test_puzzle", "PUZZLE|White|30 pcs|PZ_WELCOME");
+		await deliver(sandboxEnv(), paidEvent("cs_test_puzzle"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 23246,
+			retail_price: "29.99",
+			files: [
+				{
+					type: "front",
+					id: 1091600709,
+					position: { area_width: 2953, area_height: 2350, width: 3038, height: 2350, top: 0, left: -43 },
+				},
+			],
+		});
+		merchSession("cs_test_bigpuzzle", "PUZZLE|White|252 pcs|PZ_PAW_PRINTS");
+		await deliver(sandboxEnv(), paidEvent("cs_test_bigpuzzle"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 23247,
+			retail_price: "34.99",
+			files: [
+				{
+					type: "front",
+					id: 1091600741,
+					position: { area_width: 4200, area_height: 3300, width: 4950, height: 3300, top: 0, left: -375 },
 				},
 			],
 		});

@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -54,7 +54,14 @@ export type DesignKey =
 	| "SM_VALUES"
 	| "SM_ROYAL"
 	| "MH_SIGN"
-	| "BEST_FRIENDS";
+	| "BEST_FRIENDS"
+	// Puzzle-only full-scene book art.
+	| "PZ_WELCOME"
+	| "PZ_ROYAL_HERO"
+	| "PZ_PAW_PRINTS"
+	| "PZ_GARDEN_GATE"
+	| "PZ_GOODNIGHT"
+	| "PZ_MOONLIGHT";
 
 /** One artwork option for a product, with its own price and print files. */
 export interface MerchDesign {
@@ -106,6 +113,16 @@ export const STICKER_FILES = {
 	SM_ROYAL: 1091547742,
 	MH_SIGN: 1091547777,
 	BEST_FRIENDS: 1091547785,
+} as const;
+
+/** Full-scene book art for puzzles, from the "Squish Man Puzzles" Drive folder. */
+export const PUZZLE_FILES = {
+	PZ_WELCOME: 1091600709,
+	PZ_ROYAL_HERO: 1091600731,
+	PZ_PAW_PRINTS: 1091600741,
+	PZ_GARDEN_GATE: 1091600767,
+	PZ_GOODNIGHT: 1091600776,
+	PZ_MOONLIGHT: 1091600783,
 } as const;
 
 const SIZES = ["S", "M", "L", "XL", "2XL", "3XL"];
@@ -362,33 +379,42 @@ MERCH.push({
 
 // Enhanced matte posters (Printful product 1): the art centered on white with
 // a half-inch margin, sized to each poster's 300 DPI print area.
+/**
+ * The art centered on each size's print area. "contain" fits it inside a
+ * half-inch margin; "cover" fills the area edge to edge, cropping the overflow.
+ */
+function centeredBySize(
+	areas: Record<string, [number, number]>,
+	artWidth: number,
+	artHeight: number,
+	fit: "contain" | "cover",
+): Record<string, PrintfulPosition> {
+	return Object.fromEntries(
+		Object.entries(areas).map(([size, [areaWidth, areaHeight]]) => {
+			const scale =
+				fit === "contain"
+					? Math.min((areaWidth - 300) / artWidth, (areaHeight - 300) / artHeight)
+					: Math.max(areaWidth / artWidth, areaHeight / artHeight);
+			const width = Math.round(artWidth * scale);
+			const height = Math.round(artHeight * scale);
+			const position = {
+				area_width: areaWidth,
+				area_height: areaHeight,
+				width,
+				height,
+				top: Math.floor((areaHeight - height) / 2),
+				left: Math.floor((areaWidth - width) / 2),
+			};
+			return [size, position];
+		}),
+	);
+}
 const POSTER_AREAS: Record<string, [number, number]> = { "8×10 in": [3000, 2400], "10×10 in": [3000, 3000] };
 const poster = (key: DesignKey, label: string, fileId: number, artWidth: number, artHeight: number): MerchDesign => ({
 	key,
 	label,
 	priceCents: 1499,
-	files: [
-		{
-			type: "default",
-			fileId,
-			positionBySize: Object.fromEntries(
-				Object.entries(POSTER_AREAS).map(([size, [areaWidth, areaHeight]]) => {
-					const scale = Math.min((areaWidth - 300) / artWidth, (areaHeight - 300) / artHeight);
-					const width = Math.round(artWidth * scale);
-					const height = Math.round(artHeight * scale);
-					const position = {
-						area_width: areaWidth,
-						area_height: areaHeight,
-						width,
-						height,
-						top: Math.floor((areaHeight - height) / 2),
-						left: Math.floor((areaWidth - width) / 2),
-					};
-					return [size, position];
-				}),
-			),
-		},
-	],
+	files: [{ type: "default", fileId, positionBySize: centeredBySize(POSTER_AREAS, artWidth, artHeight, "contain") }],
 });
 MERCH.push({
 	key: "POSTER",
@@ -407,6 +433,39 @@ MERCH.push({
 	shipping: { firstCents: 599, additionalCents: 49 },
 	sizes: ["8×10 in", "10×10 in"],
 	colors: [{ name: "White", hex: "#ffffff", variants: { "8×10 in": 4463, "10×10 in": 6239 } }],
+	productionEnabled: false,
+});
+
+// Jigsaw puzzles in a gift tin (Printful product 906): full-scene book art
+// filling the whole puzzle, cropped evenly on the long side.
+const PUZZLE_AREAS: Record<string, [number, number]> = {
+	"30 pcs": [2953, 2350],
+	"110 pcs": [2953, 2350],
+	"252 pcs": [4200, 3300],
+};
+const puzzle = (key: keyof typeof PUZZLE_FILES, label: string, artWidth: number, artHeight: number): MerchDesign => ({
+	key,
+	label,
+	priceCents: 2999,
+	files: [
+		{ type: "front", fileId: PUZZLE_FILES[key], positionBySize: centeredBySize(PUZZLE_AREAS, artWidth, artHeight, "cover") },
+	],
+});
+MERCH.push({
+	key: "PUZZLE",
+	name: "Maple Hollow Puzzle",
+	designs: [
+		puzzle("PZ_WELCOME", "Welcome to Maple Hollow", 1426, 1103),
+		puzzle("PZ_ROYAL_HERO", "The Little Royal Hero", 1426, 1103),
+		puzzle("PZ_PAW_PRINTS", "Follow the Paw Prints", 1536, 1024),
+		puzzle("PZ_GARDEN_GATE", "The Secret Garden Gate", 1536, 1024),
+		puzzle("PZ_GOODNIGHT", "Goodnight, Squish Man", 1402, 1122),
+		puzzle("PZ_MOONLIGHT", "Moonlight Over Maple Hollow", 1402, 1122),
+	],
+	sizeUpchargeCents: { "252 pcs": 500 },
+	shipping: { firstCents: 849, additionalCents: 249 },
+	sizes: ["30 pcs", "110 pcs", "252 pcs"],
+	colors: [{ name: "White", hex: "#ffffff", variants: { "30 pcs": 23246, "110 pcs": 23245, "252 pcs": 23247 } }],
 	productionEnabled: false,
 });
 
