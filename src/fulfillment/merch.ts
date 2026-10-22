@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -57,6 +57,11 @@ export type DesignKey =
 	| "SM_ROYAL"
 	| "MH_SIGN"
 	| "BEST_FRIENDS"
+	// Hat-only embroidery designs.
+	| "HAT_CROWN"
+	| "HAT_WORDMARK"
+	| "HAT_PAW"
+	| "HAT_PAWBACK"
 	// Puzzle-only full-scene book art.
 	| "PZ_WELCOME"
 	| "PZ_ROYAL_HERO"
@@ -72,6 +77,8 @@ export interface MerchDesign {
 	label: string;
 	priceCents: number;
 	files: MerchFile[];
+	/** Printful item options sent with the order, e.g. embroidery thread colors. */
+	printfulOptions?: Record<string, unknown>;
 }
 
 export interface MerchProduct {
@@ -659,6 +666,88 @@ MERCH.push({
 	productionEnabled: false,
 });
 
+// Embroidered youth caps (Printful product 429, Valucap VC300Y). Embroidery
+// stitches flat shapes, so the five designs are parts of the crown logo
+// flattened to four thread colors (public/assets/merch/print/hats/). Printful
+// charges a one-time digitization fee the first time each design is ordered.
+export const HAT_FILES: Record<"CROWN_WORDMARK" | "CROWN" | "WORDMARK" | "PAW", number | null> = {
+	CROWN_WORDMARK: 1091740166,
+	CROWN: 1091741028,
+	WORDMARK: 1091740645,
+	PAW: 1091740758,
+};
+const GOLD = "#FFCC00";
+const OLD_GOLD = "#A67843";
+const ROYAL = "#005397";
+const NAVY = "#333366";
+const HAT_FRONT = { area_width: 1200, area_height: 525 };
+const hatFront = (fileId: number | null, width: number, height: number): MerchFile => ({
+	type: "embroidery_front",
+	fileId,
+	position: { ...HAT_FRONT, width, height, top: Math.floor((525 - height) / 2), left: Math.floor((1200 - width) / 2) },
+});
+const hatLogo = hatFront(HAT_FILES.CROWN_WORDMARK, 1031, 525);
+const LOGO_THREADS = [GOLD, OLD_GOLD, ROYAL, NAVY];
+MERCH.push({
+	key: "HAT",
+	name: "Squish Squad Youth Cap",
+	designs: [
+		{
+			key: "LOGO",
+			label: "Crown + SQUISHMAN",
+			priceCents: 2799,
+			files: [hatLogo],
+			printfulOptions: { thread_colors: LOGO_THREADS },
+		},
+		{
+			key: "HAT_CROWN",
+			label: "Crown only",
+			priceCents: 2799,
+			files: [hatFront(HAT_FILES.CROWN, 720, 525)],
+			printfulOptions: { thread_colors: LOGO_THREADS },
+		},
+		{
+			key: "HAT_WORDMARK",
+			label: "SQUISHMAN only",
+			priceCents: 2799,
+			files: [hatFront(HAT_FILES.WORDMARK, 1100, 286)],
+			printfulOptions: { thread_colors: LOGO_THREADS },
+		},
+		{
+			key: "HAT_PAW",
+			label: "Paw print only",
+			priceCents: 2799,
+			files: [hatFront(HAT_FILES.PAW, 470, 450)],
+			printfulOptions: { thread_colors: [ROYAL, NAVY] },
+		},
+		{
+			key: "HAT_PAWBACK",
+			label: "Crown + SQUISHMAN front, paw print back",
+			priceCents: 3099,
+			files: [
+				hatLogo,
+				{
+					type: "embroidery_back",
+					fileId: HAT_FILES.PAW,
+					position: { area_width: 600, area_height: 300, width: 314, height: 300, top: 0, left: 143 },
+				},
+			],
+			printfulOptions: { thread_colors: LOGO_THREADS, thread_colors_back: [ROYAL, NAVY] },
+		},
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: ["Youth"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { Youth: 11457 } },
+		{ name: "Black", hex: "#171717", variants: { Youth: 11456 } },
+		{ name: "Light Pink", hex: "#ffdcdc", variants: { Youth: 11460 } },
+		{ name: "Baby Blue", hex: "#96bbe5", variants: { Youth: 11459 } },
+		{ name: "Khaki", hex: "#e3c7b1", variants: { Youth: 16509 } },
+	],
+	productionEnabled: false,
+});
+
 const BY_KEY = new Map(MERCH.map((p) => [p.key, p]));
 
 export function merchProduct(key: string): MerchProduct | undefined {
@@ -700,7 +789,9 @@ export function merchSelection(
 					? `${product.name}, Maple Hollow Logo`
 					: design.key === "MAPLECROWN"
 						? `${product.name}, Maple Hollow + Crown`
-						: product.name;
+						: design.key === "FULL"
+							? product.name
+							: `${product.name}, ${design.label}`;
 	return {
 		product,
 		design,
@@ -713,7 +804,7 @@ export function merchSelection(
 		// Single-color products leave the color out of the title.
 		title:
 			product.colors.length > 1
-				? `${name} — ${color.name}, ${size}`
+				? `${name} — ${color.name}${product.sizes.length > 1 ? `, ${size}` : ""}`
 				: product.sizes.length > 1
 					? `${name} — ${size}`
 					: name,

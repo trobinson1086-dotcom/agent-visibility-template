@@ -622,6 +622,10 @@ describe("configuration health check", () => {
 					colorpillow_pink: "ok",
 					colorpillow_sky_blue: "ok",
 					colorpillow_sunshine_yellow: "ok",
+					hatCrownWordmark: "ok",
+					hatCrown: "ok",
+					hatWordmark: "ok",
+					hatPaw: "ok",
 				},
 			},
 			merchCheckout: "off",
@@ -813,6 +817,7 @@ describe("merch checkout", () => {
 			["PILLOW", 2499, 2499, 2499, 2499, 2499, 2499],
 			["COLORPILLOW", 2999, 2999, 2999, 2999, 2999, 2999],
 			["LUMBAR", 3499, 3499, 3499, 3499, 3499, 3499],
+			["HAT", 2799, 2799, 2799, 2799, 3099],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -990,7 +995,7 @@ describe("merch orders → Printful", () => {
 		merchSession("cs_test_tote", "TOTE|Natural|One size|MAPLECROWN");
 		await deliver(sandboxEnv(), paidEvent("cs_test_tote"));
 		const item = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0];
-		expect(item).toMatchObject({ variant_id: 10458, name: "Squish Squad Tote Bag, Maple Hollow + Crown — Natural, One size", retail_price: "32.99" });
+		expect(item).toMatchObject({ variant_id: 10458, name: "Squish Squad Tote Bag, Maple Hollow + Crown — Natural", retail_price: "32.99" });
 		expect(item.files).toEqual([
 			{
 				type: "front",
@@ -1237,6 +1242,37 @@ describe("merch orders → Printful", () => {
 			top: -75,
 			left: 0,
 		});
+	});
+
+	it("sends embroidered caps with their thread colors, and the paw on the back when chosen", async () => {
+		merchSession("cs_test_hat", "HAT|Light Pink|Youth|HAT_PAW");
+		await deliver(sandboxEnv(), paidEvent("cs_test_hat"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toEqual({
+			variant_id: 11460,
+			quantity: 1,
+			name: "Squish Squad Youth Cap, Paw print only — Light Pink",
+			retail_price: "27.99",
+			files: [
+				{
+					type: "embroidery_front",
+					id: 1091740758,
+					position: { area_width: 1200, area_height: 525, width: 470, height: 450, top: 37, left: 365 },
+				},
+			],
+			options: [{ id: "thread_colors", value: ["#005397", "#333366"] }],
+		});
+		merchSession("cs_test_hat2", "HAT|Black|Youth|HAT_PAWBACK");
+		await deliver(sandboxEnv(), paidEvent("cs_test_hat2"));
+		const item = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0];
+		expect(item.retail_price).toBe("30.99");
+		expect((item.files as Array<{ type: string; id: number }>).map((f) => [f.type, f.id])).toEqual([
+			["embroidery_front", 1091740166],
+			["embroidery_back", 1091740758],
+		]);
+		expect(item.options).toEqual([
+			{ id: "thread_colors", value: ["#FFCC00", "#A67843", "#005397", "#333366"] },
+			{ id: "thread_colors_back", value: ["#005397", "#333366"] },
+		]);
 	});
 
 	it("sends Maple Hollow logo orders with just that logo on the front", async () => {

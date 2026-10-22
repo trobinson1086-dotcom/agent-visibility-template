@@ -98,6 +98,8 @@ const SHOP={
   desc:'A soft square pillow with your favorite Squish Man art centered on a bold color, the same color on the back. Hidden zipper and a machine-washable case.'},
  'Storybook Lumbar Pillows':{key:'LUMBAR',img:'lumbar',name:'Storybook Lumbar Pillow',facts:'20×12 inches · soft polyester case and insert',shown:'Front and back, same scene',
   desc:'A long pillow covered edge to edge with a scene from the Squish Man books, printed on both sides. Perfect across a bed or in a reading nook. Hidden zipper and a machine-washable case.'},
+ 'Squish Squad Hats':{key:'HAT',img:'hat',name:'Squish Squad Youth Cap',facts:'Kids’ size · adjustable strap · embroidered',shown:'Embroidered, front view',
+  desc:'A kids’ baseball cap with Squish Man’s gold crown, SQUISHMAN wordmark or blue paw print embroidered on the front, a curved brim and an adjustable strap. Pick your design and color.'},
  'Squish Squad Mugs':{key:'MUG',img:'mug',name:'Squish Squad Mug',facts:'11 oz ceramic · dishwasher and microwave safe',
   desc:'A white glossy mug with Squish Man and Pudy on one side and the gold crown, SQUISHMAN wordmark and paw print on the other.'}
 };
@@ -110,22 +112,24 @@ const money=c=>'$'+(c/100).toFixed(2);
 // and photos.
 const design=p=>p.shop.designs[p.design||0];
 const unit=(p,size)=>design(p).priceCents+(p.shop.sizeUpchargeCents[size]||0);
-const DESIGN_NOTE='Every shirt, long sleeve, hoodie, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in eleven designs, from Royal Squish Man to Squish Man\'s values signpost, posters in eight, water bottles, shaped pillows and color pillows in six each, and jigsaw puzzles and lumbar pillows in six storybook scenes.';
+const DESIGN_NOTE='Every shirt, long sleeve, hoodie, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in eleven designs, from Royal Squish Man to Squish Man\'s values signpost, posters in eight, water bottles, shaped pillows and color pillows in six each, and jigsaw puzzles and lumbar pillows in six storybook scenes. Kids’ caps come in five embroidered designs and five colors.';
 const MAX_DESIGN_BUTTONS=6;
 const DESIGN_TITLE={FULL:'Squish Man & Pudy + Crown',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo',MAPLE:'Maple Hollow Logo',MAPLECROWN:'Maple Hollow + Crown',
  MH_PALS:'Maple Hollow Pals',MH_HIGHFIVE:'Maple Hollow High Five',MH_WAVE:'Maple Hollow Wave',MH_SQUARE:'Maple Hollow Town Square',
  SM_VALUES:'Squish Man Values',SM_ROYAL:'Royal Squish Man',MH_SIGN:'Maple Hollow Sign',BEST_FRIENDS:'Best Friends',
- PZ_WELCOME:'Welcome to Maple Hollow',PZ_ROYAL_HERO:'The Little Royal Hero',PZ_PAW_PRINTS:'Follow the Paw Prints',PZ_GARDEN_GATE:'The Secret Garden Gate',PZ_GOODNIGHT:'Goodnight, Squish Man',PZ_MOONLIGHT:'Moonlight Over Maple Hollow'};
+ PZ_WELCOME:'Welcome to Maple Hollow',PZ_ROYAL_HERO:'The Little Royal Hero',PZ_PAW_PRINTS:'Follow the Paw Prints',PZ_GARDEN_GATE:'The Secret Garden Gate',PZ_GOODNIGHT:'Goodnight, Squish Man',PZ_MOONLIGHT:'Moonlight Over Maple Hollow',
+ HAT_CROWN:'Crown Only',HAT_WORDMARK:'SQUISHMAN Only',HAT_PAW:'Paw Print Only',HAT_PAWBACK:'Crown Logo + Paw Back'};
 // Designs that print on both sides (front + back, or both sides of the mug).
-const TWO_SIDED=new Set(['FULL','MAPLECROWN']);
+const TWO_SIDED=new Set(['FULL','MAPLECROWN','HAT_PAWBACK']);
 const DESIGN_ART={PUDY:'Squish Man and Pudy',LOGO:'the crown logo',MAPLE:'the Squish Man Maple Hollow logo',
  MH_PALS:'Squish Man and Pudy in Maple Hollow',MH_HIGHFIVE:'Squish Man and Pudy giving a high five',MH_WAVE:'Squish Man and Pudy waving',MH_SQUARE:'Squish Man and Pudy in the Maple Hollow town square',
  SM_VALUES:'Squish Man and Pudy by a signpost of values: kindness, courage, creativity, persistence, confidence, communication, responsibility, self-control and teamwork',
  SM_ROYAL:'Squish Man in his crown and royal-blue cape',MH_SIGN:'Squish Man and Pudy above a Maple Hollow sign',BEST_FRIENDS:'Squish Man and Pudy cuddled up as best friends',
  PZ_WELCOME:'Squish Man strolling down a sunny Maple Hollow street',PZ_ROYAL_HERO:'Squish Man in his crown and cape, running toward you',PZ_PAW_PRINTS:'Squish Man following paw prints along a garden path',
- PZ_GARDEN_GATE:'Squish Man peeking through an old garden gate',PZ_GOODNIGHT:'Squish Man curled up in his royal-blue bed',PZ_MOONLIGHT:'Squish Man asleep in a cottage window under a full moon'};
+ PZ_GARDEN_GATE:'Squish Man peeking through an old garden gate',PZ_GOODNIGHT:'Squish Man curled up in his royal-blue bed',PZ_MOONLIGHT:'Squish Man asleep in a cottage window under a full moon',
+ HAT_CROWN:'the embroidered gold crown',HAT_WORDMARK:'the embroidered SQUISHMAN wordmark',HAT_PAW:'an embroidered blue paw print',HAT_PAWBACK:'the embroidered crown and SQUISHMAN wordmark, and a paw print on the back'};
 function shopColors(p){
- const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square',SM_VALUES:'-values',SM_ROYAL:'-royal',MH_SIGN:'-sign',BEST_FRIENDS:'-bestfriends',PZ_WELCOME:'-welcome',PZ_ROYAL_HERO:'-royalhero',PZ_PAW_PRINTS:'-pawprints',PZ_GARDEN_GATE:'-gardengate',PZ_GOODNIGHT:'-goodnight',PZ_MOONLIGHT:'-moonlight'}[k];
+ const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square',SM_VALUES:'-values',SM_ROYAL:'-royal',MH_SIGN:'-sign',BEST_FRIENDS:'-bestfriends',PZ_WELCOME:'-welcome',PZ_ROYAL_HERO:'-royalhero',PZ_PAW_PRINTS:'-pawprints',PZ_GARDEN_GATE:'-gardengate',PZ_GOODNIGHT:'-goodnight',PZ_MOONLIGHT:'-moonlight',HAT_CROWN:'-crown',HAT_WORDMARK:'-wordmark',HAT_PAW:'-paw',HAT_PAWBACK:'-pawback'}[k];
  const alt=c=>k==='FULL'?`${p.name} in ${c}: front and back, as printed by our print partner`
   :k==='MAPLECROWN'?`${p.name} in ${c}: the Maple Hollow logo on the front and the crown logo on the back`
   :p.shop.key==='PUZZLE'||p.shop.key==='LUMBAR'?`${p.name} showing ${DESIGN_ART[k]}, and a close-up of the picture`

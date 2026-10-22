@@ -40,6 +40,7 @@ import {
 	MAPLE_HOLLOW_FILE,
 	MERCH,
 	MUG_WRAP_MAPLE_CROWN_FILE,
+	HAT_FILES,
 	PUZZLE_FILES,
 	STICKER_FILES,
 } from "./merch";
@@ -229,6 +230,10 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 			[PUZZLE_FILES.PZ_GARDEN_GATE, "puzzleGardenGate"],
 			[PUZZLE_FILES.PZ_GOODNIGHT, "puzzleGoodnight"],
 			[PUZZLE_FILES.PZ_MOONLIGHT, "puzzleMoonlight"],
+			[HAT_FILES.CROWN_WORDMARK, "hatCrownWordmark"],
+			[HAT_FILES.CROWN, "hatCrown"],
+			[HAT_FILES.WORDMARK, "hatWordmark"],
+			[HAT_FILES.PAW, "hatPaw"],
 		]);
 		const printFiles: Record<string, string> = {};
 		const checked = new Set<number>();
