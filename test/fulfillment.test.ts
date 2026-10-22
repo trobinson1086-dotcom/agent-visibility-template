@@ -755,7 +755,8 @@ describe("merch catalog", () => {
 			]);
 		}
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
-		const ids = MERCH.flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		// Color pillows print the color into the art, so their colors share one blank.
+		const ids = MERCH.filter((p) => p.key !== "COLORPILLOW").flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 });
