@@ -621,6 +621,7 @@ describe("configuration health check", () => {
 					colorpillow_royal_blue: "ok",
 					colorpillow_pink: "ok",
 					colorpillow_sky_blue: "ok",
+					colorpillow_sunshine_yellow: "ok",
 				},
 			},
 			merchCheckout: "off",
@@ -1198,6 +1199,8 @@ describe("merch orders → Printful", () => {
 		expect(pink.files.every((x) => typeof x.fileId === "number")).toBe(true);
 		const sky = merchSelection("COLORPILLOW", "Sky Blue", "16 in", "SM_ROYAL")!;
 		expect(sky.files.every((x) => typeof x.fileId === "number")).toBe(true);
+		const yellow = merchSelection("COLORPILLOW", "Sunshine Yellow", "16 in", "SM_ROYAL")!;
+		expect(yellow.files.every((x) => typeof x.fileId === "number")).toBe(true);
 		const sel = merchSelection("COLORPILLOW", "Royal Blue", "16 in", "SM_ROYAL")!;
 		expect(sel.files.map((x) => x.fileId)).not.toEqual(pink.files.map((x) => x.fileId));
 		expect(sel.files.map((x) => x.type)).toEqual(["front", "back"]);

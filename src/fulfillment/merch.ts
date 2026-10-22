@@ -569,6 +569,15 @@ const COLOR_PILLOW_FILES: Record<string, Partial<Record<DesignKey | "BACK", numb
 		SM_VALUES: 1091714932,
 		BACK: 1091714937,
 	},
+	"Sunshine Yellow": {
+		SM_ROYAL: 1091721980,
+		BEST_FRIENDS: 1091721990,
+		MH_PALS: 1091721999,
+		MH_WAVE: 1091722002,
+		PUDY: 1091722006,
+		SM_VALUES: 1091722009,
+		BACK: 1091722013,
+	},
 };
 const colorPillow = (key: DesignKey, label: string): MerchDesign => ({
 	key,
@@ -605,6 +614,7 @@ MERCH.push({
 		{ name: "Royal Blue", hex: "#1d4fa8", variants: { "16 in": 49854, "18 in": 4532 } },
 		{ name: "Pink", hex: "#f4b6c7", variants: { "16 in": 49854, "18 in": 4532 } },
 		{ name: "Sky Blue", hex: "#8fcbef", variants: { "16 in": 49854, "18 in": 4532 } },
+		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: { "16 in": 49854, "18 in": 4532 } },
 	],
 	productionEnabled: false,
 });
