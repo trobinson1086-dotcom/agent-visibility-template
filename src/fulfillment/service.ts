@@ -250,7 +250,7 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 				if (f.fileIdByColor) {
 					// Per-color files (color pillows) are reported as one entry per color.
 					for (const [color, id] of Object.entries(f.fileIdByColor)) {
-						const name = `${p.key.toLowerCase()}_${color.toLowerCase().replace(/\s+/g, "_")}`;
+						const name = `${p.key.toLowerCase()}_${color.split("|")[0].toLowerCase().replace(/\s+/g, "_")}`;
 						if ((printFiles[name] && printFiles[name] !== "ok") || (id !== null && checked.has(id))) continue;
 						if (id !== null) checked.add(id);
 						try {

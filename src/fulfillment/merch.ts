@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -30,7 +30,10 @@ export interface MerchFile {
 	position?: PrintfulPosition;
 	/** Per-size position, for products whose print area changes with size. */
 	positionBySize?: Record<string, PrintfulPosition>;
-	/** Per-color file ids, for products whose color is printed into the art. */
+	/**
+	 * Per-color file ids, for products whose color is printed into the art.
+	 * Keys are a color name, or "Color|Size" when the file also changes by size.
+	 */
 	fileIdByColor?: Record<string, number | null>;
 }
 
@@ -940,6 +943,100 @@ MERCH.push({
 	productionEnabled: false,
 });
 
+// Sherpa blankets (Printful product 711): the art centered on a solid color
+// with a border of gold stars and paw prints, printed on the smooth side with
+// tan sherpa on the back. Each size is a different shape, so every color and
+// size has its own file (public/assets/merch/print/blankets/, made at a third
+// of the print size; Printful scales them up).
+const BLANKET_FILES: Partial<Record<DesignKey, Record<string, Record<string, number>>>> = {
+	SM_ROYAL: {
+		"Royal Blue": { "37×57 in": 1092271365, "50×60 in": 1092271574, "60×80 in": 1092271885 },
+		"Pink": { "37×57 in": 1092271400, "50×60 in": 1092271678, "60×80 in": 1092271952 },
+		"Sky Blue": { "37×57 in": 1092271469, "50×60 in": 1092271762, "60×80 in": 1092272006 },
+		"Sunshine Yellow": { "37×57 in": 1092271519, "50×60 in": 1092271836, "60×80 in": 1092272051 },
+	},
+	BEST_FRIENDS: {
+		"Royal Blue": { "37×57 in": 1092271371, "50×60 in": 1092271590, "60×80 in": 1092271892 },
+		"Pink": { "37×57 in": 1092271418, "50×60 in": 1092271700, "60×80 in": 1092271964 },
+		"Sky Blue": { "37×57 in": 1092271474, "50×60 in": 1092271777, "60×80 in": 1092272015 },
+		"Sunshine Yellow": { "37×57 in": 1092271533, "50×60 in": 1092271848, "60×80 in": 1092272058 },
+	},
+	MH_PALS: {
+		"Royal Blue": { "37×57 in": 1092271378, "50×60 in": 1092271632, "60×80 in": 1092271895 },
+		"Pink": { "37×57 in": 1092271433, "50×60 in": 1092271713, "60×80 in": 1092271976 },
+		"Sky Blue": { "37×57 in": 1092271477, "50×60 in": 1092271792, "60×80 in": 1092272020 },
+		"Sunshine Yellow": { "37×57 in": 1092271536, "50×60 in": 1092271854, "60×80 in": 1092272066 },
+	},
+	MH_WAVE: {
+		"Royal Blue": { "37×57 in": 1092271384, "50×60 in": 1092271641, "60×80 in": 1092271910 },
+		"Pink": { "37×57 in": 1092271439, "50×60 in": 1092271723, "60×80 in": 1092271985 },
+		"Sky Blue": { "37×57 in": 1092271485, "50×60 in": 1092271801, "60×80 in": 1092272028 },
+		"Sunshine Yellow": { "37×57 in": 1092271546, "50×60 in": 1092271861, "60×80 in": 1092272084 },
+	},
+	PUDY: {
+		"Royal Blue": { "37×57 in": 1092271389, "50×60 in": 1092271647, "60×80 in": 1092271925 },
+		"Pink": { "37×57 in": 1092271450, "50×60 in": 1092271736, "60×80 in": 1092271994 },
+		"Sky Blue": { "37×57 in": 1092271495, "50×60 in": 1092271812, "60×80 in": 1092272034 },
+		"Sunshine Yellow": { "37×57 in": 1092271555, "50×60 in": 1092271872, "60×80 in": 1092272096 },
+	},
+	SM_VALUES: {
+		"Royal Blue": { "37×57 in": 1092271397, "50×60 in": 1092271667, "60×80 in": 1092271938 },
+		"Pink": { "37×57 in": 1092271464, "50×60 in": 1092271754, "60×80 in": 1092272000 },
+		"Sky Blue": { "37×57 in": 1092271512, "50×60 in": 1092271828, "60×80 in": 1092272043 },
+		"Sunshine Yellow": { "37×57 in": 1092271563, "50×60 in": 1092271879, "60×80 in": 1092272107 },
+	},
+};
+const BLANKET_AREAS: Record<string, [number, number]> = {
+	"37×57 in": [9000, 6000],
+	"50×60 in": [9450, 7950],
+	"60×80 in": [12451, 9376],
+};
+const BLANKET_VARIANTS = { "37×57 in": 17483, "50×60 in": 17482, "60×80 in": 17449 };
+const blanket = (key: DesignKey, label: string): MerchDesign => ({
+	key,
+	label,
+	priceCents: 4999,
+	files: [
+		{
+			type: "default",
+			fileId: null,
+			positionBySize: Object.fromEntries(
+				Object.entries(BLANKET_AREAS).map(([size, [w, h]]) => [
+					size,
+					{ area_width: w, area_height: h, width: w, height: h, top: 0, left: 0 },
+				]),
+			),
+			fileIdByColor: Object.fromEntries(
+				Object.entries(BLANKET_FILES[key] ?? {}).flatMap(([color, bySize]) =>
+					Object.entries(bySize).map(([size, id]) => [`${color}|${size}`, id]),
+				),
+			),
+		},
+	],
+});
+MERCH.push({
+	key: "BLANKET",
+	name: "Squish Squad Sherpa Blanket",
+	designs: [
+		blanket("SM_ROYAL", "Royal Squish Man"),
+		blanket("BEST_FRIENDS", "Best friends"),
+		blanket("MH_PALS", "Squish Man & Pudy in Maple Hollow"),
+		blanket("MH_WAVE", "Squish Man & Pudy waving"),
+		blanket("PUDY", "Squish Man & Pudy"),
+		blanket("SM_VALUES", "Squish Man values signpost"),
+	],
+	sizeUpchargeCents: { "50×60 in": 1000, "60×80 in": 3000 },
+	shipping: { firstCents: 1399, additionalCents: 399 },
+	sizes: Object.keys(BLANKET_AREAS),
+	colors: [
+		{ name: "Royal Blue", hex: "#1d4fa8", variants: BLANKET_VARIANTS },
+		{ name: "Pink", hex: "#f4b6c7", variants: BLANKET_VARIANTS },
+		{ name: "Sky Blue", hex: "#8fcbef", variants: BLANKET_VARIANTS },
+		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: BLANKET_VARIANTS },
+	],
+	productionEnabled: false,
+});
+
 const BY_KEY = new Map(MERCH.map((p) => [p.key, p]));
 
 export function merchProduct(key: string): MerchProduct | undefined {
@@ -990,7 +1087,11 @@ export function merchSelection(
 		color,
 		size,
 		variantId,
-		files: design.files.map((f) => (f.fileIdByColor ? { ...f, fileId: f.fileIdByColor[color.name] ?? null } : f)),
+		files: design.files.map((f) =>
+			f.fileIdByColor
+				? { ...f, fileId: f.fileIdByColor[`${color.name}|${size}`] ?? f.fileIdByColor[color.name] ?? null }
+				: f,
+		),
 		unitCents: design.priceCents + (product.sizeUpchargeCents[size] ?? 0),
 		sku: `${product.key}|${color.name}|${size}|${design.key}`,
 		// Single-color products leave the color out of the title.

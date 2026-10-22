@@ -637,6 +637,10 @@ describe("configuration health check", () => {
 					kidshoodie_royal_blue: "ok",
 					kidshoodie_lavender: "ok",
 					kidshoodie_mint_green: "ok",
+					blanket_royal_blue: "ok",
+					blanket_pink: "ok",
+					blanket_sky_blue: "ok",
+					blanket_sunshine_yellow: "ok",
 					hatCrownWordmark: "ok",
 					hatPaw: "ok",
 					hatRoyalSquishMan: "ok",
@@ -778,7 +782,7 @@ describe("merch catalog", () => {
 		}
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
 		// Color pillows print the color into the art, so their colors share one blank.
-		const ids = MERCH.filter((p) => p.key !== "COLORPILLOW" && p.key !== "KIDSHOODIE").flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 });
@@ -838,6 +842,7 @@ describe("merch checkout", () => {
 			["KIDSTEE", 2699, 2399, 2399, 2399, 2699],
 			["KIDSLONGSLEEVE", 2899, 2599, 2599, 2599, 2899],
 			["KIDSHOODIE", 4999, 4999, 4999, 4999, 4999],
+			["BLANKET", 4999, 4999, 4999, 4999, 4999, 4999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1388,6 +1393,27 @@ describe("merch orders → Printful", () => {
 				}
 			}
 		}
+	});
+
+	it("sends sherpa blankets with the file for that color and size", async () => {
+		const file = (color: string, size: string) => merchSelection("BLANKET", color, size, "PUDY")!.files[0];
+		const ids = ["Royal Blue", "Pink"].flatMap((c) => ["37×57 in", "60×80 in"].map((sz) => file(c, sz).fileId));
+		expect(ids.every((id) => typeof id === "number")).toBe(true);
+		expect(new Set(ids).size).toBe(4);
+
+		merchSession("cs_test_blanket", "BLANKET|Pink|60×80 in|PUDY");
+		await deliver(sandboxEnv(), paidEvent("cs_test_blanket"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 17449,
+			retail_price: "79.99",
+			files: [
+				{
+					type: "default",
+					id: file("Pink", "60×80 in").fileId,
+					position: { area_width: 12451, area_height: 9376, width: 12451, height: 9376, top: 0, left: 0 },
+				},
+			],
+		});
 	});
 
 	it("sends Maple Hollow logo orders with just that logo on the front", async () => {
