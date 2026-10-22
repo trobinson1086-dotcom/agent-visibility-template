@@ -86,6 +86,8 @@ const SHOP={
   desc:'A glossy vinyl sticker cut around the artwork, for water bottles, notebooks and laptops. Pick your favorite: Squish Man, Pudy and friends in Maple Hollow, the logos and more.'},
  'Maple Hollow Posters':{key:'POSTER',img:'poster',name:'Squish Squad Poster',facts:'Enhanced matte paper · 8×10 or 10×10 inches',shown:'Matte poster, art centered on white',
   desc:'A museum-quality matte poster for bedrooms, classrooms and reading nooks, with your favorite Squish Man art centered on crisp white paper. Frame not included.'},
+ 'Maple Hollow Adventure Puzzles':{key:'PUZZLE',img:'puzzle',name:'Maple Hollow Puzzle',facts:'In a gift tin · 30 or 110 pieces (10×8″), 252 pieces (14×11″)',shown:'Assembled puzzle shown · ships in a gift tin',
+  desc:'A jigsaw puzzle of a full-page scene from the Squish Man books, packed in a keepsake tin. Start small with 30 pieces or work up to 252.'},
  'Squish Squad Mugs':{key:'MUG',img:'mug',name:'Squish Squad Mug',facts:'11 oz ceramic · dishwasher and microwave safe',
   desc:'A white glossy mug with Squish Man and Pudy on one side and the gold crown, SQUISHMAN wordmark and paw print on the other.'}
 };
@@ -98,21 +100,25 @@ const money=c=>'$'+(c/100).toFixed(2);
 // and photos.
 const design=p=>p.shop.designs[p.design||0];
 const unit=(p,size)=>design(p).priceCents+(p.shop.sizeUpchargeCents[size]||0);
-const DESIGN_NOTE='Every shirt, long sleeve, hoodie, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in eleven designs, from Royal Squish Man to Squish Man\'s values signpost, and posters in eight.';
+const DESIGN_NOTE='Every shirt, long sleeve, hoodie, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in eleven designs, from Royal Squish Man to Squish Man\'s values signpost, posters in eight, and jigsaw puzzles in six storybook scenes.';
 const MAX_DESIGN_BUTTONS=6;
 const DESIGN_TITLE={FULL:'Squish Man & Pudy + Crown',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo',MAPLE:'Maple Hollow Logo',MAPLECROWN:'Maple Hollow + Crown',
  MH_PALS:'Maple Hollow Pals',MH_HIGHFIVE:'Maple Hollow High Five',MH_WAVE:'Maple Hollow Wave',MH_SQUARE:'Maple Hollow Town Square',
- SM_VALUES:'Squish Man Values',SM_ROYAL:'Royal Squish Man',MH_SIGN:'Maple Hollow Sign',BEST_FRIENDS:'Best Friends'};
+ SM_VALUES:'Squish Man Values',SM_ROYAL:'Royal Squish Man',MH_SIGN:'Maple Hollow Sign',BEST_FRIENDS:'Best Friends',
+ PZ_WELCOME:'Welcome to Maple Hollow',PZ_ROYAL_HERO:'The Little Royal Hero',PZ_PAW_PRINTS:'Follow the Paw Prints',PZ_GARDEN_GATE:'The Secret Garden Gate',PZ_GOODNIGHT:'Goodnight, Squish Man',PZ_MOONLIGHT:'Moonlight Over Maple Hollow'};
 // Designs that print on both sides (front + back, or both sides of the mug).
 const TWO_SIDED=new Set(['FULL','MAPLECROWN']);
 const DESIGN_ART={PUDY:'Squish Man and Pudy',LOGO:'the crown logo',MAPLE:'the Squish Man Maple Hollow logo',
  MH_PALS:'Squish Man and Pudy in Maple Hollow',MH_HIGHFIVE:'Squish Man and Pudy giving a high five',MH_WAVE:'Squish Man and Pudy waving',MH_SQUARE:'Squish Man and Pudy in the Maple Hollow town square',
  SM_VALUES:'Squish Man and Pudy by a signpost of values: kindness, courage, creativity, persistence, confidence, communication, responsibility, self-control and teamwork',
- SM_ROYAL:'Squish Man in his crown and royal-blue cape',MH_SIGN:'Squish Man and Pudy above a Maple Hollow sign',BEST_FRIENDS:'Squish Man and Pudy cuddled up as best friends'};
+ SM_ROYAL:'Squish Man in his crown and royal-blue cape',MH_SIGN:'Squish Man and Pudy above a Maple Hollow sign',BEST_FRIENDS:'Squish Man and Pudy cuddled up as best friends',
+ PZ_WELCOME:'Squish Man strolling down a sunny Maple Hollow street',PZ_ROYAL_HERO:'Squish Man in his crown and cape, running toward you',PZ_PAW_PRINTS:'Squish Man following paw prints along a garden path',
+ PZ_GARDEN_GATE:'Squish Man peeking through an old garden gate',PZ_GOODNIGHT:'Squish Man curled up in his royal-blue bed',PZ_MOONLIGHT:'Squish Man asleep in a cottage window under a full moon'};
 function shopColors(p){
- const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square',SM_VALUES:'-values',SM_ROYAL:'-royal',MH_SIGN:'-sign',BEST_FRIENDS:'-bestfriends'}[k];
+ const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square',SM_VALUES:'-values',SM_ROYAL:'-royal',MH_SIGN:'-sign',BEST_FRIENDS:'-bestfriends',PZ_WELCOME:'-welcome',PZ_ROYAL_HERO:'-royalhero',PZ_PAW_PRINTS:'-pawprints',PZ_GARDEN_GATE:'-gardengate',PZ_GOODNIGHT:'-goodnight',PZ_MOONLIGHT:'-moonlight'}[k];
  const alt=c=>k==='FULL'?`${p.name} in ${c}: front and back, as printed by our print partner`
   :k==='MAPLECROWN'?`${p.name} in ${c}: the Maple Hollow logo on the front and the crown logo on the back`
+  :p.shop.key==='PUZZLE'?`${p.name} showing ${DESIGN_ART[k]}, and a close-up of the picture`
   :p.shop.key==='POSTER'?`${p.name} with ${DESIGN_ART[k]} centered on white paper, and a close-up of the artwork`
   :`${p.name} in ${c} with ${DESIGN_ART[k]} on the front, and a close-up of the artwork`;
  return p.shop.colors.map(c=>[c.name,c.hex,img(`shop-${p.imgBase}-${slug(c.name)}${suffix}`,1400,700,720,360,alt(c.name.toLowerCase()))]);
@@ -138,10 +144,10 @@ function cardHtml(p,n){
 const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
 const sizeLabel=(m,v)=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v;
 const colorSizes=p=>p.shop.colors[p.active||0].sizes;
-const where=(m,d)=>m.key==='STICKER'||m.key==='POSTER'?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
+const where=(m,d)=>['STICKER','POSTER','PUZZLE'].includes(m.key)?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
 function buyHtml(p,n){
  const m=p.shop,size=colorSizes(p)[0],one=m.sizes.length===1;
- return `<p class="merch-design-note">${m.designs.length} designs to choose from</p>${m.designs.length>MAX_DESIGN_BUTTONS?`<label class="merch-design-list">Design <select class="merch-design-select" data-merch="${n}">${m.designs.map((d,i)=>`<option value="${i}"${i===(p.design||0)?' selected':''}>${esc(DESIGN_TITLE[d.key]||d.label)}</option>`).join('')}</select></label>`:''}<div class="merch-designs"${m.designs.length>MAX_DESIGN_BUTTONS?' hidden':''} role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${where(m,d)?`${esc(where(m,d))} · `:''}${m.key==='STICKER'||m.key==='POSTER'?'from ':''}${money(d.priceCents)}</span></button>`).join('')}</div>
+ return `<p class="merch-design-note">${m.designs.length} designs to choose from</p>${m.designs.length>MAX_DESIGN_BUTTONS?`<label class="merch-design-list">Design <select class="merch-design-select" data-merch="${n}">${m.designs.map((d,i)=>`<option value="${i}"${i===(p.design||0)?' selected':''}>${esc(DESIGN_TITLE[d.key]||d.label)}</option>`).join('')}</select></label>`:''}<div class="merch-designs"${m.designs.length>MAX_DESIGN_BUTTONS?' hidden':''} role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${where(m,d)?`${esc(where(m,d))} · `:''}${['STICKER','POSTER','PUZZLE'].includes(m.key)?'from ':''}${money(d.priceCents)}</span></button>`).join('')}</div>
  <dl class="merch-facts"><div><dt>Price</dt><dd class="merch-price">${money(unit(p,size))}</dd></div><div><dt>Sizes &amp; materials</dt><dd>${esc(p.facts)}</dd></div></dl>
  <div class="merch-buy">${one?'':`<label>Size <select class="merch-size" data-merch="${n}">${opts(colorSizes(p),v=>sizeLabel(m,v))}</select></label>`}<label>Quantity <select class="merch-qty" data-merch="${n}">${opts(Array.from({length:m.maxQuantity},(_,i)=>String(i+1)),v=>v)}</select></label></div>
  <p class="merch-ship">Shipping ${money(m.shipping.firstCents)}${m.shipping.additionalCents?`, plus ${money(m.shipping.additionalCents)} for each extra item`:''} · US only · printed to order, ships in about 1–2 weeks</p>
@@ -162,6 +168,13 @@ if(params.get('shop')==='thanks'){
 }
 fetch('/api/merch',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{
  if(!data||!(data.checkout==='on'||(data.checkout==='preview'&&params.get('shop')==='preview')))return;
+ // Hidden cards the shop now sells (puzzles) join their category.
+ categories.forEach(c=>c.items.forEach(p=>{
+  const s=SHOP[p.name];
+  if(!p.hidden||!s||!data.products.some(x=>x.key===s.key))return;
+  const n=products.push(p)-1,grid=document.querySelector(`#${c.id} .merch-grid`);
+  if(grid)grid.insertAdjacentHTML('beforeend',`<article id="merch-item-${n}"></article>`);
+ }));
  products.forEach((p,n)=>{
   const s=SHOP[p.name],m=s&&data.products.find(x=>x.key===s.key);if(!m)return;
   Object.assign(p,{shop:m,sheet:false,shown:s.shown||null,active:0,design:0,imgBase:s.img,facts:s.facts,name:s.name||p.name,desc:s.desc||p.desc});
