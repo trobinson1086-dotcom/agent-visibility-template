@@ -273,11 +273,10 @@ export async function submitMerch(
 						quantity: item.quantity,
 						name: sel.title,
 						retail_price: (sel.unitCents / 100).toFixed(2),
-						files: sel.design.files.map((f) => ({
-							type: f.type,
-							id: f.fileId as number,
-							...(f.position ? { position: { ...f.position } } : {}),
-						})),
+						files: sel.design.files.map((f) => {
+							const position = f.positionBySize?.[sel.size] ?? f.position;
+							return { type: f.type, id: f.fileId as number, ...(position ? { position: { ...position } } : {}) };
+						}),
 					},
 				],
 			},

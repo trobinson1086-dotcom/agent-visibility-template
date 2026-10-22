@@ -796,6 +796,7 @@ describe("merch checkout", () => {
 			["TOTE", 3299, 2999, 2999, 2999, 3299],
 			["MUG", 1999, 1799, 1799, 1799, 1999],
 			["STICKER", 499, 499, 499, 499, 499, 499, 499, 499, 499, 499, 499],
+			["POSTER", 1499, 1499, 1499, 1499, 1499, 1499, 1499, 1499],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1025,6 +1026,53 @@ describe("merch orders → Printful", () => {
 			name: "Squish Squad Sticker, Crown Logo — 3 in",
 			retail_price: "4.99",
 			files: [{ type: "default", id: 1090848220 }],
+		});
+	});
+
+	it("sells posters in two sizes, with the art centered for each size", async () => {
+		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
+		const r = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "POSTER", design: "MH_PALS", color: "White", size: "10×10 in", quantity: 2 },
+			"https://squishman.com",
+		);
+		expect(r.status).toBe(200);
+		const f = stripeCreates[0];
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("1699");
+		expect(f.get("metadata[merch_sku]")).toBe("POSTER|White|10×10 in|MH_PALS");
+		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("648"); // $5.99 + $0.49
+		const pudy = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "POSTER", design: "PUDY", color: "White", size: "8×10 in" },
+			"https://squishman.com",
+		);
+		expect(pudy.status).toBe(400);
+
+		merchSession("cs_test_poster", "POSTER|White|8×10 in|MH_PALS");
+		await deliver(sandboxEnv(), paidEvent("cs_test_poster"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 4463,
+			retail_price: "14.99",
+			files: [
+				{
+					type: "default",
+					id: 1091358905,
+					position: { area_width: 3000, area_height: 2400, width: 2298, height: 2100, top: 150, left: 351 },
+				},
+			],
+		});
+		merchSession("cs_test_squareposter", "POSTER|White|10×10 in|MAPLE");
+		await deliver(sandboxEnv(), paidEvent("cs_test_squareposter"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 6239,
+			retail_price: "16.99",
+			files: [
+				{
+					type: "default",
+					id: 1090919465,
+					position: { area_width: 3000, area_height: 3000, width: 2700, height: 1350, top: 825, left: 150 },
+				},
+			],
 		});
 	});
 
