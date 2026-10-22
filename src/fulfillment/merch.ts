@@ -863,7 +863,7 @@ const kidsHoodiePanel = (type: string, art: KidsHoodieArt): MerchFile => ({
 const kidsHoodie = (key: DesignKey, label: string, front: KidsHoodieArt, back: boolean): MerchDesign => ({
 	key,
 	label,
-	priceCents: 5499,
+	priceCents: 4999,
 	files: [
 		kidsHoodiePanel("front", front),
 		kidsHoodiePanel("back", back ? "back" : "solid"),
