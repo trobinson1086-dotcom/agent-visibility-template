@@ -645,6 +645,7 @@ describe("configuration health check", () => {
 					socks_pink: "ok",
 					socks_sky_blue: "ok",
 					socks_sunshine_yellow: "ok",
+					socks_white: "ok",
 					hatCrownWordmark: "ok",
 					hatPaw: "ok",
 					hatRoyalSquishMan: "ok",
