@@ -619,6 +619,7 @@ describe("configuration health check", () => {
 					puzzleGoodnight: "ok",
 					puzzleMoonlight: "ok",
 					colorpillow_royal_blue: "ok",
+					colorpillow_pink: "ok",
 				},
 			},
 			merchCheckout: "off",
@@ -1191,7 +1192,10 @@ describe("merch orders → Printful", () => {
 		expect(f.get("metadata[merch_sku]")).toBe("COLORPILLOW|Royal Blue|18 in|PUDY");
 		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("1548"); // $10.99 + $4.49
 
+		const pink = merchSelection("COLORPILLOW", "Pink", "16 in", "SM_ROYAL")!;
+		expect(pink.files.every((x) => typeof x.fileId === "number")).toBe(true);
 		const sel = merchSelection("COLORPILLOW", "Royal Blue", "16 in", "SM_ROYAL")!;
+		expect(sel.files.map((x) => x.fileId)).not.toEqual(pink.files.map((x) => x.fileId));
 		expect(sel.files.map((x) => x.type)).toEqual(["front", "back"]);
 		expect(sel.files.every((x) => typeof x.fileId === "number")).toBe(true);
 		merchSession("cs_test_colorpillow", "COLORPILLOW|Royal Blue|16 in|SM_ROYAL");

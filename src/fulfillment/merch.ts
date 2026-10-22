@@ -583,7 +583,10 @@ MERCH.push({
 	sizeUpchargeCents: { "18 in": 500 },
 	shipping: { firstCents: 1099, additionalCents: 449 },
 	sizes: ["16 in", "18 in"],
-	colors: [{ name: "Royal Blue", hex: "#1d4fa8", variants: { "16 in": 49854, "18 in": 4532 } }],
+	colors: [
+		{ name: "Royal Blue", hex: "#1d4fa8", variants: { "16 in": 49854, "18 in": 4532 } },
+		{ name: "Pink", hex: "#f4b6c7", variants: { "16 in": 49854, "18 in": 4532 } },
+	],
 	productionEnabled: false,
 });
 
