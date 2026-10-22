@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -823,6 +823,70 @@ MERCH.push({
 		{ name: "Sunshine Yellow", hex: "#e6a133", variants: { "Youth S": 17612, "Youth M": 17613, "Youth L": 17614, "Youth XL": 17615 } },
 		{ name: "Kelly Green", hex: "#0e7b4e", variants: { "Youth S": 10628, "Youth M": 10629, "Youth L": 10630, "Youth XL": 10631 } },
 		{ name: "Berry", hex: "#c02773", variants: { "Youth S": 11209, "Youth M": 11210, "Youth L": 11211, "Youth XL": 11212 } },
+	],
+	productionEnabled: false,
+});
+
+// Kids' hoodies (Printful product 1720, all-over print youth hoodie, sizes
+// 8-20). The color is printed onto every panel, so they match the kids' tee
+// colors exactly: each color has its own 4800x6000 panel files
+// (public/assets/merch/print/kids-hoodie/) with the art on the chest or the
+// crown logo on the back, and a solid file for the sleeves, pocket and hood.
+type KidsHoodieArt = "solid" | "banner" | "crown" | "maple" | "back";
+const KIDS_HOODIE_FILES: Record<string, Record<KidsHoodieArt, number>> = {
+	"White": { solid: 1091797745, banner: 1091797751, crown: 1091797753, maple: 1091797755, back: 1091798398 },
+	"Pink": { solid: 1091797760, banner: 1091797761, crown: 1091797766, maple: 1091797767, back: 1091798436 },
+	"Sky Blue": { solid: 1091797770, banner: 1091797776, crown: 1091797778, maple: 1091797781, back: 1091798458 },
+	"Sunshine Yellow": { solid: 1091797787, banner: 1091797791, crown: 1091797793, maple: 1091797795, back: 1091798502 },
+	"Kelly Green": { solid: 1091797805, banner: 1091797808, crown: 1091797810, maple: 1091797813, back: 1091798545 },
+	"Berry": { solid: 1091797821, banner: 1091797822, crown: 1091797824, maple: 1091797828, back: 1091798614 },
+};
+const KIDS_HOODIE_SIZES = {
+	"Youth 8": 54100,
+	"Youth 10": 54101,
+	"Youth 12": 54343,
+	"Youth 14": 54102,
+	"Youth 16": 54103,
+	"Youth 18": 54104,
+	"Youth 20": 54105,
+};
+const KIDS_HOODIE_PANEL = { area_width: 4800, area_height: 6000, width: 4800, height: 6000, top: 0, left: 0 };
+const kidsHoodiePanel = (type: string, art: KidsHoodieArt): MerchFile => ({
+	type,
+	fileId: null,
+	position: KIDS_HOODIE_PANEL,
+	fileIdByColor: Object.fromEntries(Object.entries(KIDS_HOODIE_FILES).map(([color, files]) => [color, files[art]])),
+});
+const kidsHoodie = (key: DesignKey, label: string, front: KidsHoodieArt, back: boolean): MerchDesign => ({
+	key,
+	label,
+	priceCents: 5499,
+	files: [
+		kidsHoodiePanel("front", front),
+		kidsHoodiePanel("back", back ? "back" : "solid"),
+		...["sleeve_right", "sleeve_left", "pocket", "hood", "label_panel"].map((type) => kidsHoodiePanel(type, "solid")),
+	],
+});
+MERCH.push({
+	key: "KIDSHOODIE",
+	name: "Squish Squad Kids' Hoodie",
+	designs: [
+		kidsHoodie("FULL", "Squish Man & Pudy front, crown logo back", "banner", true),
+		kidsHoodie("PUDY", "Squish Man & Pudy only (front)", "banner", false),
+		kidsHoodie("LOGO", "Crown logo only (front)", "crown", false),
+		kidsHoodie("MAPLE", "Maple Hollow logo only (front)", "maple", false),
+		kidsHoodie("MAPLECROWN", "Maple Hollow logo front, crown logo back", "maple", true),
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 849, additionalCents: 259 },
+	sizes: Object.keys(KIDS_HOODIE_SIZES),
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: KIDS_HOODIE_SIZES },
+		{ name: "Pink", hex: "#ffcccf", variants: KIDS_HOODIE_SIZES },
+		{ name: "Sky Blue", hex: "#6495ff", variants: KIDS_HOODIE_SIZES },
+		{ name: "Sunshine Yellow", hex: "#e6a133", variants: KIDS_HOODIE_SIZES },
+		{ name: "Kelly Green", hex: "#0e7b4e", variants: KIDS_HOODIE_SIZES },
+		{ name: "Berry", hex: "#c02773", variants: KIDS_HOODIE_SIZES },
 	],
 	productionEnabled: false,
 });
