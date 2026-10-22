@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -28,6 +28,8 @@ export interface MerchFile {
 	/** Printful file-library id; null until the artwork is uploaded. */
 	fileId: number | null;
 	position?: PrintfulPosition;
+	/** Per-size position, for products whose print area changes with size. */
+	positionBySize?: Record<string, PrintfulPosition>;
 }
 
 export interface MerchColor {
@@ -355,6 +357,56 @@ MERCH.push({
 	shipping: { firstCents: 499, additionalCents: 25 },
 	sizes: ["3 in", "4 in", "5.5 in"],
 	colors: [{ name: "White", hex: "#ffffff", variants: { "3 in": 10163, "4 in": 10164, "5.5 in": 10165 } }],
+	productionEnabled: false,
+});
+
+// Enhanced matte posters (Printful product 1): the art centered on white with
+// a half-inch margin, sized to each poster's 300 DPI print area.
+const POSTER_AREAS: Record<string, [number, number]> = { "8×10 in": [3000, 2400], "10×10 in": [3000, 3000] };
+const poster = (key: DesignKey, label: string, fileId: number, artWidth: number, artHeight: number): MerchDesign => ({
+	key,
+	label,
+	priceCents: 1499,
+	files: [
+		{
+			type: "default",
+			fileId,
+			positionBySize: Object.fromEntries(
+				Object.entries(POSTER_AREAS).map(([size, [areaWidth, areaHeight]]) => {
+					const scale = Math.min((areaWidth - 300) / artWidth, (areaHeight - 300) / artHeight);
+					const width = Math.round(artWidth * scale);
+					const height = Math.round(artHeight * scale);
+					const position = {
+						area_width: areaWidth,
+						area_height: areaHeight,
+						width,
+						height,
+						top: Math.floor((areaHeight - height) / 2),
+						left: Math.floor((areaWidth - width) / 2),
+					};
+					return [size, position];
+				}),
+			),
+		},
+	],
+});
+MERCH.push({
+	key: "POSTER",
+	name: "Squish Squad Poster",
+	designs: [
+		poster("MH_PALS", "Squish Man & Pudy in Maple Hollow", STICKER_FILES.MH_PALS, 1312, 1199),
+		poster("MH_HIGHFIVE", "Squish Man & Pudy high five", STICKER_FILES.MH_HIGHFIVE, 1374, 1145),
+		poster("MH_WAVE", "Squish Man & Pudy waving", STICKER_FILES.MH_WAVE, 1374, 1145),
+		poster("MH_SQUARE", "Maple Hollow town square", STICKER_FILES.MH_SQUARE, 1536, 1024),
+		poster("SM_VALUES", "Squish Man values signpost", STICKER_FILES.SM_VALUES, 1254, 1254),
+		poster("BEST_FRIENDS", "Best friends", STICKER_FILES.BEST_FRIENDS, 1254, 1254),
+		poster("SM_ROYAL", "Royal Squish Man", STICKER_FILES.SM_ROYAL, 1295, 1214),
+		poster("MAPLE", "Maple Hollow logo", MAPLE_HOLLOW_FILE, 1774, 887),
+	],
+	sizeUpchargeCents: { "10×10 in": 200 },
+	shipping: { firstCents: 599, additionalCents: 49 },
+	sizes: ["8×10 in", "10×10 in"],
+	colors: [{ name: "White", hex: "#ffffff", variants: { "8×10 in": 4463, "10×10 in": 6239 } }],
 	productionEnabled: false,
 });
 
