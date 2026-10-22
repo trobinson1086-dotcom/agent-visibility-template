@@ -49,6 +49,7 @@ const categories=[
   {name:'Squish Squad Lunch Boxes',hidden:true,desc:'A zip-around lunch box with full-color Squish Man and Pudy artwork, navy trim and a carry handle. Open it up to find a silver lining inside.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-lunch-boxes',764,393,'Squish Man lunch boxes in white, pink and royal blue with Squish Man and Pudy artwork and navy trim, shown from the front, back and open with a silver lining'))},
   {name:'Squish Squad Water Bottles',desc:'Squish Man and Pudy wrap around the front, with the crown, wordmark and “Big Heart. Tiny Hero. Endless Adventures!” on the back. Topped with a navy flip-straw lid and carry loop.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-water-bottles',771,397,'Squish Man water bottles in white, pink and royal blue with Squish Man and Pudy artwork on the front, the crown, wordmark and slogan on the back, and a navy flip-straw lid'))},
   {name:'Squish Squad Hats',desc:'A classic cap with Squish Man, Pudy and the SQUISHMAN wordmark on the front, a crown-and-paw patch on the side and “Big Heart. Tiny Hero.” across the back.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-hats',764,393,'Squish Man baseball caps in white, pink and royal blue with Squish Man, Pudy and the SQUISHMAN wordmark on the front, a crown and paw patch on the side and Big Heart. Tiny Hero. on the back'))},
+  {name:'Squish Squad Full-Color Caps',hidden:true,desc:'Full-color caps.',colors:[]},
   {name:'Squish Squad Tote Bags',desc:'Roomy totes with navy handles and base, showing Squish Man and Pudy with the series banner on the front and the crown, wordmark and paw print on the back.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-tote-bags',777,400,'Squish Man tote bags in white, pink and royal blue with navy handles and base, Squish Man and Pudy artwork on the front and the crown, wordmark and paw print on the back'))}
  ]},
  {id:'merch-cozy',title:'Cozy Collection',blurb:'Soft and snuggly for storytime and bedtime.',items:[
@@ -98,8 +99,10 @@ const SHOP={
   desc:'A soft square pillow with your favorite Squish Man art centered on a bold color, the same color on the back. Hidden zipper and a machine-washable case.'},
  'Storybook Lumbar Pillows':{key:'LUMBAR',img:'lumbar',name:'Storybook Lumbar Pillow',facts:'20×12 inches · soft polyester case and insert',shown:'Front and back, same scene',
   desc:'A long pillow covered edge to edge with a scene from the Squish Man books, printed on both sides. Perfect across a bed or in a reading nook. Hidden zipper and a machine-washable case.'},
- 'Squish Squad Hats':{key:'HAT',img:'hat',name:'Squish Squad Youth Cap',facts:'Kids’ size · adjustable strap · embroidered',shown:'Embroidered, front view',
-  desc:'A kids’ baseball cap with Squish Man’s gold crown, SQUISHMAN wordmark or blue paw print embroidered on the front, a curved brim and an adjustable strap. Pick your design and color.'},
+ 'Squish Squad Hats':{key:'HAT',img:'hat',name:'Squish Squad Youth Cap',facts:'Kids’ size · adjustable strap · embroidered',shown:'Front and back',
+  desc:'A kids’ baseball cap with your favorite Squish Man picture embroidered on the front and the gold crown SQUISHMAN logo on the back, with a curved brim and an adjustable strap.'},
+ 'Squish Squad Full-Color Caps':{key:'DADHAT',img:'dadhat',name:'Squish Squad Full-Color Cap',facts:'Adult size · adjustable strap · full-color print',shown:'Printed in full color on the front',
+  desc:'A soft, low-profile cotton cap with your favorite Squish Man picture printed in full color on the front and an adjustable strap. Sized for grown-ups.'},
  'Squish Squad Mugs':{key:'MUG',img:'mug',name:'Squish Squad Mug',facts:'11 oz ceramic · dishwasher and microwave safe',
   desc:'A white glossy mug with Squish Man and Pudy on one side and the gold crown, SQUISHMAN wordmark and paw print on the other.'}
 };
@@ -112,26 +115,28 @@ const money=c=>'$'+(c/100).toFixed(2);
 // and photos.
 const design=p=>p.shop.designs[p.design||0];
 const unit=(p,size)=>design(p).priceCents+(p.shop.sizeUpchargeCents[size]||0);
-const DESIGN_NOTE='Every shirt, long sleeve, hoodie, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in eleven designs, from Royal Squish Man to Squish Man\'s values signpost, posters in eight, water bottles, shaped pillows and color pillows in six each, and jigsaw puzzles and lumbar pillows in six storybook scenes. Kids’ caps come in five embroidered designs and five colors.';
+const DESIGN_NOTE='Every shirt, long sleeve, hoodie, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in eleven designs, from Royal Squish Man to Squish Man\'s values signpost, posters in eight, water bottles, shaped pillows and color pillows in six each, and jigsaw puzzles and lumbar pillows in six storybook scenes. Caps come embroidered for kids, with the SQUISHMAN logo on the back, or printed in full color for grown-ups.';
 const MAX_DESIGN_BUTTONS=6;
 const DESIGN_TITLE={FULL:'Squish Man & Pudy + Crown',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo',MAPLE:'Maple Hollow Logo',MAPLECROWN:'Maple Hollow + Crown',
  MH_PALS:'Maple Hollow Pals',MH_HIGHFIVE:'Maple Hollow High Five',MH_WAVE:'Maple Hollow Wave',MH_SQUARE:'Maple Hollow Town Square',
  SM_VALUES:'Squish Man Values',SM_ROYAL:'Royal Squish Man',MH_SIGN:'Maple Hollow Sign',BEST_FRIENDS:'Best Friends',
  PZ_WELCOME:'Welcome to Maple Hollow',PZ_ROYAL_HERO:'The Little Royal Hero',PZ_PAW_PRINTS:'Follow the Paw Prints',PZ_GARDEN_GATE:'The Secret Garden Gate',PZ_GOODNIGHT:'Goodnight, Squish Man',PZ_MOONLIGHT:'Moonlight Over Maple Hollow',
- HAT_CROWN:'Crown Only',HAT_WORDMARK:'SQUISHMAN Only',HAT_PAW:'Paw Print Only',HAT_PAWBACK:'Crown Logo + Paw Back'};
+ HAT_PAW:'Paw Print'};
 // Designs that print on both sides (front + back, or both sides of the mug).
-const TWO_SIDED=new Set(['FULL','MAPLECROWN','HAT_PAWBACK']);
+const TWO_SIDED=new Set(['FULL','MAPLECROWN']);
 const DESIGN_ART={PUDY:'Squish Man and Pudy',LOGO:'the crown logo',MAPLE:'the Squish Man Maple Hollow logo',
  MH_PALS:'Squish Man and Pudy in Maple Hollow',MH_HIGHFIVE:'Squish Man and Pudy giving a high five',MH_WAVE:'Squish Man and Pudy waving',MH_SQUARE:'Squish Man and Pudy in the Maple Hollow town square',
  SM_VALUES:'Squish Man and Pudy by a signpost of values: kindness, courage, creativity, persistence, confidence, communication, responsibility, self-control and teamwork',
  SM_ROYAL:'Squish Man in his crown and royal-blue cape',MH_SIGN:'Squish Man and Pudy above a Maple Hollow sign',BEST_FRIENDS:'Squish Man and Pudy cuddled up as best friends',
  PZ_WELCOME:'Squish Man strolling down a sunny Maple Hollow street',PZ_ROYAL_HERO:'Squish Man in his crown and cape, running toward you',PZ_PAW_PRINTS:'Squish Man following paw prints along a garden path',
  PZ_GARDEN_GATE:'Squish Man peeking through an old garden gate',PZ_GOODNIGHT:'Squish Man curled up in his royal-blue bed',PZ_MOONLIGHT:'Squish Man asleep in a cottage window under a full moon',
- HAT_CROWN:'the embroidered gold crown',HAT_WORDMARK:'the embroidered SQUISHMAN wordmark',HAT_PAW:'an embroidered blue paw print',HAT_PAWBACK:'the embroidered crown and SQUISHMAN wordmark, and a paw print on the back'};
+ HAT_PAW:'a blue paw print'};
 function shopColors(p){
- const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square',SM_VALUES:'-values',SM_ROYAL:'-royal',MH_SIGN:'-sign',BEST_FRIENDS:'-bestfriends',PZ_WELCOME:'-welcome',PZ_ROYAL_HERO:'-royalhero',PZ_PAW_PRINTS:'-pawprints',PZ_GARDEN_GATE:'-gardengate',PZ_GOODNIGHT:'-goodnight',PZ_MOONLIGHT:'-moonlight',HAT_CROWN:'-crown',HAT_WORDMARK:'-wordmark',HAT_PAW:'-paw',HAT_PAWBACK:'-pawback'}[k];
+ const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square',SM_VALUES:'-values',SM_ROYAL:'-royal',MH_SIGN:'-sign',BEST_FRIENDS:'-bestfriends',PZ_WELCOME:'-welcome',PZ_ROYAL_HERO:'-royalhero',PZ_PAW_PRINTS:'-pawprints',PZ_GARDEN_GATE:'-gardengate',PZ_GOODNIGHT:'-goodnight',PZ_MOONLIGHT:'-moonlight',HAT_PAW:'-paw'}[k];
  const alt=c=>k==='FULL'?`${p.name} in ${c}: front and back, as printed by our print partner`
   :k==='MAPLECROWN'?`${p.name} in ${c}: the Maple Hollow logo on the front and the crown logo on the back`
+  :p.shop.key==='HAT'?`${p.name} in ${c} with ${DESIGN_ART[k]} embroidered on the front and the crown SQUISHMAN logo on the back`
+  :p.shop.key==='DADHAT'?`${p.name} in ${c} with ${DESIGN_ART[k]} printed in full color on the front, and a close-up`
   :p.shop.key==='PUZZLE'||p.shop.key==='LUMBAR'?`${p.name} showing ${DESIGN_ART[k]}, and a close-up of the picture`
   :p.shop.key==='POSTER'?`${p.name} with ${DESIGN_ART[k]} centered on white paper, and a close-up of the artwork`
   :`${p.name} in ${c} with ${DESIGN_ART[k]} on the front, and a close-up of the artwork`;
@@ -158,7 +163,7 @@ function cardHtml(p,n){
 const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
 const sizeLabel=(m,v)=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v;
 const colorSizes=p=>p.shop.colors[p.active||0].sizes;
-const where=(m,d)=>['STICKER','POSTER','PUZZLE','BOTTLE','PILLOW','COLORPILLOW','LUMBAR'].includes(m.key)?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
+const where=(m,d)=>m.key==='HAT'?'front + back':m.key==='DADHAT'?'front':['STICKER','POSTER','PUZZLE','BOTTLE','PILLOW','COLORPILLOW','LUMBAR'].includes(m.key)?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
 function buyHtml(p,n){
  const m=p.shop,size=colorSizes(p)[0],one=m.sizes.length===1;
  return `<p class="merch-design-note">${m.designs.length} designs to choose from</p>${m.designs.length>MAX_DESIGN_BUTTONS?`<label class="merch-design-list">Design <select class="merch-design-select" data-merch="${n}">${m.designs.map((d,i)=>`<option value="${i}"${i===(p.design||0)?' selected':''}>${esc(DESIGN_TITLE[d.key]||d.label)}</option>`).join('')}</select></label>`:''}<div class="merch-designs"${m.designs.length>MAX_DESIGN_BUTTONS?' hidden':''} role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${where(m,d)?`${esc(where(m,d))} · `:''}${['STICKER','POSTER','PUZZLE','PILLOW','COLORPILLOW'].includes(m.key)?'from ':''}${money(d.priceCents)}</span></button>`).join('')}</div>
