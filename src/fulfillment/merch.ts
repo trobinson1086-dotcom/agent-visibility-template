@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -506,6 +506,33 @@ MERCH.push({
 		{ name: "White", hex: "#ffffff", variants: { "17 oz": 10798 } },
 		{ name: "Black", hex: "#111111", variants: { "17 oz": 16030 } },
 	],
+	productionEnabled: false,
+});
+
+// Custom shaped pillows (Printful product 743): cut to the outline of the
+// art, printed on the front with a white back. No position: Printful fits the
+// artwork to each pillow size.
+const pillow = (key: DesignKey, label: string, fileId: number): MerchDesign => ({
+	key,
+	label,
+	priceCents: 2499,
+	files: [{ type: "default", fileId }],
+});
+MERCH.push({
+	key: "PILLOW",
+	name: "Squish Squad Shaped Pillow",
+	designs: [
+		pillow("SM_ROYAL", "Royal Squish Man", STICKER_FILES.SM_ROYAL),
+		pillow("BEST_FRIENDS", "Best friends", STICKER_FILES.BEST_FRIENDS),
+		pillow("MH_PALS", "Squish Man & Pudy in Maple Hollow", STICKER_FILES.MH_PALS),
+		pillow("MH_WAVE", "Squish Man & Pudy waving", STICKER_FILES.MH_WAVE),
+		pillow("PUDY", "Squish Man & Pudy", FRONT_BANNER_FILE),
+		pillow("SM_VALUES", "Squish Man values signpost", STICKER_FILES.SM_VALUES),
+	],
+	sizeUpchargeCents: { "16 in": 500 },
+	shipping: { firstCents: 649, additionalCents: 159 },
+	sizes: ["10 in", "16 in"],
+	colors: [{ name: "White", hex: "#ffffff", variants: { "10 in": 19122, "16 in": 19123 } }],
 	productionEnabled: false,
 });
 

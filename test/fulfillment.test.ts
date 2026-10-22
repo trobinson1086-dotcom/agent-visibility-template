@@ -805,6 +805,7 @@ describe("merch checkout", () => {
 			["POSTER", 1499, 1499, 1499, 1499, 1499, 1499, 1499, 1499],
 			["PUZZLE", 2999, 2999, 2999, 2999, 2999, 2999],
 			["BOTTLE", 2999, 2999, 2999, 2999, 2999, 2999],
+			["PILLOW", 2499, 2499, 2499, 2499, 2499, 2499],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1150,6 +1151,28 @@ describe("merch orders → Printful", () => {
 					position: { area_width: 2557, area_height: 1582, width: 850, height: 890, top: 346, left: 853 },
 				},
 			],
+		});
+	});
+
+	it("sells shaped pillows in two sizes, fitted by Printful", async () => {
+		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
+		const r = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "PILLOW", design: "BEST_FRIENDS", color: "White", size: "16 in", quantity: 3 },
+			"https://squishman.com",
+		);
+		expect(r.status).toBe(200);
+		const f = stripeCreates[0];
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("2999");
+		expect(f.get("metadata[merch_sku]")).toBe("PILLOW|White|16 in|BEST_FRIENDS");
+		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("967"); // $6.49 + 2 x $1.59
+
+		merchSession("cs_test_pillow", "PILLOW|White|10 in|SM_ROYAL");
+		await deliver(sandboxEnv(), paidEvent("cs_test_pillow"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 19122,
+			retail_price: "24.99",
+			files: [{ type: "default", id: 1091547742 }],
 		});
 	});
 
