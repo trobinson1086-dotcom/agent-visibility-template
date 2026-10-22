@@ -84,7 +84,7 @@ const products=[];
 const SHOP={
  'Squish Squad T-Shirt':{key:'TEE',img:'tee',facts:'Unisex S–3XL · soft cotton tee'},
  'Squish Squad Kids’ Hoodies':{key:'KIDSHOODIE',img:'kidshoodie',name:'Squish Squad Kids’ Hoodie',facts:'Youth 8–20 · soft brushed fleece inside',
-  desc:'A cozy kids’ hoodie in the same bright colors as the kids’ tees, with the color printed all over and your favorite Squish Man design on the front. Soft brushed fleece inside and a double-layer hood.'},
+  desc:'A cozy kids’ hoodie in nine bright colors, with the color printed all over and your favorite Squish Man design on the front. Soft brushed fleece inside and a double-layer hood.'},
  'Squish Squad Kids’ T-Shirts':{key:'KIDSTEE',img:'kidstee',name:'Squish Squad Kids’ T-Shirt',facts:'Youth S–XL · soft cotton tee',
   desc:'The Squish Squad tee in kids’ sizes: the same five designs as the grown-up shirt in bright, kid-friendly colors, on a soft Bella + Canvas youth tee.'},
  'Squish Squad Hoodie':{key:'HOODIE',img:'hoodie',facts:'Unisex S–3XL · cotton-blend fleece'},

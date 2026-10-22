@@ -840,6 +840,9 @@ const KIDS_HOODIE_FILES: Record<string, Record<KidsHoodieArt, number>> = {
 	"Sunshine Yellow": { solid: 1091797787, banner: 1091797791, crown: 1091797793, maple: 1091797795, back: 1091798502 },
 	"Kelly Green": { solid: 1091797805, banner: 1091797808, crown: 1091797810, maple: 1091797813, back: 1091798545 },
 	"Berry": { solid: 1091797821, banner: 1091797822, crown: 1091797824, maple: 1091797828, back: 1091798614 },
+	"Royal Blue": { solid: 1091803547, banner: 1091803618, crown: 1091803693, maple: 1091803708, back: 1091803744 },
+	"Lavender": { solid: 1091803785, banner: 1091803807, crown: 1091803855, maple: 1091803886, back: 1091803909 },
+	"Mint Green": { solid: 1091803955, banner: 1091803996, crown: 1091804038, maple: 1091804091, back: 1091804122 },
 };
 const KIDS_HOODIE_SIZES = {
 	"Youth 8": 54100,
@@ -887,6 +890,9 @@ MERCH.push({
 		{ name: "Sunshine Yellow", hex: "#e6a133", variants: KIDS_HOODIE_SIZES },
 		{ name: "Kelly Green", hex: "#0e7b4e", variants: KIDS_HOODIE_SIZES },
 		{ name: "Berry", hex: "#c02773", variants: KIDS_HOODIE_SIZES },
+		{ name: "Royal Blue", hex: "#1d4fa8", variants: KIDS_HOODIE_SIZES },
+		{ name: "Lavender", hex: "#b9a3e3", variants: KIDS_HOODIE_SIZES },
+		{ name: "Mint Green", hex: "#9fe3c9", variants: KIDS_HOODIE_SIZES },
 	],
 	productionEnabled: false,
 });
