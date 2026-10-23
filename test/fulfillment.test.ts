@@ -649,6 +649,8 @@ describe("configuration health check", () => {
 					backpack_royal_blue: "ok",
 					backpack_pink: "ok",
 					backpack_white: "ok",
+					backpack_grey: "ok",
+					backpack_black: "ok",
 					hatCrownWordmark: "ok",
 					hatPaw: "ok",
 					hatRoyalSquishMan: "ok",
