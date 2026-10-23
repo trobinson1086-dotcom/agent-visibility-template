@@ -876,6 +876,7 @@ describe("merch checkout", () => {
 			["LEGGINGS", 2999],
 			["BABY", 2699, 2399, 2399, 2399, 2699],
 			["BEANIE", 2499, 2499, 2499],
+			["KIDSSWEATSHIRT", 3499, 3199, 3199, 3199, 3499],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1576,6 +1577,21 @@ describe("merch orders → Printful", () => {
 			retail_price: "24.99",
 			files: [{ type: "embroidery_front", id: sel.files[0].fileId }],
 			options: [{ id: "thread_colors", value: ["#FFFFFF", "#FFCC00", "#005397", "#CC3333", "#A67843", "#660000"] }],
+		});
+	});
+
+	it("sends kids' sweatshirts with the kids' tee placements", async () => {
+		const tee = merchSelection("KIDSTEE", "White", "Youth M", "MAPLECROWN")!;
+		const sweat = merchSelection("KIDSSWEATSHIRT", "Royal", "Youth XS", "MAPLECROWN")!;
+		expect(sweat.variantId).toBe(16824);
+		expect(sweat.files).toEqual(tee.files);
+
+		merchSession("cs_test_sweatshirt", "KIDSSWEATSHIRT|Red|Youth L|FULL");
+		await deliver(sandboxEnv(), paidEvent("cs_test_sweatshirt"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 16822,
+			name: "Squish Squad Kids' Sweatshirt — Red, Youth L",
+			retail_price: "34.99",
 		});
 	});
 
