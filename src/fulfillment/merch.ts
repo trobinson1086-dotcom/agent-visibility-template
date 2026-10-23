@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1186,6 +1186,40 @@ MERCH.push({
 		{ name: "Royal Blue", hex: "#1d4fa8", variants: { "One size": 8894 } },
 		{ name: "Grey", hex: "#a9adb3", variants: { "One size": 8894 } },
 		{ name: "Black", hex: "#151515", variants: { "One size": 8894 } },
+	],
+	productionEnabled: false,
+});
+
+// Spiral notebooks (Printful product 474, 5.5x8.5 in, 140 dotted pages): the
+// banner, crown and gold SQUISHMAN with stars and paw prints on the front
+// cover, and the crown and SQUISHMAN on the back, on a solid color. Each
+// color has its own covers (public/assets/merch/print/notebooks/).
+const NOTEBOOK_FILES: Record<string, Record<"front" | "back", number>> = {
+	"White": { front: 1092490767, back: 1092490769 },
+	"Pink": { front: 1092490781, back: 1092490786 },
+	"Royal Blue": { front: 1092490792, back: 1092490794 },
+	"Grey": { front: 1092490800, back: 1092490804 },
+	"Black": { front: 1092490809, back: 1092490810 },
+};
+const notebookCover = (side: "front" | "back"): MerchFile => ({
+	type: side,
+	fileId: null,
+	position: { area_width: 1725, area_height: 2625, width: 1725, height: 2625, top: 0, left: 0 },
+	fileIdByColor: Object.fromEntries(Object.entries(NOTEBOOK_FILES).map(([color, files]) => [color, files[side]])),
+});
+MERCH.push({
+	key: "NOTEBOOK",
+	name: "Squish Squad Notebook",
+	designs: [{ key: "PUDY", label: "Squish Man & Pudy", priceCents: 1799, files: [notebookCover("front"), notebookCover("back")] }],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 599, additionalCents: 199 },
+	sizes: ["One size"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "One size": 12141 } },
+		{ name: "Pink", hex: "#f7b8cc", variants: { "One size": 12141 } },
+		{ name: "Royal Blue", hex: "#1d4fa8", variants: { "One size": 12141 } },
+		{ name: "Grey", hex: "#a9adb3", variants: { "One size": 12141 } },
+		{ name: "Black", hex: "#151515", variants: { "One size": 12141 } },
 	],
 	productionEnabled: false,
 });
