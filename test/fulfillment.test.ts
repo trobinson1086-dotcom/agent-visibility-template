@@ -877,6 +877,7 @@ describe("merch checkout", () => {
 			["BABY", 2699, 2399, 2399, 2399, 2699],
 			["BEANIE", 2499, 2499, 2499],
 			["KIDSSWEATSHIRT", 3499, 3199, 3199, 3199, 3499],
+			["TODDLERTEE", 2499, 2199, 2199, 2199, 2499],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1592,6 +1593,20 @@ describe("merch orders → Printful", () => {
 			variant_id: 16822,
 			name: "Squish Squad Kids' Sweatshirt — Red, Youth L",
 			retail_price: "34.99",
+		});
+	});
+
+	it("sends toddler tees with the baby one-piece placements", async () => {
+		const toddler = merchSelection("TODDLERTEE", "Hot Pink", "5/6T", "FULL")!;
+		expect(toddler.variantId).toBe(12621);
+		expect(toddler.files).toEqual(merchSelection("BABY", "White", "3–6 months", "FULL")!.files);
+
+		merchSession("cs_test_toddler", "TODDLERTEE|Light Blue|2T|MAPLE");
+		await deliver(sandboxEnv(), paidEvent("cs_test_toddler"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 12622,
+			name: "Squish Squad Toddler T-Shirt, Maple Hollow Logo — Light Blue, 2T",
+			retail_price: "21.99",
 		});
 	});
 

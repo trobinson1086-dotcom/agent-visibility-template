@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1386,6 +1386,34 @@ MERCH.push({
 		{ name: "Royal", hex: "#1d50a4", variants: { "Youth XS": 16824, "Youth S": 16825, "Youth M": 16826, "Youth L": 16827, "Youth XL": 16828 } },
 		{ name: "Red", hex: "#da0a1a", variants: { "Youth XS": 16819, "Youth S": 16820, "Youth M": 16821, "Youth L": 16822, "Youth XL": 16823 } },
 		{ name: "Black", hex: "#0b0b0b", variants: { "Youth XS": 16787, "Youth S": 16788, "Youth M": 16789, "Youth L": 16790, "Youth XL": 16791 } },
+	],
+	productionEnabled: false,
+});
+
+// Toddler tees (Printful product 489, Rabbit Skins 3321, 2T-5/6T) with the
+// baby one-piece placements: the toddler print area is the same 1050x1200.
+const TODDLER_SIZES = ["2T", "3T", "4T", "5/6T"];
+const toddlerSizes = (ids: number[]) => Object.fromEntries(TODDLER_SIZES.map((size, i) => [size, ids[i]]));
+MERCH.push({
+	key: "TODDLERTEE",
+	name: "Squish Squad Toddler T-Shirt",
+	designs: designs(
+		2499,
+		[babyBanner, babyCrown("back")],
+		[babyBanner],
+		[babyCrown("front")],
+		[babyMaple],
+		[babyMaple, babyCrown("back")],
+	),
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: TODDLER_SIZES,
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: toddlerSizes([12630, 12631, 12632, 12633]) },
+		{ name: "Hot Pink", hex: "#fe607a", variants: toddlerSizes([12618, 12619, 12620, 12621]) },
+		{ name: "Light Blue", hex: "#d4ebff", variants: toddlerSizes([12622, 12623, 12624, 12625]) },
+		{ name: "Heather", hex: "#c2bfbd", variants: toddlerSizes([12614, 12615, 12616, 12617]) },
+		{ name: "Black", hex: "#141414", variants: toddlerSizes([12610, 12611, 12612, 12613]) },
 	],
 	productionEnabled: false,
 });
