@@ -240,3 +240,9 @@ html{scroll-padding-top:var(--header-h,110px)}
 /* Small phones: keep SHOP NOW and MERCH on the logo row. */
 @media (max-width:380px){header:has(#site-nav),.maple-home header{gap:6px;padding-left:10px;padding-right:10px}header .menu-toggle{padding:10px 10px}header .btn.small{padding:10px 8px}}
 @media (max-width:340px){header .logo-brand img,.maple-home .logo-brand img{width:104px}}
+.book-jump{margin:4px auto 26px}
+.sub.sub-en{margin-top:-8px;font-size:14px;opacity:.8}
+/* Format options with a checkout link are cards with a buy pill, like the plain ones. */
+.format-grid .format-option{display:block;border:2px solid #dce9f9;border-radius:13px;padding:13px;background:white;color:var(--ink);text-decoration:none;transition:border-color .15s,box-shadow .15s}
+.format-grid .format-option:hover,.format-grid .format-option:focus-visible{border-color:var(--blue);box-shadow:0 6px 16px #0758bd22}
+.format-grid .format-option small{display:inline-block;margin-top:8px;background:var(--blue);color:#fff;border-radius:999px;padding:4px 12px;font-weight:800;font-size:12px}

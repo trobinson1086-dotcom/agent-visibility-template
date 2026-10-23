@@ -27,7 +27,8 @@ const sets={
 function render(id,items,price){document.getElementById(id).innerHTML=items.map(x=>{
  const standard=id==='english', libro=id==='spanishgrid'&&x[1].startsWith('Libro');
  const detail=`product.html?cover=${encodeURIComponent(x[0])}&title=${encodeURIComponent(x[1])}&price=${encodeURIComponent(price)}&checkout=${encodeURIComponent(x[2]||'')}&paperback=${encodeURIComponent(standard||libro?(x[2]||''):'')}&ebook=${encodeURIComponent(standard?(x[3]||''):'')}&audiobook=${encodeURIComponent(standard?(x[4]||''):'')}&hardcover=${encodeURIComponent(standard?(x[5]||''):libro?(x[3]||''):'')}`;
- return `<article class="card"><img src="${A+x[0]}" alt="${x[1]} cover" loading="lazy"><h3>${x[1]}</h3><div class="price">${price}</div><a class="details" href="${detail}">Look Inside · Product details</a>${x[2]?`<a class="buy-link" href="${x[2]}" target="_blank" rel="noopener">BUY NOW</a>`:`<button data-placeholder>BUY NOW</button>`}</article>`
+ const es=id==='spanishgrid', buy=es?'COMPRAR AHORA':'BUY NOW';
+ return `<article class="card"${es?' lang="es"':''}><img src="${A+x[0]}" alt="${x[1]} ${es?'portada':'cover'}" loading="lazy"><h3>${x[1]}</h3><div class="price">${es?price.replace('From','Desde'):price}</div><a class="details" href="${detail}">${es?'Ver el interior · Detalles del libro':'Look Inside · Product details'}</a>${x[2]?`<a class="buy-link" href="${x[2]}" target="_blank" rel="noopener">${buy}</a>`:`<button data-placeholder>${buy}</button>`}</article>`
 }).join('')}
 render('english',sets.english,'Paperback $19.99');render('bonusgrid',sets.bonus,'$39.99');render('learninggrid',sets.learning,'$19.99');render('spanishgrid',sets.spanish,'From $19.99');render('colorgrid',sets.color,'$18.99');
 document.addEventListener('click',e=>{if(e.target.matches('[data-placeholder]'))alert('Coming soon! To order now, email orders@squishman.com and we will help you.')});

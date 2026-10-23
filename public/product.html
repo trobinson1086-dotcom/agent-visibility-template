@@ -14,6 +14,40 @@ document.getElementById('pDescription').textContent=desc; document.getElementByI
 const formats=t.includes('coloring')?[['Coloring Book','$18.99',checkout]]:t.includes('bonus')||t.includes('edición especial')?[['Bonus Activities & Learning','$39.99',checkout]]:t.includes('learning')||t.includes('aprendizaje')?[['Activity & Learning','$19.99',checkout]]:t.startsWith('libro')?[['Paperback','$19.99',paperback],['Hardcover','$29.99',hardcover]]:[['Paperback','$19.99',paperback],['Hardcover','$29.99',hardcover],['eBook','$9.99',ebook],['Audiobook','$14.99',audiobook]];
 document.getElementById('formats').innerHTML=formats.map(x=>x[2]?`<a class="format-option" href="${x[2]}" target="_blank" rel="noopener"><b>${x[0]}</b><span>${x[1]}</span><small>Buy now</small></a>`:`<div><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
 const b=document.getElementById('pBuy'); const primary=checkout||paperback; if(primary){b.href=primary;b.target='_blank';b.rel='noopener';b.textContent='BUY NOW'} else {b.removeAttribute('href');b.onclick=()=>alert('Checkout is not yet connected for this edition.')}
+// Spanish titles get the whole page in Spanish.
+const es=document.getElementById('pLanguage').textContent==='Español';
+if(es){
+ document.documentElement.lang='es';
+ const n=(title.match(/\d/)||[])[0];
+ const SP={
+  1:['Bondad y valentía','Una aventura de misterio en Maple Hollow donde el pequeño héroe Squish Man sigue pistas y ayuda a unir a la comunidad. La historia gira en torno a la amistad, la comunicación y ayudar a los demás.','Bondad, valentía, comunicación y ayudar a tu comunidad.'],
+  2:['Cree en ti mismo','Squish Man sueña con hacer algo grande y descubre que ser pequeño no limita lo lejos que pueden llevarlo la valentía, la perseverancia y la confianza en sí mismo.','Confianza, perseverancia y creer en ti mismo, incluso cuando una meta parece más grande que tú.'],
+  3:['Paciencia y cuidado','Squish Man descubre un jardín mágico y aprende que las cosas maravillosas no siempre se pueden apresurar. Con Ruby, Pip y nuevos amigos, descubre el valor de la paciencia y del cuidado constante.','Paciencia, responsabilidad, bondad y cuidar a los seres vivos.'],
+  4:['Creatividad y trabajo en equipo','Una gran nevada convierte el día de nieve perfecto de Squish Man en un desafío. Cuando un pequeño héroe no puede resolverlo todo solo, Maple Hollow descubre lo que pueden lograr la creatividad y el trabajo en equipo.','Creatividad, trabajo en equipo, resolver problemas y pedir ayuda a los amigos.'],
+  5:['Sé tú mismo','Squish Man y Pudy participan en el Gran Derby de Maple Hollow, donde la carrera se convierte en una celebración de la amistad, el trabajo en equipo y encontrar tu propia manera de brillar.','Sé tú mismo, sigue intentándolo, apoya a tus amigos y recuerda que lo pequeño también puede ser poderoso.']
+ }[n]||['Desarrollo del carácter','Un título familiar de Squish Man creado para lectores jóvenes, familias, salones de clase y la colección de Maple Hollow.','Desarrollo positivo del carácter, confianza, bondad, creatividad y aprendizaje adecuado para su edad.'];
+ const set=(sel,txt)=>{const el=document.querySelector(sel);if(el)el.textContent=txt};
+ let [esTheme,esDesc,esLesson]=SP, esNo=n?`Libro ${n}`:'Serie Squish Man';
+ if(t.includes('edición')){esNo=`Edición Especial ${n||''}`.trim();esDesc='Una edición especial de Squish Man con más historia y actividades de aprendizaje para practicar en casa o en clase. '+esDesc}
+ else if(t.includes('aprendizaje')){esNo=`Aprendizaje y Actividades ${n||''}`.trim();esDesc='Un libro de aprendizaje y actividades de Squish Man que combina personajes conocidos con práctica y actividades creativas para niños.';esLesson='Práctica, perseverancia, creatividad y confianza mientras aprenden.'}
+ set('#pBookNo',esNo);set('#pTheme',esTheme);set('#pDescription',esDesc);set('#pLesson',esLesson);
+ set('#pPrice',price.replace('Paperback','Tapa blanda').replace('From','Desde'));
+ const metaLabels=['Serie','Tema principal','Idioma'];document.querySelectorAll('.book-meta span').forEach((el,i)=>{if(metaLabels[i])el.textContent=metaLabels[i]});
+ const chips=document.querySelectorAll('.chips span');if(chips[1])chips[1].textContent='Edades 5–9';
+ set('.lesson b','Lo que aprenden los lectores');set('.product-copy h3','Formatos disponibles');
+ const FMT={'Paperback':'Tapa blanda','Hardcover':'Tapa dura','Activity & Learning':'Actividades y aprendizaje','Bonus Activities & Learning':'Edición especial con actividades'};
+ document.querySelectorAll('#formats b').forEach(el=>{el.textContent=FMT[el.textContent]||el.textContent});document.querySelectorAll('#formats small').forEach(el=>{el.textContent='Comprar'});
+ if(primary)b.textContent='COMPRAR AHORA';else b.onclick=()=>alert('La compra de esta edición estará disponible pronto.');
+ const back=document.querySelector('.backlink');if(back){back.textContent='← Volver a los libros en español';back.href='index.html#spanish'}
+ set('.product-copy .eyebrow','LAS INCREÍBLES AVENTURAS DE SQUISH MAN™'); set('.lookinside .eyebrow','VER EL INTERIOR');set('.lookinside h2','Mira cómo es este libro');
+ set('#previewPending b','La vista previa del interior llegará pronto para este título');set('#previewPending span','Solo usaremos páginas interiores reales y aprobadas de Squish Man.');
+ set('.related .eyebrow','SIGUE EXPLORANDO MAPLE HOLLOW');set('.related h2','Más aventuras de Squish Man');
+ const rel=document.querySelectorAll('.related a');['Aventuras originales','Aprendizaje y actividades','Español'].forEach((txt,i)=>{if(rel[i])rel[i].textContent=txt});
+ const nav=document.querySelectorAll('#site-nav a');['Libros','Aprende y juega','Español','Padres y maestros'].forEach((txt,i)=>{if(nav[i])nav[i].textContent=txt});
+ set('header .btn.small','COMPRAR LIBROS');
+ document.querySelectorAll('.footerlinks a').forEach((el,i)=>{el.textContent=['Privacidad','Términos','Envíos y devoluciones'][i]||el.textContent});
+ document.title=title+' | Squish Man™';
+}
 const previewSets={
  learning1:{match:()=>t.startsWith('learning & activity book 1'),dir:'learning-book1',files:['page-01.webp'],label:'Learning & Activity Book 1'},
  learning2:{match:()=>t.startsWith('learning & activity book 2'),dir:'learning-book2',files:['page-01.webp'],label:'Learning & Activity Book 2'},
@@ -41,5 +75,5 @@ const previewSets={
  book5:{match:()=>t.includes('derby'),dir:'book5',files:['page-01.jpg','page-02.jpg','page-03.jpg','page-04.jpg','page-05.jpg'],label:'Book 5 - Squish Man and Pudy and the Great Maple Hollow Derby'}
 };
 const selected=Object.values(previewSets).find(x=>x.match());
-if(selected){const real=document.getElementById('realPreview'),pending=document.getElementById('previewPending'),img=document.getElementById('previewImage'),count=document.getElementById('previewCount'),dots=document.getElementById('previewDots'),intro=document.getElementById('previewIntro'); real.hidden=false;pending.hidden=true;intro.innerHTML=`Flip through real approved pages from <b>${selected.label}</b>.`;let i=0; dots.innerHTML=selected.files.map((_,n)=>`<button aria-label="Preview page ${n+1}"></button>`).join(''); const dotBtns=[...dots.querySelectorAll('button')]; function show(n){i=(n+selected.files.length)%selected.files.length;img.src=`assets/previews/${selected.dir}/${selected.files[i]}`;img.alt=`${selected.label} interior preview ${i+1}`;count.textContent=`Preview ${i+1} of ${selected.files.length}`;dotBtns.forEach((d,j)=>d.classList.toggle('active',j===i));} document.getElementById('prevPage').onclick=()=>show(i-1);document.getElementById('nextPage').onclick=()=>show(i+1);dotBtns.forEach((d,j)=>d.onclick=()=>show(j));show(0);}
+if(selected){const real=document.getElementById('realPreview'),pending=document.getElementById('previewPending'),img=document.getElementById('previewImage'),count=document.getElementById('previewCount'),dots=document.getElementById('previewDots'),intro=document.getElementById('previewIntro'); real.hidden=false;pending.hidden=true;intro.innerHTML=es?`Hojea páginas reales y aprobadas de <b>${selected.label}</b>.`:`Flip through real approved pages from <b>${selected.label}</b>.`;let i=0; dots.innerHTML=selected.files.map((_,n)=>`<button aria-label="Preview page ${n+1}"></button>`).join(''); const dotBtns=[...dots.querySelectorAll('button')]; function show(n){i=(n+selected.files.length)%selected.files.length;img.src=`assets/previews/${selected.dir}/${selected.files[i]}`;img.alt=es?`${selected.label}, página interior ${i+1}`:`${selected.label} interior preview ${i+1}`;count.textContent=es?`Página ${i+1} de ${selected.files.length}`:`Preview ${i+1} of ${selected.files.length}`;dotBtns.forEach((d,j)=>d.classList.toggle('active',j===i));} document.getElementById('prevPage').onclick=()=>show(i-1);document.getElementById('nextPage').onclick=()=>show(i+1);dotBtns.forEach((d,j)=>d.onclick=()=>show(j));show(0);}
 </script><script src="menu.js"></script></body></html>
