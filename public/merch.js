@@ -121,7 +121,7 @@ const SHOP={
  'Squish Squad Drawstring Bags':{key:'DRAWSTRING',img:'drawstring',name:'Squish Squad Drawstring Bag',facts:'15×17″ · 100% polyester · cotton straps',shown:'Same design on both sides',
   desc:'A light drawstring backpack for gym class, swim lessons and sleepovers, with The Amazing Adventures of Squish Man banner, the gold crown and a gold SQUISHMAN, and gold stars and paw prints, on both sides.'},
  'Squish Squad Backpacks':{key:'BACKPACK',img:'backpack',name:'Squish Squad Backpack',facts:'16×12×4″ · water-resistant · laptop pocket',shown:'Front of the backpack',
-  desc:'A roomy, water-resistant backpack with The Amazing Adventures of Squish Man banner on the front, a gold crown and rainbow SQUISHMAN on the front pocket, and gold stars and paw prints all around. Inside laptop sleeve. Great for school and adventures.'},
+  desc:'A roomy, water-resistant backpack with The Amazing Adventures of Squish Man banner on the front, a gold crown and gold SQUISHMAN on the front pocket, and gold stars and paw prints all around. Inside laptop sleeve. Great for school and adventures.'},
  'Squish Squad Mugs':{key:'MUG',img:'mug',name:'Squish Squad Mug',facts:'11 oz ceramic · dishwasher and microwave safe',
   desc:'A white glossy mug with Squish Man and Pudy on one side and the gold crown, SQUISHMAN wordmark and paw print on the other.'}
 };
