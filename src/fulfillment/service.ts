@@ -44,6 +44,7 @@ import {
 	HAT_FILES,
 	LUMBAR_FILES,
 	PUZZLE_FILES,
+	SQUISH_SQUAD_FILE,
 	STICKER_FILES,
 } from "./merch";
 import { checkoutState, reconcileMerch, recordMerchOrder, refreshMerch, retryMerch } from "./merch-service";
@@ -244,6 +245,7 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 			[HAT_FILES.BEST_FRIENDS, "hatBestFriends"],
 			[HAT_FILES.CROWN, "hatCrown"],
 			[BEANIE_MAPLE_FILE, "beanieMapleHollow"],
+			[SQUISH_SQUAD_FILE, "squishSquadLogo"],
 		]);
 		const printFiles: Record<string, string> = {};
 		const checked = new Set<number>();

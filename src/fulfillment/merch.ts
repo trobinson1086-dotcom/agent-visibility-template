@@ -51,6 +51,9 @@ export type DesignKey =
 	| "LOGO"
 	| "MAPLE"
 	| "MAPLECROWN"
+	// Squish Squad shield logo (grown-up tee, long sleeve and sweatshirt).
+	| "SQUAD"
+	| "SQUADCROWN"
 	// Sticker-only artwork (public/assets/merch/print/stickers/).
 	| "MH_PALS"
 	| "MH_HIGHFIVE"
@@ -213,6 +216,19 @@ const designs = (
 	{ key: "MAPLECROWN", label: "Maple Hollow logo front, crown logo back", priceCents: fullCents, files: mapleCrown },
 ];
 
+// The Squish Squad shield logo (public/assets/merch/print/squish-squad-logo.png),
+// at its native 150 DPI size on the front, alone or with the crown logo back.
+export const SQUISH_SQUAD_FILE = 1092602763;
+const squadFront: MerchFile = {
+	type: "front",
+	fileId: SQUISH_SQUAD_FILE,
+	position: { area_width: 1800, area_height: 2400, width: 1180, height: 1272, top: 150, left: 310 },
+};
+const squadDesigns = (fullCents: number): MerchDesign[] => [
+	{ key: "SQUAD", label: "Squish Squad logo only (front)", priceCents: fullCents - 300, files: [squadFront] },
+	{ key: "SQUADCROWN", label: "Squish Squad logo front, crown logo back", priceCents: fullCents, files: [squadFront, back] },
+];
+
 export const MERCH: MerchProduct[] = [
 	{
 		key: "TEE",
@@ -224,7 +240,7 @@ export const MERCH: MerchProduct[] = [
 			[logoFront(1800, 2400, 150)],
 			[mapleFront(1800, 2400, 150)],
 			[mapleFront(1800, 2400, 150), back],
-		),
+		).concat(squadDesigns(2799)),
 		sizeUpchargeCents: UPCHARGE,
 		shipping: { firstCents: 599, additionalCents: 249 },
 		sizes: SIZES,
@@ -272,7 +288,7 @@ export const MERCH: MerchProduct[] = [
 			[logoFront(1800, 2400, 150)],
 			[mapleFront(1800, 2400, 150)],
 			[mapleFront(1800, 2400, 150), back],
-		),
+		).concat(squadDesigns(3299)),
 		sizeUpchargeCents: UPCHARGE,
 		shipping: { firstCents: 599, additionalCents: 249 },
 		sizes: SIZES,
@@ -1431,7 +1447,7 @@ MERCH.push({
 		[logoFront(1800, 2400, 150)],
 		[mapleFront(1800, 2400, 150)],
 		[mapleFront(1800, 2400, 150), back],
-	),
+	).concat(squadDesigns(3999)),
 	sizeUpchargeCents: UPCHARGE,
 	shipping: { firstCents: 999, additionalCents: 299 },
 	sizes: SIZES,
@@ -1467,6 +1483,16 @@ export interface MerchSelection {
 }
 
 /** Resolve a product/color/size/design choice, or null if it isn't for sale. */
+// Short design names for order titles; other designs use their label.
+const DESIGN_TITLES: Partial<Record<DesignKey, string>> = {
+	LOGO: "Crown Logo",
+	PUDY: "Squish Man & Pudy",
+	MAPLE: "Maple Hollow Logo",
+	MAPLECROWN: "Maple Hollow + Crown",
+	SQUAD: "Squish Squad Logo",
+	SQUADCROWN: "Squish Squad Logo + Crown",
+};
+
 export function merchSelection(
 	key: string,
 	colorName: string,
@@ -1479,17 +1505,9 @@ export function merchSelection(
 	const variantId = color?.variants[size];
 	if (!product || !design || !color || !variantId || !product.sizes.includes(size)) return null;
 	const name =
-		design.key === "LOGO"
-			? `${product.name}, Crown Logo`
-			: design.key === "PUDY"
-				? `${product.name}, Squish Man & Pudy`
-				: design.key === "MAPLE"
-					? `${product.name}, Maple Hollow Logo`
-					: design.key === "MAPLECROWN"
-						? `${product.name}, Maple Hollow + Crown`
-						: design.key === "FULL"
-							? product.name
-							: `${product.name}, ${design.label}`;
+		design.key === "FULL"
+			? product.name
+			: `${product.name}, ${DESIGN_TITLES[design.key] ?? design.label}`;
 	return {
 		product,
 		design,

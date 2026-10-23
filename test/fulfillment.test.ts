@@ -12,7 +12,7 @@ import {
 	health,
 	retry,
 } from "../src/fulfillment/service";
-import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection } from "../src/fulfillment/merch";
+import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection, SQUISH_SQUAD_FILE } from "../src/fulfillment/merch";
 import { reconcile } from "../src/fulfillment/service";
 import * as store from "../src/fulfillment/store";
 import { verifyStripeSignature } from "../src/fulfillment/stripe";
@@ -672,6 +672,7 @@ describe("configuration health check", () => {
 					hatBestFriends: "ok",
 					hatCrown: "ok",
 					beanieMapleHollow: "ok",
+					squishSquadLogo: "ok",
 				},
 			},
 			merchCheckout: "off",
@@ -790,9 +791,12 @@ describe("merch catalog", () => {
 			["MAPLE", one],
 			["MAPLECROWN", full],
 		];
-		expect(prices("TEE")).toEqual(five(2799, 2499));
+		// The grown-up tee, long sleeve and sweatshirt also come with the Squish Squad logo.
+		const squad = (full: number, one: number) => [...five(full, one), ["SQUAD", one], ["SQUADCROWN", full]];
+		expect(prices("TEE")).toEqual(squad(2799, 2499));
 		expect(prices("HOODIE")).toEqual(five(4499, 4199));
-		expect(prices("LONGSLEEVE")).toEqual(five(3299, 2999));
+		expect(prices("LONGSLEEVE")).toEqual(squad(3299, 2999));
+		expect(prices("SWEATSHIRT")).toEqual(squad(3999, 3699));
 		expect(prices("TOTE")).toEqual(five(3299, 2999));
 		expect(prices("MUG")).toEqual(five(1599, 1599));
 		// The single-artwork designs print only that artwork, on the front.
@@ -851,9 +855,9 @@ describe("merch checkout", () => {
 		};
 		expect(json.checkout).toBe("off");
 		expect(json.products.map((p) => [p.key, ...p.designs.map((d) => d.priceCents)])).toEqual([
-			["TEE", 2799, 2499, 2499, 2499, 2799],
+			["TEE", 2799, 2499, 2499, 2499, 2799, 2499, 2799],
 			["HOODIE", 4499, 4199, 4199, 4199, 4499],
-			["LONGSLEEVE", 3299, 2999, 2999, 2999, 3299],
+			["LONGSLEEVE", 3299, 2999, 2999, 2999, 3299, 2999, 3299],
 			["TOTE", 3299, 2999, 2999, 2999, 3299],
 			["MUG", 1599, 1599, 1599, 1599, 1599],
 			["STICKER", 499, 499, 499, 499, 499, 499, 499, 499, 499, 499, 499],
@@ -878,7 +882,7 @@ describe("merch checkout", () => {
 			["BEANIE", 2499, 2499, 2499],
 			["KIDSSWEATSHIRT", 3499, 3199, 3199, 3199, 3499],
 			["TODDLERTEE", 2499, 2199, 2199, 2199, 2499],
-			["SWEATSHIRT", 3999, 3699, 3699, 3699, 3999],
+			["SWEATSHIRT", 3999, 3699, 3699, 3699, 3999, 3699, 3999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -886,6 +890,8 @@ describe("merch checkout", () => {
 			"Crown logo only (front)",
 			"Maple Hollow logo only (front)",
 			"Maple Hollow logo front, crown logo back",
+			"Squish Squad logo only (front)",
+			"Squish Squad logo front, crown logo back",
 		]);
 		expect(json.products[0].colors.map((c) => c.name)).toContain("Royal Blue");
 		const pink = json.products[2].colors.find((c) => c.name === "Pink");
@@ -1620,6 +1626,24 @@ describe("merch orders → Printful", () => {
 			variant_id: 16875,
 			name: "Squish Squad Sweatshirt, Crown Logo — Royal Blue, 3XL",
 			retail_price: "40.99",
+		});
+	});
+
+	it("sends Squish Squad logo orders with the logo front, and the crown logo back for the two-sided design", async () => {
+		const one = merchSelection("LONGSLEEVE", "Grey", "L", "SQUAD")!;
+		expect(one.files.map((f) => [f.type, f.fileId])).toEqual([["front", SQUISH_SQUAD_FILE]]);
+		const two = merchSelection("SWEATSHIRT", "Red", "M", "SQUADCROWN")!;
+		expect(two.files.map((f) => [f.type, f.fileId])).toEqual([
+			["front", SQUISH_SQUAD_FILE],
+			["back", BACK_CROWN_FILE],
+		]);
+
+		merchSession("cs_test_squadtee", "TEE|Pink|XL|SQUADCROWN");
+		await deliver(sandboxEnv(), paidEvent("cs_test_squadtee"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 4139,
+			name: "Squish Squad T-Shirt, Squish Squad Logo + Crown — Pink, XL",
+			retail_price: "27.99",
 		});
 	});
 
