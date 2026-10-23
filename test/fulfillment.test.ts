@@ -651,6 +651,11 @@ describe("configuration health check", () => {
 					backpack_white: "ok",
 					backpack_grey: "ok",
 					backpack_black: "ok",
+					drawstring_white: "ok",
+					drawstring_pink: "ok",
+					drawstring_royal_blue: "ok",
+					drawstring_grey: "ok",
+					drawstring_black: "ok",
 					hatCrownWordmark: "ok",
 					hatPaw: "ok",
 					hatRoyalSquishMan: "ok",
@@ -792,7 +797,7 @@ describe("merch catalog", () => {
 		}
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
 		// Color pillows print the color into the art, so their colors share one blank.
-		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 });
@@ -855,6 +860,7 @@ describe("merch checkout", () => {
 			["BLANKET", 4999, 4999, 4999, 4999, 4999, 4999],
 			["SOCKS", 1699, 1699, 1699],
 			["BACKPACK", 4999],
+			["DRAWSTRING", 2499],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1400,7 +1406,7 @@ describe("merch orders → Printful", () => {
 				if (p.key === "HAT") {
 					for (const v of Object.values(d.printfulOptions ?? {})) expect((v as string[]).length).toBeLessThanOrEqual(6);
 				}
-				if (["COLORPILLOW", "LUMBAR", "KIDSHOODIE", "BACKPACK"].includes(p.key)) {
+				if (["COLORPILLOW", "LUMBAR", "KIDSHOODIE", "BACKPACK", "DRAWSTRING"].includes(p.key)) {
 					expect(d.printfulOptions?.stitch_color, `${p.key} ${d.key}`).toMatch(/^(white|clear)$/);
 				}
 			}
@@ -1463,6 +1469,22 @@ describe("merch orders → Printful", () => {
 			variant_id: 9063,
 			name: "Squish Squad Backpack, Squish Man & Pudy — Pink",
 			retail_price: "49.99",
+			options: [{ id: "stitch_color", value: "clear" }],
+		});
+	});
+
+	it("sends drawstring bags with each color's own print file", async () => {
+		const pink = merchSelection("DRAWSTRING", "Pink", "One size", "PUDY")!.files;
+		expect(pink).toHaveLength(1);
+		expect(pink[0].type).toBe("default");
+		expect(pink[0].fileId).not.toBe(merchSelection("DRAWSTRING", "Black", "One size", "PUDY")!.files[0].fileId);
+
+		merchSession("cs_test_drawstring", "DRAWSTRING|Black|One size|PUDY");
+		await deliver(sandboxEnv(), paidEvent("cs_test_drawstring"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 8894,
+			name: "Squish Squad Drawstring Bag, Squish Man & Pudy — Black",
+			retail_price: "24.99",
 			options: [{ id: "stitch_color", value: "clear" }],
 		});
 	});

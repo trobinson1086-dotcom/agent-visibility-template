@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1141,6 +1141,49 @@ MERCH.push({
 		{ name: "Royal Blue", hex: "#1d4fa8", variants: { "One size": 9063 } },
 		{ name: "Grey", hex: "#a9adb3", variants: { "One size": 9063 } },
 		{ name: "Black", hex: "#151515", variants: { "One size": 9063 } },
+	],
+	productionEnabled: false,
+});
+
+// Drawstring bags (Printful product 262, all-over print, 15x17 in): the
+// backpack's banner, crown and rainbow SQUISHMAN with stars and paw prints, on
+// a solid color. One print file covers the bag; each color has its own.
+const DRAWSTRING_FILES: Record<string, number> = {
+	"White": 1092470696,
+	"Pink": 1092470704,
+	"Royal Blue": 1092470715,
+	"Grey": 1092470725,
+	"Black": 1092470732,
+};
+MERCH.push({
+	key: "DRAWSTRING",
+	name: "Squish Squad Drawstring Bag",
+	designs: [
+		{
+			key: "PUDY",
+			label: "Squish Man & Pudy",
+			priceCents: 2499,
+			files: [
+				{
+					type: "default",
+					fileId: null,
+					position: { area_width: 2400, area_height: 2850, width: 2400, height: 2850, top: 0, left: 0 },
+					fileIdByColor: DRAWSTRING_FILES,
+				},
+			],
+			// Printful requires a stitch color; clear thread disappears into every color.
+			printfulOptions: { stitch_color: "clear" },
+		},
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 599, additionalCents: 199 },
+	sizes: ["One size"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "One size": 8894 } },
+		{ name: "Pink", hex: "#f7b8cc", variants: { "One size": 8894 } },
+		{ name: "Royal Blue", hex: "#1d4fa8", variants: { "One size": 8894 } },
+		{ name: "Grey", hex: "#a9adb3", variants: { "One size": 8894 } },
+		{ name: "Black", hex: "#151515", variants: { "One size": 8894 } },
 	],
 	productionEnabled: false,
 });
