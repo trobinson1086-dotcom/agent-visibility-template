@@ -43,6 +43,7 @@ const categories=[
   {name:'Squish Squad Kids’ T-Shirts',hidden:true,desc:'Kids’ tees.',colors:[]},
   {name:'Squish Squad Hoodie',desc:'The same bold, full-color Squish Man and Pudy artwork on a cozy pullover hoodie with a front pocket, plus the crown, wordmark and paw print across the back.',colors:[['White','#ffffff',hoodie.white],['Pink','#f59ac4',hoodie.pink],['Royal Blue','#1747d8',hoodie.royal]]},
   {name:'Squish Squad Kids’ Hoodies',hidden:true,desc:'Kids’ hoodies.',colors:[]},
+  {name:'Squish Squad Kids’ Sweatshirts',hidden:true,desc:'Kids’ sweatshirts.',colors:[]},
   {name:'Squish Squad Long Sleeve',desc:'A long-sleeve take on the Squish Squad design: Squish Man and Pudy on the front, and the gold crown, SQUISHMAN wordmark and paw print on the back.',colors:[['White','#ffffff',sleeve.white],['Pink','#f59ac4',sleeve.pink],['Royal Blue','#1747d8',sleeve.royal]]},
   {name:'Squish Squad Kids’ Long Sleeves',hidden:true,desc:'Kids’ long sleeves.',colors:[]},
   {name:'Squish Squad Kids’ Leggings',hidden:true,desc:'Kids’ leggings.',colors:[]},
@@ -96,6 +97,8 @@ const SHOP={
   desc:'The Squish Squad long sleeve in kids’ sizes, with the same five designs as the kids’ tee on a soft Bella + Canvas youth jersey.'},
  'Squish Squad Baby One-Pieces':{key:'BABY',img:'baby',name:'Squish Squad Baby One-Piece',facts:'3–18 months · soft ring-spun cotton · snap closure',
   desc:'A soft cotton one-piece for the littlest Squish Squad fans, in the same five designs as the kids’ tee. Envelope neckline and three snaps at the bottom for easy changes.'},
+ 'Squish Squad Kids’ Sweatshirts':{key:'KIDSSWEATSHIRT',img:'kidssweatshirt',name:'Squish Squad Kids’ Sweatshirt',facts:'Youth XS–XL · soft cotton-blend fleece',
+  desc:'A cozy crewneck sweatshirt in the same five designs as the kids’ tee, on soft Gildan fleece with ribbed cuffs and waistband. Perfect for chilly mornings and fall adventures.'},
  'Squish Squad Kids’ T-Shirts':{key:'KIDSTEE',img:'kidstee',name:'Squish Squad Kids’ T-Shirt',facts:'Youth S–XL · soft cotton tee',
   desc:'The Squish Squad tee in kids’ sizes: the same five designs as the grown-up shirt in bright, kid-friendly colors, on a soft Bella + Canvas youth tee.'},
  'Squish Squad Hoodie':{key:'HOODIE',img:'hoodie',facts:'Unisex S–3XL · cotton-blend fleece'},
@@ -146,7 +149,7 @@ const money=c=>'$'+(c/100).toFixed(2);
 // and photos.
 const design=p=>p.shop.designs[p.design||0];
 const unit=(p,size)=>design(p).priceCents+(p.shop.sizeUpchargeCents[size]||0);
-const DESIGN_NOTE='Every shirt, long sleeve and hoodie (grown-up and kids’), baby one-piece, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in eleven designs, from Royal Squish Man to Squish Man\'s values signpost, posters in eight, water bottles, shaped pillows, color pillows and sherpa blankets in six each, and jigsaw puzzles and lumbar pillows in six storybook scenes. Caps come embroidered for kids, with the SQUISHMAN logo on the back, or printed in full color for grown-ups.';
+const DESIGN_NOTE='Every shirt, long sleeve, hoodie and sweatshirt (grown-up and kids’), baby one-piece, tote bag and mug comes in five designs: Squish Man & Pudy on the front with the crown logo on the back, Squish Man & Pudy on their own, the gold crown SQUISHMAN logo for a simpler look, The Amazing Adventures of Squish Man – Maple Hollow logo, or the Maple Hollow logo on the front with the crown logo on the back. Stickers come in eleven designs, from Royal Squish Man to Squish Man\'s values signpost, posters in eight, water bottles, shaped pillows, color pillows and sherpa blankets in six each, and jigsaw puzzles and lumbar pillows in six storybook scenes. Caps come embroidered for kids, with the SQUISHMAN logo on the back, or printed in full color for grown-ups.';
 const MAX_DESIGN_BUTTONS=6;
 const DESIGN_TITLE={FULL:'Squish Man & Pudy + Crown',PUDY:'Squish Man & Pudy',LOGO:'Crown Logo',MAPLE:'Maple Hollow Logo',MAPLECROWN:'Maple Hollow + Crown',
  MH_PALS:'Maple Hollow Pals',MH_HIGHFIVE:'Maple Hollow High Five',MH_WAVE:'Maple Hollow Wave',MH_SQUARE:'Maple Hollow Town Square',

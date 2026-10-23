@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1359,6 +1359,33 @@ MERCH.push({
 		{ name: "Baby Pink", hex: "#f6c6d3", variants: { "One size": 17494 } },
 		{ name: "Heather Grey", hex: "#b3b3b3", variants: { "One size": 8937 } },
 		{ name: "Red", hex: "#c4161c", variants: { "One size": 8939 } },
+	],
+	productionEnabled: false,
+});
+
+// Kids' crewneck sweatshirts (Printful product 677, Gildan 18000B, youth
+// XS-XL). Same 1500x1800 youth print area as the kids' tee, so the same five
+// designs and placements.
+MERCH.push({
+	key: "KIDSSWEATSHIRT",
+	name: "Squish Squad Kids' Sweatshirt",
+	designs: designs(
+		3499,
+		[youthBanner, youthCrown("back")],
+		[youthBanner],
+		[youthCrown("front")],
+		[youthMaple],
+		[youthMaple, youthCrown("back")],
+	),
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: ["Youth XS", "Youth S", "Youth M", "Youth L", "Youth XL"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "Youth XS": 16834, "Youth S": 16835, "Youth M": 16836, "Youth L": 16837, "Youth XL": 16838 } },
+		{ name: "Sport Grey", hex: "#cacacd", variants: { "Youth XS": 16829, "Youth S": 16830, "Youth M": 16831, "Youth L": 16832, "Youth XL": 16833 } },
+		{ name: "Royal", hex: "#1d50a4", variants: { "Youth XS": 16824, "Youth S": 16825, "Youth M": 16826, "Youth L": 16827, "Youth XL": 16828 } },
+		{ name: "Red", hex: "#da0a1a", variants: { "Youth XS": 16819, "Youth S": 16820, "Youth M": 16821, "Youth L": 16822, "Youth XL": 16823 } },
+		{ name: "Black", hex: "#0b0b0b", variants: { "Youth XS": 16787, "Youth S": 16788, "Youth M": 16789, "Youth L": 16790, "Youth XL": 16791 } },
 	],
 	productionEnabled: false,
 });
