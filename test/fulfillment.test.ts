@@ -869,8 +869,8 @@ describe("merch checkout", () => {
 			["LUMBAR", 3499, 3499, 3499, 3499, 3499, 3499],
 			["HAT", 3099, 3099, 3099, 3099, 3099],
 			["DADHAT", 2499, 2499, 2499, 2499, 2499],
-			["KIDSTEE", 2699, 2399, 2399, 2399, 2699],
-			["KIDSLONGSLEEVE", 2899, 2599, 2599, 2599, 2899],
+			["KIDSTEE", 2699, 2399, 2399, 2399, 2699, 2399, 2699],
+			["KIDSLONGSLEEVE", 2899, 2599, 2599, 2599, 2899, 2599, 2899],
 			["KIDSHOODIE", 4999, 4999, 4999, 4999, 4999],
 			["BLANKET", 4999, 4999, 4999, 4999, 4999, 4999],
 			["SOCKS", 1699, 1699, 1699],
@@ -880,7 +880,7 @@ describe("merch checkout", () => {
 			["LEGGINGS", 2999],
 			["BABY", 2699, 2399, 2399, 2399, 2699],
 			["BEANIE", 2499, 2499, 2499],
-			["KIDSSWEATSHIRT", 3499, 3199, 3199, 3199, 3499],
+			["KIDSSWEATSHIRT", 3499, 3199, 3199, 3199, 3499, 3199, 3499],
 			["TODDLERTEE", 2499, 2199, 2199, 2199, 2499],
 			["SWEATSHIRT", 3999, 3699, 3699, 3699, 3999, 3699, 3999],
 		]);
@@ -1644,6 +1644,22 @@ describe("merch orders → Printful", () => {
 			variant_id: 4139,
 			name: "Squish Squad T-Shirt, Squish Squad Logo + Crown — Pink, XL",
 			retail_price: "27.99",
+		});
+	});
+
+	it("sends kids' Squish Squad logo orders inside the youth print area", async () => {
+		const sel = merchSelection("KIDSLONGSLEEVE", "Red", "Youth M", "SQUADCROWN")!;
+		expect(sel.files.map((f) => [f.type, f.fileId, f.position!.area_width, f.position!.left])).toEqual([
+			["front", SQUISH_SQUAD_FILE, 1500, 160],
+			["back", BACK_CROWN_FILE, 1500, 67],
+		]);
+
+		merchSession("cs_test_kidssquad", "KIDSTEE|Berry|Youth S|SQUAD");
+		await deliver(sandboxEnv(), paidEvent("cs_test_kidssquad"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 11209,
+			name: "Squish Squad Kids' T-Shirt, Squish Squad Logo — Berry, Youth S",
+			retail_price: "23.99",
 		});
 	});
 
