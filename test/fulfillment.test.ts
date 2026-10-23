@@ -12,7 +12,7 @@ import {
 	health,
 	retry,
 } from "../src/fulfillment/service";
-import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection, SQUISH_SQUAD_FILE } from "../src/fulfillment/merch";
+import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection, ORNAMENT_SNOWGLOBE_FILE, SQUISH_SQUAD_FILE } from "../src/fulfillment/merch";
 import { reconcile } from "../src/fulfillment/service";
 import * as store from "../src/fulfillment/store";
 import { verifyStripeSignature } from "../src/fulfillment/stripe";
@@ -673,6 +673,7 @@ describe("configuration health check", () => {
 					hatCrown: "ok",
 					beanieMapleHollow: "ok",
 					squishSquadLogo: "ok",
+					ornamentSnowGlobe: "ok",
 				},
 			},
 			merchCheckout: "off",
@@ -883,6 +884,7 @@ describe("merch checkout", () => {
 			["KIDSSWEATSHIRT", 3499, 3199, 3199, 3199, 3499, 3199, 3499],
 			["TODDLERTEE", 2499, 2199, 2199, 2199, 2499],
 			["SWEATSHIRT", 3999, 3699, 3699, 3699, 3999, 3699, 3999],
+			["ORNAMENT", 1699],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1660,6 +1662,18 @@ describe("merch orders → Printful", () => {
 			variant_id: 11209,
 			name: "Squish Squad Kids' T-Shirt, Squish Squad Logo — Berry, Youth S",
 			retail_price: "23.99",
+		});
+	});
+
+	it("sends the snow-globe ornament with one file for both sides", async () => {
+		merchSession("cs_test_ornament", "ORNAMENT|Royal Blue|One size|MAPLE", { quantity: 3 });
+		await deliver(sandboxEnv(), paidEvent("cs_test_ornament"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 23133,
+			quantity: 3,
+			name: "Squish Squad Snow Globe Ornament, Maple Hollow Logo",
+			retail_price: "16.99",
+			files: [{ type: "front", id: ORNAMENT_SNOWGLOBE_FILE }],
 		});
 	});
 

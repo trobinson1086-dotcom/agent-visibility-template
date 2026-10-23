@@ -41,6 +41,7 @@ import {
 	MAPLE_HOLLOW_FILE,
 	MERCH,
 	MUG_WRAP_MAPLE_CROWN_FILE,
+	ORNAMENT_SNOWGLOBE_FILE,
 	HAT_FILES,
 	LUMBAR_FILES,
 	PUZZLE_FILES,
@@ -246,6 +247,7 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 			[HAT_FILES.CROWN, "hatCrown"],
 			[BEANIE_MAPLE_FILE, "beanieMapleHollow"],
 			[SQUISH_SQUAD_FILE, "squishSquadLogo"],
+			[ORNAMENT_SNOWGLOBE_FILE, "ornamentSnowGlobe"],
 		]);
 		const printFiles: Record<string, string> = {};
 		const checked = new Set<number>();
