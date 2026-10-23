@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE" | "SWEATSHIRT";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE" | "SWEATSHIRT" | "ORNAMENT";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1459,6 +1459,35 @@ MERCH.push({
 		{ name: "Sport Grey", hex: "#ccccce", variants: { S: 5514, M: 5515, L: 5516, XL: 5517, "2XL": 5518, "3XL": 5519 } },
 		{ name: "Red", hex: "#da0a1a", variants: { S: 5442, M: 5443, L: 5444, XL: 5445, "2XL": 5446, "3XL": 5447 } },
 	],
+	productionEnabled: false,
+});
+
+// Snow-globe Christmas ornament (Printful product 900, glossy 2-sided ceramic,
+// circle): the Maple Hollow logo inside a snow globe on a "Merry Christmas"
+// base. One file prints on both sides; the art stays inside the safe circle
+// and clear of the hanging hole.
+export const ORNAMENT_SNOWGLOBE_FILE = 1093189487;
+MERCH.push({
+	key: "ORNAMENT",
+	name: "Squish Squad Snow Globe Ornament",
+	designs: [
+		{
+			key: "MAPLE",
+			label: "Maple Hollow snow globe",
+			priceCents: 1699,
+			files: [
+				{
+					type: "front",
+					fileId: ORNAMENT_SNOWGLOBE_FILE,
+					position: { area_width: 954, area_height: 954, width: 954, height: 954, top: 0, left: 0 },
+				},
+			],
+		},
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 599, additionalCents: 99 },
+	sizes: ["One size"],
+	colors: [{ name: "Royal Blue", hex: "#1d4fa8", variants: { "One size": 23133 } }],
 	productionEnabled: false,
 });
 
