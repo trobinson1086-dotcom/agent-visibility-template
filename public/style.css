@@ -246,3 +246,11 @@ html{scroll-padding-top:var(--header-h,110px)}
 .format-grid .format-option{display:block;border:2px solid #dce9f9;border-radius:13px;padding:13px;background:white;color:var(--ink);text-decoration:none;transition:border-color .15s,box-shadow .15s}
 .format-grid .format-option:hover,.format-grid .format-option:focus-visible{border-color:var(--blue);box-shadow:0 6px 16px #0758bd22}
 .format-grid .format-option small{display:inline-block;margin-top:8px;background:var(--blue);color:#fff;border-radius:999px;padding:4px 12px;font-weight:800;font-size:12px}
+/* Social media buttons (contact section and footer). */
+.social-follow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 14px;margin:6px auto 22px}
+.social-follow b{color:var(--deep);font-size:16px}
+.social-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:9px 18px;border-radius:999px;font-weight:800;font-size:15px;text-decoration:none;color:#fff;box-shadow:0 3px 0 #0003}
+.social-facebook{background:#1877f2}
+.social-btn:hover,.social-btn:focus-visible{filter:brightness(1.1)}
+.social-links{margin:12px 0 4px}
+.social-links .social-btn{min-height:40px;padding:7px 14px;font-size:14px}
