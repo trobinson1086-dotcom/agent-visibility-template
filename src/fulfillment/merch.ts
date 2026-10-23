@@ -1146,16 +1146,16 @@ MERCH.push({
 });
 
 // Drawstring bags (Printful product 262, all-over print, 15x17 in): the
-// backpack's banner, crown and rainbow SQUISHMAN with stars and paw prints, on
+// backpack's banner and crown with a gold SQUISHMAN, stars and paw prints, on
 // a solid color. Orders take one strip for the whole bag: the front on the
 // top half and the back, upside down, below the fold at the bottom of the
 // bag. Each color has its own strip.
 const DRAWSTRING_FILES: Record<string, number> = {
-	"White": 1092476237,
-	"Pink": 1092476245,
-	"Royal Blue": 1092476254,
-	"Grey": 1092476261,
-	"Black": 1092476264,
+	"White": 1092478892,
+	"Pink": 1092478897,
+	"Royal Blue": 1092478899,
+	"Grey": 1092478902,
+	"Black": 1092478905,
 };
 MERCH.push({
 	key: "DRAWSTRING",
