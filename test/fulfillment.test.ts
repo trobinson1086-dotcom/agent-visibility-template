@@ -12,7 +12,7 @@ import {
 	health,
 	retry,
 } from "../src/fulfillment/service";
-import { MERCH, merchProduct, merchSelection } from "../src/fulfillment/merch";
+import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection } from "../src/fulfillment/merch";
 import { reconcile } from "../src/fulfillment/service";
 import * as store from "../src/fulfillment/store";
 import { verifyStripeSignature } from "../src/fulfillment/stripe";
@@ -873,6 +873,7 @@ describe("merch checkout", () => {
 			["DRAWSTRING", 2499],
 			["NOTEBOOK", 1799],
 			["LEGGINGS", 2999],
+			["BABY", 2699, 2399, 2399, 2399, 2699],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1534,6 +1535,24 @@ describe("merch orders → Printful", () => {
 			retail_price: "29.99",
 			files: [{ type: "default", id: youth.files[0].fileId, position: { area_width: 6000, area_height: 6000 } }],
 			options: [{ id: "stitch_color", value: "white" }],
+		});
+	});
+
+	it("sends baby one-pieces with the kids' tee art scaled to the baby print area", async () => {
+		const full = merchSelection("BABY", "Yellow", "6–12 months", "FULL")!;
+		expect(full.variantId).toBe(10330);
+		expect(full.files.map((f) => [f.type, f.position!.area_width, f.position!.area_height])).toEqual([
+			["front", 1050, 1200],
+			["back", 1050, 1200],
+		]);
+
+		merchSession("cs_test_baby", "BABY|Pink|3–6 months|LOGO");
+		await deliver(sandboxEnv(), paidEvent("cs_test_baby"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 9442,
+			name: "Squish Squad Baby One-Piece, Crown Logo — Pink, 3–6 months",
+			retail_price: "23.99",
+			files: [{ type: "front", id: BACK_CROWN_FILE }],
 		});
 	});
 

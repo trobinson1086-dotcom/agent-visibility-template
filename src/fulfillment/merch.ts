@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1277,6 +1277,48 @@ MERCH.push({
 		{ name: "Royal Blue", hex: "#1d4fa8", variants: LEGGINGS_SIZES },
 		{ name: "Grey", hex: "#a9adb3", variants: LEGGINGS_SIZES },
 		{ name: "Black", hex: "#151515", variants: LEGGINGS_SIZES },
+	],
+	productionEnabled: false,
+});
+
+// Baby one-pieces (Printful product 308, Bella + Canvas 100B, 3-18 months)
+// with the kids' tee designs, scaled to the 1050x1200 baby print area.
+const BABY_AREA = { area_width: 1050, area_height: 1200 };
+const babyBanner: MerchFile = {
+	type: "front",
+	fileId: FRONT_BANNER_FILE,
+	position: { ...BABY_AREA, width: 900, height: 942, top: 60, left: 75 },
+};
+const babyCrown = (type: "front" | "back"): MerchFile => ({
+	type,
+	fileId: BACK_CROWN_FILE,
+	position: { ...BABY_AREA, width: 900, height: 759, top: 60, left: 75 },
+});
+const babyMaple: MerchFile = {
+	type: "front",
+	fileId: MAPLE_HOLLOW_FILE,
+	position: { ...BABY_AREA, width: 900, height: 450, top: 60, left: 75 },
+};
+MERCH.push({
+	key: "BABY",
+	name: "Squish Squad Baby One-Piece",
+	designs: designs(
+		2699,
+		[babyBanner, babyCrown("back")],
+		[babyBanner],
+		[babyCrown("front")],
+		[babyMaple],
+		[babyMaple, babyCrown("back")],
+	),
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: ["3–6 months", "6–12 months", "12–18 months"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "3–6 months": 9438, "6–12 months": 9439, "12–18 months": 9440 } },
+		{ name: "Pink", hex: "#ffd6df", variants: { "3–6 months": 9442, "6–12 months": 9443, "12–18 months": 9444 } },
+		{ name: "Yellow", hex: "#ffea75", variants: { "3–6 months": 10329, "6–12 months": 10330, "12–18 months": 10331 } },
+		{ name: "Heather Columbia Blue", hex: "#6495ff", variants: { "3–6 months": 9454, "6–12 months": 9455, "12–18 months": 9456 } },
+		{ name: "Athletic Heather", hex: "#cbcbcb", variants: { "3–6 months": 10333, "6–12 months": 10334, "12–18 months": 10335 } },
 	],
 	productionEnabled: false,
 });
