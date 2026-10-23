@@ -648,8 +648,6 @@ describe("configuration health check", () => {
 					socks_white: "ok",
 					backpack_royal_blue: "ok",
 					backpack_pink: "ok",
-					backpack_sky_blue: "ok",
-					backpack_sunshine_yellow: "ok",
 					backpack_white: "ok",
 					hatCrownWordmark: "ok",
 					hatPaw: "ok",
@@ -854,7 +852,7 @@ describe("merch checkout", () => {
 			["KIDSHOODIE", 4999, 4999, 4999, 4999, 4999],
 			["BLANKET", 4999, 4999, 4999, 4999, 4999, 4999],
 			["SOCKS", 1699, 1699, 1699],
-			["BACKPACK", 4999, 4999, 4999, 4999, 4999, 4999],
+			["BACKPACK", 4999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1449,17 +1447,19 @@ describe("merch orders → Printful", () => {
 		});
 	});
 
-	it("sends backpacks with the art on the front and the pattern on the other panels", async () => {
-		const files = merchSelection("BACKPACK", "Pink", "One size", "PUDY")!.files;
-		expect(files.map((f) => f.type)).toEqual(["front", "pocket", "top", "bottom"]);
-		expect(files.every((f) => typeof f.fileId === "number")).toBe(true);
-		expect(files[1].fileId).toBe(merchSelection("BACKPACK", "Pink", "One size", "SM_ROYAL")!.files[1].fileId);
-		expect(files[0].fileId).not.toBe(merchSelection("BACKPACK", "Pink", "One size", "SM_ROYAL")!.files[0].fileId);
+	it("sends backpacks with each color's own front, pocket, top and bottom", async () => {
+		const pink = merchSelection("BACKPACK", "Pink", "One size", "PUDY")!.files;
+		const white = merchSelection("BACKPACK", "White", "One size", "PUDY")!.files;
+		expect(pink.map((f) => f.type)).toEqual(["front", "pocket", "top", "bottom"]);
+		expect(pink.every((f) => typeof f.fileId === "number")).toBe(true);
+		expect(pink.map((f) => f.fileId)).not.toEqual(white.map((f) => f.fileId));
+		expect(merchSelection("BACKPACK", "Sky Blue", "One size", "PUDY")).toBeNull();
 
 		merchSession("cs_test_backpack", "BACKPACK|Pink|One size|PUDY");
 		await deliver(sandboxEnv(), paidEvent("cs_test_backpack"));
 		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
 			variant_id: 9063,
+			name: "Squish Squad Backpack, Squish Man & Pudy — Pink",
 			retail_price: "49.99",
 			options: [{ id: "stitch_color", value: "clear" }],
 		});
