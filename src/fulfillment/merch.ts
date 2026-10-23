@@ -1048,6 +1048,7 @@ const SOCK_FILES: Record<string, Record<SockArt, number>> = {
 	"Pink": { pattern: 1092316224, SM_ROYAL: 1092316227, BEST_FRIENDS: 1092316229 },
 	"Sky Blue": { pattern: 1092316233, SM_ROYAL: 1092316240, BEST_FRIENDS: 1092316273 },
 	"Sunshine Yellow": { pattern: 1092316279, SM_ROYAL: 1092316283, BEST_FRIENDS: 1092316290 },
+	"White": { pattern: 1092368394, SM_ROYAL: 1092368470, BEST_FRIENDS: 1092368726 },
 };
 const SOCK_SIZES = { S: 22786, M: 22787, L: 22788 };
 // The panels are a few pixels shorter in S and L; the extra is trimmed at the cuff.
@@ -1089,6 +1090,7 @@ MERCH.push({
 		{ name: "Pink", hex: "#f4b6c7", variants: SOCK_SIZES },
 		{ name: "Sky Blue", hex: "#8fcbef", variants: SOCK_SIZES },
 		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: SOCK_SIZES },
+		{ name: "White", hex: "#ffffff", variants: SOCK_SIZES },
 	],
 	productionEnabled: false,
 });
