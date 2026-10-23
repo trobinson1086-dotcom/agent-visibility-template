@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE" | "SWEATSHIRT";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1414,6 +1414,34 @@ MERCH.push({
 		{ name: "Light Blue", hex: "#d4ebff", variants: toddlerSizes([12622, 12623, 12624, 12625]) },
 		{ name: "Heather", hex: "#c2bfbd", variants: toddlerSizes([12614, 12615, 12616, 12617]) },
 		{ name: "Black", hex: "#141414", variants: toddlerSizes([12610, 12611, 12612, 12613]) },
+	],
+	productionEnabled: false,
+});
+
+// Grown-up crewneck sweatshirts (Printful product 145, Gildan 18000, S-3XL)
+// with the grown-up tee's designs and placements (same 1800x2400 print area)
+// and the tee's colors.
+MERCH.push({
+	key: "SWEATSHIRT",
+	name: "Squish Squad Sweatshirt",
+	designs: designs(
+		3999,
+		[front(1800, 2400, 150), back],
+		[pudyFront(1800, 2400, 150)],
+		[logoFront(1800, 2400, 150)],
+		[mapleFront(1800, 2400, 150)],
+		[mapleFront(1800, 2400, 150), back],
+	),
+	sizeUpchargeCents: UPCHARGE,
+	shipping: { firstCents: 999, additionalCents: 299 },
+	sizes: SIZES,
+	colors: [
+		{ name: "Black", hex: "#0b0b0b", variants: { S: 5434, M: 5435, L: 5436, XL: 5437, "2XL": 5438, "3XL": 5439 } },
+		{ name: "White", hex: "#ffffff", variants: { S: 5426, M: 5427, L: 5428, XL: 5429, "2XL": 5430, "3XL": 5431 } },
+		{ name: "Royal Blue", hex: "#1d50a4", variants: { S: 16870, M: 16871, L: 16872, XL: 16873, "2XL": 16874, "3XL": 16875 } },
+		{ name: "Light Pink", hex: "#f3d4e3", variants: { S: 7868, M: 7869, L: 7870, XL: 7871, "2XL": 7872, "3XL": 7873 } },
+		{ name: "Sport Grey", hex: "#ccccce", variants: { S: 5514, M: 5515, L: 5516, XL: 5517, "2XL": 5518, "3XL": 5519 } },
+		{ name: "Red", hex: "#da0a1a", variants: { S: 5442, M: 5443, L: 5444, XL: 5445, "2XL": 5446, "3XL": 5447 } },
 	],
 	productionEnabled: false,
 });
