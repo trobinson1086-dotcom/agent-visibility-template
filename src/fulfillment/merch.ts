@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1091,6 +1091,111 @@ MERCH.push({
 		{ name: "Sky Blue", hex: "#8fcbef", variants: SOCK_SIZES },
 		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: SOCK_SIZES },
 		{ name: "White", hex: "#ffffff", variants: SOCK_SIZES },
+	],
+	productionEnabled: false,
+});
+
+// Backpacks (Printful product 279, all-over print, 16x12x4 in): the art on the
+// top half of the front, with stars and paw prints on the rest of the front,
+// the pocket and the top and bottom strips. Every color has its own files
+// (public/assets/merch/print/backpacks/).
+type BackpackPart = "pocket" | "top" | "bottom" | "SM_ROYAL" | "BEST_FRIENDS" | "MH_PALS" | "MH_WAVE" | "PUDY" | "SM_VALUES";
+const BACKPACK_FILES: Record<string, Record<BackpackPart, number>> = {
+	"Royal Blue": {
+		pocket: 1092427765,
+		top: 1092427770,
+		bottom: 1092427778,
+		SM_ROYAL: 1092427785,
+		BEST_FRIENDS: 1092427790,
+		MH_PALS: 1092427794,
+		MH_WAVE: 1092427799,
+		PUDY: 1092427806,
+		SM_VALUES: 1092427808,
+	},
+	"Pink": {
+		pocket: 1092427816,
+		top: 1092427826,
+		bottom: 1092427832,
+		SM_ROYAL: 1092427838,
+		BEST_FRIENDS: 1092427841,
+		MH_PALS: 1092427845,
+		MH_WAVE: 1092427852,
+		PUDY: 1092427857,
+		SM_VALUES: 1092427863,
+	},
+	"Sky Blue": {
+		pocket: 1092427869,
+		top: 1092427875,
+		bottom: 1092427883,
+		SM_ROYAL: 1092427888,
+		BEST_FRIENDS: 1092427896,
+		MH_PALS: 1092427906,
+		MH_WAVE: 1092427915,
+		PUDY: 1092427923,
+		SM_VALUES: 1092427928,
+	},
+	"Sunshine Yellow": {
+		pocket: 1092427929,
+		top: 1092427937,
+		bottom: 1092427940,
+		SM_ROYAL: 1092427946,
+		BEST_FRIENDS: 1092427948,
+		MH_PALS: 1092427951,
+		MH_WAVE: 1092427955,
+		PUDY: 1092427961,
+		SM_VALUES: 1092427970,
+	},
+	"White": {
+		pocket: 1092427978,
+		top: 1092427990,
+		bottom: 1092427995,
+		SM_ROYAL: 1092427999,
+		BEST_FRIENDS: 1092428003,
+		MH_PALS: 1092428006,
+		MH_WAVE: 1092428010,
+		PUDY: 1092428014,
+		SM_VALUES: 1092428018,
+	},
+};
+const backpackPanel = (type: string, width: number, height: number, part: BackpackPart): MerchFile => ({
+	type,
+	fileId: null,
+	position: { area_width: width, area_height: height, width, height, top: 0, left: 0 },
+	fileIdByColor: Object.fromEntries(Object.entries(BACKPACK_FILES).map(([color, files]) => [color, files[part]])),
+});
+const backpack = (key: DesignKey & BackpackPart, label: string): MerchDesign => ({
+	key,
+	label,
+	priceCents: 4999,
+	files: [
+		backpackPanel("front", 2175, 3075, key),
+		backpackPanel("pocket", 1950, 1200, "pocket"),
+		backpackPanel("top", 4200, 1200, "top"),
+		backpackPanel("bottom", 4200, 750, "bottom"),
+	],
+	// Printful requires a stitch color; clear thread disappears into every color.
+	printfulOptions: { stitch_color: "clear" },
+});
+MERCH.push({
+	key: "BACKPACK",
+	name: "Squish Squad Backpack",
+	designs: [
+		backpack("SM_ROYAL", "Royal Squish Man"),
+		backpack("BEST_FRIENDS", "Best friends"),
+		backpack("MH_PALS", "Squish Man & Pudy in Maple Hollow"),
+		backpack("MH_WAVE", "Squish Man & Pudy waving"),
+		backpack("PUDY", "Squish Man & Pudy"),
+		backpack("SM_VALUES", "Squish Man values signpost"),
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 1099, additionalCents: 449 },
+	sizes: ["One size"],
+	colors: [
+		{ name: "Royal Blue", hex: "#1d4fa8", variants: { "One size": 9063 } },
+		{ name: "Pink", hex: "#f4b6c7", variants: { "One size": 9063 } },
+		{ name: "Sky Blue", hex: "#8fcbef", variants: { "One size": 9063 } },
+		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: { "One size": 9063 } },
+		{ name: "White", hex: "#ffffff", variants: { "One size": 9063 } },
 	],
 	productionEnabled: false,
 });

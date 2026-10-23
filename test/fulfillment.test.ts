@@ -646,6 +646,11 @@ describe("configuration health check", () => {
 					socks_sky_blue: "ok",
 					socks_sunshine_yellow: "ok",
 					socks_white: "ok",
+					backpack_royal_blue: "ok",
+					backpack_pink: "ok",
+					backpack_sky_blue: "ok",
+					backpack_sunshine_yellow: "ok",
+					backpack_white: "ok",
 					hatCrownWordmark: "ok",
 					hatPaw: "ok",
 					hatRoyalSquishMan: "ok",
@@ -787,7 +792,7 @@ describe("merch catalog", () => {
 		}
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
 		// Color pillows print the color into the art, so their colors share one blank.
-		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 });
@@ -849,6 +854,7 @@ describe("merch checkout", () => {
 			["KIDSHOODIE", 4999, 4999, 4999, 4999, 4999],
 			["BLANKET", 4999, 4999, 4999, 4999, 4999, 4999],
 			["SOCKS", 1699, 1699, 1699],
+			["BACKPACK", 4999, 4999, 4999, 4999, 4999, 4999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1394,8 +1400,8 @@ describe("merch orders → Printful", () => {
 				if (p.key === "HAT") {
 					for (const v of Object.values(d.printfulOptions ?? {})) expect((v as string[]).length).toBeLessThanOrEqual(6);
 				}
-				if (["COLORPILLOW", "LUMBAR", "KIDSHOODIE"].includes(p.key)) {
-					expect(d.printfulOptions?.stitch_color, `${p.key} ${d.key}`).toBe("white");
+				if (["COLORPILLOW", "LUMBAR", "KIDSHOODIE", "BACKPACK"].includes(p.key)) {
+					expect(d.printfulOptions?.stitch_color, `${p.key} ${d.key}`).toMatch(/^(white|clear)$/);
 				}
 			}
 		}
@@ -1440,6 +1446,22 @@ describe("merch orders → Printful", () => {
 			height: 5657,
 			top: 0,
 			left: 0,
+		});
+	});
+
+	it("sends backpacks with the art on the front and the pattern on the other panels", async () => {
+		const files = merchSelection("BACKPACK", "Pink", "One size", "PUDY")!.files;
+		expect(files.map((f) => f.type)).toEqual(["front", "pocket", "top", "bottom"]);
+		expect(files.every((f) => typeof f.fileId === "number")).toBe(true);
+		expect(files[1].fileId).toBe(merchSelection("BACKPACK", "Pink", "One size", "SM_ROYAL")!.files[1].fileId);
+		expect(files[0].fileId).not.toBe(merchSelection("BACKPACK", "Pink", "One size", "SM_ROYAL")!.files[0].fileId);
+
+		merchSession("cs_test_backpack", "BACKPACK|Pink|One size|PUDY");
+		await deliver(sandboxEnv(), paidEvent("cs_test_backpack"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 9063,
+			retail_price: "49.99",
+			options: [{ id: "stitch_color", value: "clear" }],
 		});
 	});
 
