@@ -671,6 +671,7 @@ describe("configuration health check", () => {
 					hatRoyalSquishMan: "ok",
 					hatBestFriends: "ok",
 					hatCrown: "ok",
+					beanieMapleHollow: "ok",
 				},
 			},
 			merchCheckout: "off",
@@ -874,6 +875,7 @@ describe("merch checkout", () => {
 			["NOTEBOOK", 1799],
 			["LEGGINGS", 2999],
 			["BABY", 2699, 2399, 2399, 2399, 2699],
+			["BEANIE", 2499, 2499, 2499],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1416,7 +1418,7 @@ describe("merch orders → Printful", () => {
 						expect(pos!.left, `${p.key} ${d.key}`).toBeGreaterThanOrEqual(0);
 					}
 				}
-				if (p.key === "HAT") {
+				if (p.key === "HAT" || p.key === "BEANIE") {
 					for (const v of Object.values(d.printfulOptions ?? {})) expect((v as string[]).length).toBeLessThanOrEqual(6);
 				}
 				if (["COLORPILLOW", "LUMBAR", "KIDSHOODIE", "BACKPACK", "DRAWSTRING", "LEGGINGS"].includes(p.key)) {
@@ -1553,6 +1555,27 @@ describe("merch orders → Printful", () => {
 			name: "Squish Squad Baby One-Piece, Crown Logo — Pink, 3–6 months",
 			retail_price: "23.99",
 			files: [{ type: "front", id: BACK_CROWN_FILE }],
+		});
+	});
+
+	it("sends beanies with one of three logos embroidered on the cuff", async () => {
+		expect(merchProduct("BEANIE")!.designs.map((d) => d.key)).toEqual(["LOGO", "MAPLE", "HAT_PAW"]);
+		expect(merchSelection("BEANIE", "Red", "One size", "LOGO")!.files[0].fileId).toBe(merchSelection("HAT", "White", "Youth", "LOGO")!.files[0].fileId);
+		const sel = merchSelection("BEANIE", "Baby Pink", "One size", "MAPLE")!;
+		expect(sel.files).toHaveLength(1);
+		expect(sel.files[0]).toMatchObject({
+			type: "embroidery_front",
+			position: { area_width: 1500, area_height: 525, width: 1038, height: 505, top: 10, left: 231 },
+		});
+
+		merchSession("cs_test_beanie", "BEANIE|Baby Pink|One size|MAPLE");
+		await deliver(sandboxEnv(), paidEvent("cs_test_beanie"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 17494,
+			name: "Squish Squad Beanie, Maple Hollow Logo — Baby Pink",
+			retail_price: "24.99",
+			files: [{ type: "embroidery_front", id: sel.files[0].fileId }],
+			options: [{ id: "thread_colors", value: ["#FFFFFF", "#FFCC00", "#005397", "#CC3333", "#A67843", "#660000"] }],
 		});
 	});
 

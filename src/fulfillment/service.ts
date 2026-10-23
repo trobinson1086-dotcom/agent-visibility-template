@@ -36,6 +36,7 @@ import {
 } from "./lulu";
 import {
 	BACK_CROWN_FILE,
+	BEANIE_MAPLE_FILE,
 	FRONT_BANNER_FILE,
 	MAPLE_HOLLOW_FILE,
 	MERCH,
@@ -242,6 +243,7 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 			[HAT_FILES.SM_ROYAL, "hatRoyalSquishMan"],
 			[HAT_FILES.BEST_FRIENDS, "hatBestFriends"],
 			[HAT_FILES.CROWN, "hatCrown"],
+			[BEANIE_MAPLE_FILE, "beanieMapleHollow"],
 		]);
 		const printFiles: Record<string, string> = {};
 		const checked = new Set<number>();

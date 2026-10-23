@@ -58,6 +58,7 @@ const categories=[
   {name:'Squish Squad Drawstring Bags',hidden:true,desc:'Drawstring bags.',colors:[]},
   {name:'Squish Squad Notebooks',hidden:true,desc:'Notebooks.',colors:[]},
   {name:'Squish Squad Full-Color Caps',hidden:true,desc:'Full-color caps.',colors:[]},
+  {name:'Squish Squad Beanies',hidden:true,desc:'Beanies.',colors:[]},
   {name:'Squish Squad Tote Bags',desc:'Roomy totes with navy handles and base, showing Squish Man and Pudy with the series banner on the front and the crown, wordmark and paw print on the back.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-tote-bags',777,400,'Squish Man tote bags in white, pink and royal blue with navy handles and base, Squish Man and Pudy artwork on the front and the crown, wordmark and paw print on the back'))}
  ]},
  {id:'merch-cozy',title:'Cozy Collection',blurb:'Soft and snuggly for storytime and bedtime.',items:[
@@ -115,6 +116,8 @@ const SHOP={
   desc:'A soft square pillow with your favorite Squish Man art centered on a bold color, the same color on the back. Hidden zipper and a machine-washable case.'},
  'Storybook Lumbar Pillows':{key:'LUMBAR',img:'lumbar',name:'Storybook Lumbar Pillow',facts:'20×12 inches · soft polyester case and insert',shown:'Front and back, same scene',
   desc:'A long pillow covered edge to edge with a scene from the Squish Man books, printed on both sides. Perfect across a bed or in a reading nook. Hidden zipper and a machine-washable case.'},
+ 'Squish Squad Beanies':{key:'BEANIE',img:'beanie',name:'Squish Squad Beanie',facts:'One size fits most · soft acrylic knit · embroidered',shown:'Embroidered on the cuff',
+  desc:'A snug, cozy cuffed beanie with the gold crown SQUISHMAN logo, The Amazing Adventures of Squish Man – Maple Hollow logo or a paw print embroidered on the cuff. Soft, stretchy knit that fits kids and grown-ups.'},
  'Squish Squad Hats':{key:'HAT',img:'hat',name:'Squish Squad Youth Cap',facts:'Kids’ size · adjustable strap · embroidered',shown:'Front and back',
   desc:'A kids’ baseball cap with your favorite Squish Man picture embroidered on the front and the gold crown SQUISHMAN logo on the back, with a curved brim and an adjustable strap.'},
  'Squish Squad Full-Color Caps':{key:'DADHAT',img:'dadhat',name:'Squish Squad Full-Color Cap',facts:'Adult size · adjustable strap · full-color print',shown:'Printed in full color on the front',
@@ -164,6 +167,7 @@ function shopColors(p){
  const alt=c=>k==='FULL'?`${p.name} in ${c}: front and back, as printed by our print partner`
   :k==='MAPLECROWN'?`${p.name} in ${c}: the Maple Hollow logo on the front and the crown logo on the back`
   :p.shop.key==='HAT'?`${p.name} in ${c} with ${DESIGN_ART[k]} embroidered on the front and ${k==='LOGO'?'a paw print':'the crown SQUISHMAN logo'} on the back`
+  :p.shop.key==='BEANIE'?`${p.name} in ${c} with ${DESIGN_ART[k]} embroidered on the cuff, and a close-up`
   :p.shop.key==='DADHAT'?`${p.name} in ${c} with ${DESIGN_ART[k]} printed in full color on the front, and a close-up`
   :p.shop.key==='PUZZLE'||p.shop.key==='LUMBAR'?`${p.name} showing ${DESIGN_ART[k]}, and a close-up of the picture`
   :p.shop.key==='POSTER'?`${p.name} with ${DESIGN_ART[k]} centered on white paper, and a close-up of the artwork`
@@ -191,7 +195,7 @@ function cardHtml(p,n){
 const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
 const sizeLabel=(m,v)=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v;
 const colorSizes=p=>p.shop.colors[p.active||0].sizes;
-const where=(m,d)=>m.key==='HAT'?'front + back':m.key==='DADHAT'?'front':['STICKER','POSTER','PUZZLE','BOTTLE','PILLOW','COLORPILLOW','LUMBAR','BLANKET','SOCKS','BACKPACK','DRAWSTRING','NOTEBOOK','LEGGINGS'].includes(m.key)?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
+const where=(m,d)=>m.key==='HAT'?'front + back':m.key==='DADHAT'?'front':['STICKER','POSTER','PUZZLE','BOTTLE','PILLOW','COLORPILLOW','LUMBAR','BLANKET','SOCKS','BACKPACK','DRAWSTRING','NOTEBOOK','LEGGINGS','BEANIE'].includes(m.key)?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
 function buyHtml(p,n){
  const m=p.shop,size=colorSizes(p)[0],one=m.sizes.length===1;
  return `${m.designs.length>1?`<p class="merch-design-note">${m.designs.length} designs to choose from</p>`:''}${m.designs.length>MAX_DESIGN_BUTTONS?`<label class="merch-design-list">Design <select class="merch-design-select" data-merch="${n}">${m.designs.map((d,i)=>`<option value="${i}"${i===(p.design||0)?' selected':''}>${esc(DESIGN_TITLE[d.key]||d.label)}</option>`).join('')}</select></label>`:''}<div class="merch-designs"${m.designs.length>MAX_DESIGN_BUTTONS||m.designs.length===1?' hidden':''} role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${where(m,d)?`${esc(where(m,d))} · `:''}${['STICKER','POSTER','PUZZLE','PILLOW','COLORPILLOW','BLANKET'].includes(m.key)?'from ':''}${money(d.priceCents)}</span></button>`).join('')}</div>

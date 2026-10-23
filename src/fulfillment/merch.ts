@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -687,6 +687,11 @@ export const HAT_FILES = {
 };
 const LOGO_THREADS = ["#FFCC00", "#A67843", "#005397", "#333366"];
 const PAW_THREADS = ["#005397", "#333366"];
+// The six threads each picture was simplified to.
+const HAT_THREADS = {
+	SM_ROYAL: ["#FFFFFF", "#96A1A8", "#FFCC00", "#005397", "#000000", "#E25C27"],
+	BEST_FRIENDS: ["#FFFFFF", "#FFCC00", "#005397", "#000000", "#660000", "#A67843"],
+};
 const hatDesign = (
 	key: DesignKey,
 	label: string,
@@ -730,22 +735,8 @@ MERCH.push({
 	key: "HAT",
 	name: "Squish Squad Youth Cap",
 	designs: [
-		hatDesign("SM_ROYAL", "Royal Squish Man", HAT_FILES.SM_ROYAL, 520, 525, [
-			"#FFFFFF",
-			"#96A1A8",
-			"#FFCC00",
-			"#005397",
-			"#000000",
-			"#E25C27",
-		]),
-		hatDesign("BEST_FRIENDS", "Best friends", HAT_FILES.BEST_FRIENDS, 552, 525, [
-			"#FFFFFF",
-			"#FFCC00",
-			"#005397",
-			"#000000",
-			"#660000",
-			"#A67843",
-		]),
+		hatDesign("SM_ROYAL", "Royal Squish Man", HAT_FILES.SM_ROYAL, 520, 525, HAT_THREADS.SM_ROYAL),
+		hatDesign("BEST_FRIENDS", "Best friends", HAT_FILES.BEST_FRIENDS, 552, 525, HAT_THREADS.BEST_FRIENDS),
 		hatDesign("LOGO", "Crown + SQUISHMAN, paw print back", HAT_FILES.CROWN_WORDMARK, 1031, 525, LOGO_THREADS, "paw"),
 		hatDesign("HAT_CROWN", "Crown", HAT_FILES.CROWN, 720, 525, LOGO_THREADS),
 		hatDesign("HAT_PAW", "Paw print", HAT_FILES.PAW, 470, 450, PAW_THREADS),
@@ -1319,6 +1310,55 @@ MERCH.push({
 		{ name: "Yellow", hex: "#ffea75", variants: { "3–6 months": 10329, "6–12 months": 10330, "12–18 months": 10331 } },
 		{ name: "Heather Columbia Blue", hex: "#6495ff", variants: { "3–6 months": 9454, "6–12 months": 9455, "12–18 months": 9456 } },
 		{ name: "Athletic Heather", hex: "#cbcbcb", variants: { "3–6 months": 10333, "6–12 months": 10334, "12–18 months": 10335 } },
+	],
+	productionEnabled: false,
+});
+
+// Cuffed beanies (Printful product 266, Yupoong 1501KC) with three logos
+// embroidered on the cuff: the cap's crown + SQUISHMAN and paw print, and the
+// Maple Hollow logo, centered in the beanie's 1500x525 area. The colors
+// leave out royal and navy, where the blue threads would disappear.
+// The Maple Hollow logo simplified to six threads
+// (public/assets/merch/print/hats/squishman-hat-maple-6c-embroidery.png).
+export const BEANIE_MAPLE_FILE = 1092576176;
+const MAPLE_THREADS = ["#FFFFFF", "#FFCC00", "#005397", "#CC3333", "#A67843", "#660000"];
+const beanieDesign = (key: DesignKey, label: string, fileId: number, width: number, height: number, threads: string[]): MerchDesign => ({
+	key,
+	label,
+	priceCents: 2499,
+	files: [
+		{
+			type: "embroidery_front",
+			fileId,
+			position: {
+				area_width: 1500,
+				area_height: 525,
+				width,
+				height,
+				top: Math.floor((525 - height) / 2),
+				left: Math.floor((1500 - width) / 2),
+			},
+		},
+	],
+	printfulOptions: { thread_colors: threads },
+});
+MERCH.push({
+	key: "BEANIE",
+	name: "Squish Squad Beanie",
+	designs: [
+		beanieDesign("LOGO", "Crown + SQUISHMAN", HAT_FILES.CROWN_WORDMARK, 1031, 525, LOGO_THREADS),
+		beanieDesign("MAPLE", "Maple Hollow logo", BEANIE_MAPLE_FILE, 1038, 505, MAPLE_THREADS),
+		beanieDesign("HAT_PAW", "Paw print", HAT_FILES.PAW, 470, 450, PAW_THREADS),
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: ["One size"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "One size": 8938 } },
+		{ name: "Black", hex: "#171717", variants: { "One size": 8936 } },
+		{ name: "Baby Pink", hex: "#f6c6d3", variants: { "One size": 17494 } },
+		{ name: "Heather Grey", hex: "#b3b3b3", variants: { "One size": 8937 } },
+		{ name: "Red", hex: "#c4161c", variants: { "One size": 8939 } },
 	],
 	productionEnabled: false,
 });
