@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1220,6 +1220,63 @@ MERCH.push({
 		{ name: "Royal Blue", hex: "#1d4fa8", variants: { "One size": 12141 } },
 		{ name: "Grey", hex: "#a9adb3", variants: { "One size": 12141 } },
 		{ name: "Black", hex: "#151515", variants: { "One size": 12141 } },
+	],
+	productionEnabled: false,
+});
+
+// Kids' leggings: Printful's kids (322, sizes 2T-7) and youth (323, sizes 8-20)
+// all-over print leggings. Gold stars and paw prints all over a solid color,
+// with a gold crown on each hip. The two products have different print areas,
+// so each color has a kids file and a youth file.
+const LEGGINGS_KIDS = { "2T": 9696, "3T": 9697, "4T": 9698, "5T": 9699, "6": 9700, "6X": 9701, "7": 9702 };
+const LEGGINGS_YOUTH = { "8": 9703, "10": 9704, "12": 9705, "14": 9706, "16": 9707, "18": 9708, "20": 9709 };
+const LEGGINGS_FILES: Record<string, Record<"kids" | "youth", number>> = {
+	"White": { kids: 1092499537, youth: 1092499553 },
+	"Pink": { kids: 1092499540, youth: 1092499555 },
+	"Royal Blue": { kids: 1092499541, youth: 1092499562 },
+	"Grey": { kids: 1092499543, youth: 1092499569 },
+	"Black": { kids: 1092499547, youth: 1092499574 },
+};
+const leggingsArea = (width: number, height: number) => ({ area_width: width, area_height: height, width, height, top: 0, left: 0 });
+const LEGGINGS_SIZES = { ...LEGGINGS_KIDS, ...LEGGINGS_YOUTH };
+// Number-like keys ("6", "8") sort first in an object, so the size order is listed.
+const LEGGINGS_SIZE_ORDER = ["2T", "3T", "4T", "5T", "6", "6X", "7", "8", "10", "12", "14", "16", "18", "20"];
+const leggingsGroup = (size: string) => (size in LEGGINGS_KIDS ? "kids" : "youth");
+MERCH.push({
+	key: "LEGGINGS",
+	name: "Squish Squad Kids’ Leggings",
+	designs: [
+		{
+			key: "SOCK_PATTERN",
+			label: "Stars & paw prints",
+			priceCents: 2999,
+			files: [
+				{
+					type: "default",
+					fileId: null,
+					positionBySize: Object.fromEntries(
+						Object.keys(LEGGINGS_SIZES).map((size) => [size, leggingsGroup(size) === "kids" ? leggingsArea(5400, 4650) : leggingsArea(6000, 6000)]),
+					),
+					fileIdByColor: Object.fromEntries(
+						Object.entries(LEGGINGS_FILES).flatMap(([color, files]) =>
+							Object.keys(LEGGINGS_SIZES).map((size) => [`${color}|${size}`, files[leggingsGroup(size)]]),
+						),
+					),
+				},
+			],
+			// Printful requires a stitch color for all-over print items.
+			printfulOptions: { stitch_color: "white" },
+		},
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 599, additionalCents: 199 },
+	sizes: LEGGINGS_SIZE_ORDER,
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: LEGGINGS_SIZES },
+		{ name: "Pink", hex: "#f7b8cc", variants: LEGGINGS_SIZES },
+		{ name: "Royal Blue", hex: "#1d4fa8", variants: LEGGINGS_SIZES },
+		{ name: "Grey", hex: "#a9adb3", variants: LEGGINGS_SIZES },
+		{ name: "Black", hex: "#151515", variants: LEGGINGS_SIZES },
 	],
 	productionEnabled: false,
 });

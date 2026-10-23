@@ -45,6 +45,7 @@ const categories=[
   {name:'Squish Squad Kids’ Hoodies',hidden:true,desc:'Kids’ hoodies.',colors:[]},
   {name:'Squish Squad Long Sleeve',desc:'A long-sleeve take on the Squish Squad design: Squish Man and Pudy on the front, and the gold crown, SQUISHMAN wordmark and paw print on the back.',colors:[['White','#ffffff',sleeve.white],['Pink','#f59ac4',sleeve.pink],['Royal Blue','#1747d8',sleeve.royal]]},
   {name:'Squish Squad Kids’ Long Sleeves',hidden:true,desc:'Kids’ long sleeves.',colors:[]},
+  {name:'Squish Squad Kids’ Leggings',hidden:true,desc:'Kids’ leggings.',colors:[]},
   {name:'Squish Squad Pajama Sets',hidden:true,desc:'Bedtime in Maple Hollow: a long-sleeve top with Squish Man and Pudy on the front and the crown and wordmark on the back, paired with pants covered in Squish Man and Pudy faces, gold crowns, stars and paw prints.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-pajama-sets',722,371,'Squish Man pajama sets in white, pink and royal blue: long-sleeve tops with Squish Man and Pudy on the front and a crown, SQUISHMAN wordmark and paw print on the back, with matching pants patterned with character faces, crowns, stars and paws'))}
  ]},
  {id:'merch-school',title:'School & Adventures',blurb:'Gear for the walk to Maple Hollow School and beyond.',items:[
@@ -123,6 +124,8 @@ const SHOP={
   desc:'A light drawstring backpack for gym class, swim lessons and sleepovers, with The Amazing Adventures of Squish Man banner, the gold crown and a gold SQUISHMAN, and gold stars and paw prints, on both sides.'},
  'Squish Squad Notebooks':{key:'NOTEBOOK',img:'notebook',name:'Squish Squad Notebook',facts:'5.5×8.5″ · 140 dotted pages · metal spiral',shown:'Front and back covers',
   desc:'A spiral notebook for doodles, stories and schoolwork, with The Amazing Adventures of Squish Man banner, the gold crown and SQUISHMAN on the front, and the crown and SQUISHMAN on the back. Soft-touch covers, 140 dotted pages.'},
+ 'Squish Squad Kids’ Leggings':{key:'LEGGINGS',img:'leggings',name:'Squish Squad Kids’ Leggings',facts:'Kids 2T–7 · youth 8–20 · soft stretch microfiber',shown:'Front and side',
+  desc:'Soft, stretchy leggings covered in gold stars and paw prints, with a little gold crown on each hip and an elastic waistband. Bright colors that won’t fade in the wash.'},
  'Squish Squad Backpacks':{key:'BACKPACK',img:'backpack',name:'Squish Squad Backpack',facts:'16×12×4″ · water-resistant · laptop pocket',shown:'Front of the backpack',
   desc:'A roomy, water-resistant backpack with The Amazing Adventures of Squish Man banner on the front, a gold crown and gold SQUISHMAN on the front pocket, and gold stars and paw prints all around. Inside laptop sleeve. Great for school and adventures.'},
  'Squish Squad Mugs':{key:'MUG',img:'mug',name:'Squish Squad Mug',facts:'11 oz ceramic · dishwasher and microwave safe',
@@ -185,7 +188,7 @@ function cardHtml(p,n){
 const opts=(a,f)=>a.map(v=>`<option value="${esc(v)}">${esc(f(v))}</option>`).join('');
 const sizeLabel=(m,v)=>m.sizeUpchargeCents[v]?`${v} (+${money(m.sizeUpchargeCents[v])})`:v;
 const colorSizes=p=>p.shop.colors[p.active||0].sizes;
-const where=(m,d)=>m.key==='HAT'?'front + back':m.key==='DADHAT'?'front':['STICKER','POSTER','PUZZLE','BOTTLE','PILLOW','COLORPILLOW','LUMBAR','BLANKET','SOCKS','BACKPACK','DRAWSTRING','NOTEBOOK'].includes(m.key)?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
+const where=(m,d)=>m.key==='HAT'?'front + back':m.key==='DADHAT'?'front':['STICKER','POSTER','PUZZLE','BOTTLE','PILLOW','COLORPILLOW','LUMBAR','BLANKET','SOCKS','BACKPACK','DRAWSTRING','NOTEBOOK','LEGGINGS'].includes(m.key)?'':TWO_SIDED.has(d.key)?(m.key==='MUG'?'both sides':'front + back'):(m.key==='MUG'?'one side':'front only');
 function buyHtml(p,n){
  const m=p.shop,size=colorSizes(p)[0],one=m.sizes.length===1;
  return `${m.designs.length>1?`<p class="merch-design-note">${m.designs.length} designs to choose from</p>`:''}${m.designs.length>MAX_DESIGN_BUTTONS?`<label class="merch-design-list">Design <select class="merch-design-select" data-merch="${n}">${m.designs.map((d,i)=>`<option value="${i}"${i===(p.design||0)?' selected':''}>${esc(DESIGN_TITLE[d.key]||d.label)}</option>`).join('')}</select></label>`:''}<div class="merch-designs"${m.designs.length>MAX_DESIGN_BUTTONS||m.designs.length===1?' hidden':''} role="group" aria-label="${esc(p.name)} design">${m.designs.map((d,i)=>`<button type="button" class="merch-design" data-merch="${n}" data-design="${i}" aria-pressed="${i===(p.design||0)}"><b>${esc(DESIGN_TITLE[d.key]||d.label)}</b><span>${where(m,d)?`${esc(where(m,d))} · `:''}${['STICKER','POSTER','PUZZLE','PILLOW','COLORPILLOW','BLANKET'].includes(m.key)?'from ':''}${money(d.priceCents)}</span></button>`).join('')}</div>
