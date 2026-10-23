@@ -1096,17 +1096,17 @@ MERCH.push({
 });
 
 // Backpacks (Printful product 279, all-over print, 16x12x4 in): The Amazing
-// Adventures of Squish Man banner on the front, the gold crown and a rainbow
+// Adventures of Squish Man banner on the front, the gold crown and a gold
 // SQUISHMAN on the front pocket, gold stars and paw prints around both, and
 // solid top and bottom strips. Every color has its own files
 // (public/assets/merch/print/backpacks/).
 type BackpackPart = "front" | "pocket" | "top" | "bottom";
 const BACKPACK_FILES: Record<string, Record<BackpackPart, number>> = {
-	"White": { front: 1092458943, pocket: 1092452285, top: 1092452289, bottom: 1092452297 },
-	"Pink": { front: 1092458944, pocket: 1092452309, top: 1092452314, bottom: 1092452318 },
-	"Royal Blue": { front: 1092458945, pocket: 1092452327, top: 1092452335, bottom: 1092452344 },
-	"Grey": { front: 1092463321, pocket: 1092463328, top: 1092463331, bottom: 1092463333 },
-	"Black": { front: 1092463339, pocket: 1092463344, top: 1092463349, bottom: 1092463351 },
+	"White": { front: 1092484970, pocket: 1092484974, top: 1092452289, bottom: 1092452297 },
+	"Pink": { front: 1092484976, pocket: 1092484977, top: 1092452314, bottom: 1092452318 },
+	"Royal Blue": { front: 1092484986, pocket: 1092484996, top: 1092452335, bottom: 1092452344 },
+	"Grey": { front: 1092485002, pocket: 1092485010, top: 1092463331, bottom: 1092463333 },
+	"Black": { front: 1092485013, pocket: 1092485016, top: 1092463349, bottom: 1092463351 },
 };
 const backpackPanel = (part: BackpackPart, width: number, height: number): MerchFile => ({
 	type: part,
