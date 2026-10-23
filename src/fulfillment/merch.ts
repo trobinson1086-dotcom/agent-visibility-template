@@ -219,14 +219,14 @@ const designs = (
 // The Squish Squad shield logo (public/assets/merch/print/squish-squad-logo.png),
 // at its native 150 DPI size on the front, alone or with the crown logo back.
 export const SQUISH_SQUAD_FILE = 1092602763;
-const squadFront: MerchFile = {
+const squadFront = (areaWidth: number, areaHeight: number, top: number): MerchFile => ({
 	type: "front",
 	fileId: SQUISH_SQUAD_FILE,
-	position: { area_width: 1800, area_height: 2400, width: 1180, height: 1272, top: 150, left: 310 },
-};
-const squadDesigns = (fullCents: number): MerchDesign[] => [
-	{ key: "SQUAD", label: "Squish Squad logo only (front)", priceCents: fullCents - 300, files: [squadFront] },
-	{ key: "SQUADCROWN", label: "Squish Squad logo front, crown logo back", priceCents: fullCents, files: [squadFront, back] },
+	position: { area_width: areaWidth, area_height: areaHeight, width: 1180, height: 1272, top, left: (areaWidth - 1180) / 2 },
+});
+const squadDesigns = (fullCents: number, front = squadFront(1800, 2400, 150), crownBack: MerchFile = back): MerchDesign[] => [
+	{ key: "SQUAD", label: "Squish Squad logo only (front)", priceCents: fullCents - 300, files: [front] },
+	{ key: "SQUADCROWN", label: "Squish Squad logo front, crown logo back", priceCents: fullCents, files: [front, crownBack] },
 ];
 
 export const MERCH: MerchProduct[] = [
@@ -838,7 +838,7 @@ MERCH.push({
 		[youthCrown("front")],
 		[youthMaple],
 		[youthMaple, youthCrown("back")],
-	),
+	).concat(squadDesigns(2699, squadFront(1500, 1800, 100), youthCrown("back"))),
 	sizeUpchargeCents: {},
 	shipping: { firstCents: 499, additionalCents: 199 },
 	sizes: ["Youth S", "Youth M", "Youth L", "Youth XL"],
@@ -867,7 +867,7 @@ MERCH.push({
 		[youthCrown("front")],
 		[youthMaple],
 		[youthMaple, youthCrown("back")],
-	),
+	).concat(squadDesigns(2899, squadFront(1500, 1800, 100), youthCrown("back"))),
 	sizeUpchargeCents: {},
 	shipping: { firstCents: 499, additionalCents: 199 },
 	sizes: ["Youth S", "Youth M", "Youth L"],
@@ -1392,7 +1392,7 @@ MERCH.push({
 		[youthCrown("front")],
 		[youthMaple],
 		[youthMaple, youthCrown("back")],
-	),
+	).concat(squadDesigns(3499, squadFront(1500, 1800, 100), youthCrown("back"))),
 	sizeUpchargeCents: {},
 	shipping: { firstCents: 499, additionalCents: 199 },
 	sizes: ["Youth XS", "Youth S", "Youth M", "Youth L", "Youth XL"],
