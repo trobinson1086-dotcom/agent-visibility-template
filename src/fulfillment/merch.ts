@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1091,6 +1091,52 @@ MERCH.push({
 		{ name: "Sky Blue", hex: "#8fcbef", variants: SOCK_SIZES },
 		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: SOCK_SIZES },
 		{ name: "White", hex: "#ffffff", variants: SOCK_SIZES },
+	],
+	productionEnabled: false,
+});
+
+// Backpacks (Printful product 279, all-over print, 16x12x4 in): The Amazing
+// Adventures of Squish Man banner on the front, the gold crown and a rainbow
+// SQUISHMAN on the front pocket, gold stars and paw prints around both, and
+// solid top and bottom strips. Every color has its own files
+// (public/assets/merch/print/backpacks/).
+type BackpackPart = "front" | "pocket" | "top" | "bottom";
+const BACKPACK_FILES: Record<string, Record<BackpackPart, number>> = {
+	"White": { front: 1092458943, pocket: 1092452285, top: 1092452289, bottom: 1092452297 },
+	"Pink": { front: 1092458944, pocket: 1092452309, top: 1092452314, bottom: 1092452318 },
+	"Royal Blue": { front: 1092458945, pocket: 1092452327, top: 1092452335, bottom: 1092452344 },
+};
+const backpackPanel = (part: BackpackPart, width: number, height: number): MerchFile => ({
+	type: part,
+	fileId: null,
+	position: { area_width: width, area_height: height, width, height, top: 0, left: 0 },
+	fileIdByColor: Object.fromEntries(Object.entries(BACKPACK_FILES).map(([color, files]) => [color, files[part]])),
+});
+MERCH.push({
+	key: "BACKPACK",
+	name: "Squish Squad Backpack",
+	designs: [
+		{
+			key: "PUDY",
+			label: "Squish Man & Pudy",
+			priceCents: 4999,
+			files: [
+				backpackPanel("front", 2175, 3075),
+				backpackPanel("pocket", 1950, 1200),
+				backpackPanel("top", 4200, 1200),
+				backpackPanel("bottom", 4200, 750),
+			],
+			// Printful requires a stitch color; clear thread disappears into every color.
+			printfulOptions: { stitch_color: "clear" },
+		},
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 1099, additionalCents: 449 },
+	sizes: ["One size"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "One size": 9063 } },
+		{ name: "Pink", hex: "#f7b8cc", variants: { "One size": 9063 } },
+		{ name: "Royal Blue", hex: "#1d4fa8", variants: { "One size": 9063 } },
 	],
 	productionEnabled: false,
 });
