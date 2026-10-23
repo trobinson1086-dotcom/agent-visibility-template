@@ -30,7 +30,7 @@ function render(id,items,price){document.getElementById(id).innerHTML=items.map(
  return `<article class="card"><img src="${A+x[0]}" alt="${x[1]} cover" loading="lazy"><h3>${x[1]}</h3><div class="price">${price}</div><a class="details" href="${detail}">Look Inside · Product details</a>${x[2]?`<a class="buy-link" href="${x[2]}" target="_blank" rel="noopener">BUY NOW</a>`:`<button data-placeholder>BUY NOW</button>`}</article>`
 }).join('')}
 render('english',sets.english,'Paperback $19.99');render('bonusgrid',sets.bonus,'$39.99');render('learninggrid',sets.learning,'$19.99');render('spanishgrid',sets.spanish,'From $19.99');render('colorgrid',sets.color,'$18.99');
-document.addEventListener('click',e=>{if(e.target.matches('[data-placeholder]'))alert('This feature is ready for your real checkout, video, review, or product link before launch.')});
+document.addEventListener('click',e=>{if(e.target.matches('[data-placeholder]'))alert('Coming soon! To order now, email orders@squishman.com and we will help you.')});
 
 const modal=document.getElementById('productModal');
 document.addEventListener('click',e=>{

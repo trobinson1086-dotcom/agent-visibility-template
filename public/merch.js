@@ -38,7 +38,7 @@ const bundles=img('squish-man-gift-bundles',1400,558,720,287,'Squish Man gift se
 // plush and gift sets need other suppliers; the rest are unconfirmed in Printful.
 const one=(label,i)=>[[label,'',i]];
 const categories=[
- {id:'merch-apparel',title:'Apparel',blurb:'Squish Man and Pudy, ready to wear.',items:[
+ {id:'merch-apparel',photos:[{img:'lifestyle-family-tees-posters',alt:'A dad and two kids in matching Squish Man and Pudy tees reading a Squish Man book together, with white, pink and blue Maple Hollow posters on the wall'}],title:'Apparel',blurb:'Squish Man and Pudy, ready to wear.',items:[
   {name:'Squish Squad T-Shirt',desc:'Squish Man in his gold crown and royal-blue cape poses with best friend Pudy on the front, framed by stars, paw prints and The Amazing Adventures of Squish Man banner. The back keeps it simple with a gold crown, the SQUISHMAN wordmark and a paw print.',colors:[['White','#ffffff',tee.white],['Pink','#f59ac4',tee.pink],['Royal Blue','#1747d8',tee.blue]]},
   {name:'Squish Squad Kids’ T-Shirts',hidden:true,desc:'Kids’ tees.',colors:[]},
   {name:'Squish Squad Hoodie',desc:'The same bold, full-color Squish Man and Pudy artwork on a cozy pullover hoodie with a front pocket, plus the crown, wordmark and paw print across the back.',colors:[['White','#ffffff',hoodie.white],['Pink','#f59ac4',hoodie.pink],['Royal Blue','#1747d8',hoodie.royal]]},
@@ -52,7 +52,7 @@ const categories=[
   {name:'Squish Squad Toddler T-Shirts',hidden:true,desc:'Toddler tees.',colors:[]},
   {name:'Squish Squad Pajama Sets',hidden:true,desc:'Bedtime in Maple Hollow: a long-sleeve top with Squish Man and Pudy on the front and the crown and wordmark on the back, paired with pants covered in Squish Man and Pudy faces, gold crowns, stars and paw prints.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-pajama-sets',722,371,'Squish Man pajama sets in white, pink and royal blue: long-sleeve tops with Squish Man and Pudy on the front and a crown, SQUISHMAN wordmark and paw print on the back, with matching pants patterned with character faces, crowns, stars and paws'))}
  ]},
- {id:'merch-school',title:'School & Adventures',blurb:'Gear for the walk to Maple Hollow School and beyond.',items:[
+ {id:'merch-school',photos:[{img:'lifestyle-totes-caps',alt:'A family at a picnic in Squish Man caps, holding white, pink and royal-blue Squish Man tote bags'}],title:'School & Adventures',blurb:'Gear for the walk to Maple Hollow School and beyond.',items:[
   {name:'Squish Squad Backpacks',hidden:true,desc:'Squish Man and Pudy lead the way on the front, with a rainbow SQUISHMAN wordmark on the front pocket, navy straps and mesh side pockets.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-backpacks',798,410,'Squish Man backpacks in white, pink and royal blue with Squish Man and Pudy artwork, a rainbow SQUISHMAN wordmark on the front pocket, navy straps and mesh side pockets, shown from the front, back and side'))},
   {name:'Squish Squad Lunch Boxes',hidden:true,desc:'A zip-around lunch box with full-color Squish Man and Pudy artwork, navy trim and a carry handle. Open it up to find a silver lining inside.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-lunch-boxes',764,393,'Squish Man lunch boxes in white, pink and royal blue with Squish Man and Pudy artwork and navy trim, shown from the front, back and open with a silver lining'))},
   {name:'Squish Squad Water Bottles',desc:'Squish Man and Pudy wrap around the front, with the crown, wordmark and “Big Heart. Tiny Hero. Endless Adventures!” on the back. Topped with a navy flip-straw lid and carry loop.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-water-bottles',771,397,'Squish Man water bottles in white, pink and royal blue with Squish Man and Pudy artwork on the front, the crown, wordmark and slogan on the back, and a navy flip-straw lid'))},
@@ -64,7 +64,7 @@ const categories=[
   {name:'Squish Squad Beanies',hidden:true,desc:'Beanies.',colors:[]},
   {name:'Squish Squad Tote Bags',desc:'Roomy totes with navy handles and base, showing Squish Man and Pudy with the series banner on the front and the crown, wordmark and paw print on the back.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-tote-bags',777,400,'Squish Man tote bags in white, pink and royal blue with navy handles and base, Squish Man and Pudy artwork on the front and the crown, wordmark and paw print on the back'))}
  ]},
- {id:'merch-cozy',title:'Cozy Collection',blurb:'Soft and snuggly for storytime and bedtime.',items:[
+ {id:'merch-cozy',photos:[{img:'lifestyle-gift-sets',alt:'A family opening Squish Man gift boxes with a Squish Man plush, a Pudy plush, a pink star-and-paw blanket and a royal-blue backpack set'}],title:'Cozy Collection',blurb:'Soft and snuggly for storytime and bedtime.',items:[
   {name:'Pudy Plush',hidden:true,desc:'Squish Man’s bigger best friend as a huggable plush: fluffy brown fur, a tan muzzle and paws, floppy ears and her royal-blue collar with a gold paw and the name PUDY. Even her short stub tail made it in.',colors:[['Brown with blue collar','#6b3a1e',pudy]],extra:[pudyDetail]},
   {name:'Squish Man Plush',hidden:true,desc:'The brave little hero himself: a fluffy cream Chihuahua plush with his gold crown, royal-blue cape covered in gold stars and a gold paw medallion.',colors:[['Cream with royal-blue cape','#f3e6cf',squish]],extra:[squishDetail]},
   {name:'Squish Squad Blankets',desc:'A cuddly blanket with Squish Man and Pudy in the middle, a border of stars and paw prints, “Big Heart. Tiny Hero. Endless Adventures!” below, and a soft cream reverse side.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-blankets',765,393,'Squish Man blankets in white, pink and royal blue with Squish Man and Pudy artwork, star and paw borders and the series slogan, shown with the cream reverse side and folded'))},
@@ -72,7 +72,7 @@ const categories=[
   {name:'Squish Squad Color Pillows',hidden:true,desc:'Square color pillows.',colors:[]},
   {name:'Storybook Lumbar Pillows',hidden:true,desc:'Storybook lumbar pillows.',colors:[]}
  ]},
- {id:'merch-gifts',title:'Gifts & Activities',blurb:'Creative extras for every young adventurer.',items:[
+ {id:'merch-gifts',photos:[{img:'lifestyle-stickers-bookmarks',alt:'Kids and a mom with Squish Man sticker sheets and bookmarks at a table with storybooks'},{img:'lifestyle-pin-sets',alt:'A mom and daughter with Squish Man enamel pin sets on white, pink and blue cards, and pins on a jacket and a backpack'}],title:'Gifts & Activities',blurb:'Creative extras for every young adventurer.',items:[
   {key:'bundles',name:'Squish Man Gift Sets',hidden:true,desc:'Three gift-box designs in one collection. The Squish Squad Starter Pack pairs a Squish Man plush with a book, bookmark and sticker sheet. The Bedtime Adventure Set brings a Pudy plush, a pink Squish Man and Pudy blanket, a book and a bookmark. The Back-to-School Set packs a royal-blue character backpack, lunch box and water bottle.',sheet:true,wide:true,shown:'Full design sheet shown',colors:one('Collection',bundles)},
   {name:'Squish Squad Bookmarks',hidden:true,desc:'Squish Man and Pudy on the front; on the back, a crown, paw print and the reminder “Every page is an adventure! Keep reading. Keep dreaming. Keep being kind.”',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-bookmarks',776,399,'Squish Man bookmarks in white, pink and royal blue: Squish Man and Pudy on the front and Every page is an adventure! Keep reading. Keep dreaming. Keep being kind. on the back'))},
   {name:'Squish Squad Sticker Packs',desc:'A sheet of Squish Man, Pudy, crown, paw print and “Squish Squad” stickers, ready to peel and share.',sheet:true,shown:TRIO,colors:one('Collection',sheet('squish-squad-sticker-packs',793,408,'Squish Man sticker sheets in white, pink and royal blue with Squish Man, Pudy, crown, paw print and Squish Squad stickers, shown with the packaging and a peeling paw sticker'))},
@@ -214,9 +214,11 @@ function buyHtml(p,n){
  <div class="merch-actions"><button type="button" class="merch-explore" data-gallery="${n}" aria-label="See photos: ${esc(p.name)}">SEE PHOTOS</button><button type="button" class="merch-buy-now" data-buy="${n}" aria-label="Buy now: ${esc(p.name)}">BUY NOW</button></div>
  <p class="merch-error" role="alert" hidden></p>`;
 }
+// Lifestyle photos of the collection, shown under each category heading.
+const lifestyle=c=>c.photos?`<div class="merch-lifestyle${c.photos.length>1?' merch-lifestyle-two':''}">${c.photos.map(f=>`<img src="assets/merch/${f.img}-768.webp" srcset="assets/merch/${f.img}-768.webp 768w, assets/merch/${f.img}.webp 1536w" sizes="(max-width:700px) 92vw, ${c.photos.length>1?'620px':'1240px'}" width="1536" height="1024" alt="${esc(f.alt)}" loading="lazy" decoding="async">`).join('')}</div>`:'';
 const root=document.getElementById('merchCategories');
 if(!root)return;
-root.innerHTML=categories.map(c=>`<section class="merch-cat" id="${c.id}" aria-labelledby="${c.id}-h"><div class="merch-cat-head"><h3 id="${c.id}-h">${esc(c.title)}</h3><p>${esc(c.blurb)}</p></div><div class="merch-grid">${c.items.filter(p=>!p.hidden).map(card).join('')}</div></section>`).join('');
+root.innerHTML=categories.map(c=>`<section class="merch-cat" id="${c.id}" aria-labelledby="${c.id}-h"><div class="merch-cat-head"><h3 id="${c.id}-h">${esc(c.title)}</h3><p>${esc(c.blurb)}</p></div>${lifestyle(c)}<div class="merch-grid">${c.items.filter(p=>!p.hidden).map(card).join('')}</div></section>`).join('');
 
 // Open the shop for the Printful products when /api/merch says so: real
 // colors and photos, size, quantity and a Stripe checkout button.
