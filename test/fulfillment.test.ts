@@ -661,6 +661,11 @@ describe("configuration health check", () => {
 					notebook_royal_blue: "ok",
 					notebook_grey: "ok",
 					notebook_black: "ok",
+					leggings_white: "ok",
+					leggings_pink: "ok",
+					leggings_royal_blue: "ok",
+					leggings_grey: "ok",
+					leggings_black: "ok",
 					hatCrownWordmark: "ok",
 					hatPaw: "ok",
 					hatRoyalSquishMan: "ok",
@@ -802,7 +807,7 @@ describe("merch catalog", () => {
 		}
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
 		// Color pillows print the color into the art, so their colors share one blank.
-		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING", "NOTEBOOK"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING", "NOTEBOOK", "LEGGINGS"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 });
@@ -867,6 +872,7 @@ describe("merch checkout", () => {
 			["BACKPACK", 4999],
 			["DRAWSTRING", 2499],
 			["NOTEBOOK", 1799],
+			["LEGGINGS", 2999],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1412,7 +1418,7 @@ describe("merch orders → Printful", () => {
 				if (p.key === "HAT") {
 					for (const v of Object.values(d.printfulOptions ?? {})) expect((v as string[]).length).toBeLessThanOrEqual(6);
 				}
-				if (["COLORPILLOW", "LUMBAR", "KIDSHOODIE", "BACKPACK", "DRAWSTRING"].includes(p.key)) {
+				if (["COLORPILLOW", "LUMBAR", "KIDSHOODIE", "BACKPACK", "DRAWSTRING", "LEGGINGS"].includes(p.key)) {
 					expect(d.printfulOptions?.stitch_color, `${p.key} ${d.key}`).toMatch(/^(white|clear)$/);
 				}
 			}
@@ -1507,6 +1513,27 @@ describe("merch orders → Printful", () => {
 			variant_id: 12141,
 			name: "Squish Squad Notebook, Squish Man & Pudy — Grey",
 			retail_price: "17.99",
+		});
+	});
+
+	it("sends kids' and youth leggings with the right print file and area", async () => {
+		expect(merchProduct("LEGGINGS")!.sizes).toEqual(["2T", "3T", "4T", "5T", "6", "6X", "7", "8", "10", "12", "14", "16", "18", "20"]);
+		const kids = merchSelection("LEGGINGS", "Pink", "6X", "SOCK_PATTERN")!;
+		const youth = merchSelection("LEGGINGS", "Pink", "8", "SOCK_PATTERN")!;
+		expect(kids.variantId).toBe(9701);
+		expect(youth.variantId).toBe(9703);
+		expect(kids.files[0].fileId).not.toBe(youth.files[0].fileId);
+		expect(kids.files[0].positionBySize!["6X"].area_height).toBe(4650);
+		expect(youth.files[0].positionBySize!["8"].area_height).toBe(6000);
+
+		merchSession("cs_test_leggings", "LEGGINGS|Pink|8|SOCK_PATTERN");
+		await deliver(sandboxEnv(), paidEvent("cs_test_leggings"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 9703,
+			name: "Squish Squad Kids’ Leggings, Stars & paw prints — Pink, 8",
+			retail_price: "29.99",
+			files: [{ type: "default", id: youth.files[0].fileId, position: { area_width: 6000, area_height: 6000 } }],
+			options: [{ id: "stitch_color", value: "white" }],
 		});
 	});
 
