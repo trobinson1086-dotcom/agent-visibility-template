@@ -656,6 +656,11 @@ describe("configuration health check", () => {
 					drawstring_royal_blue: "ok",
 					drawstring_grey: "ok",
 					drawstring_black: "ok",
+					notebook_white: "ok",
+					notebook_pink: "ok",
+					notebook_royal_blue: "ok",
+					notebook_grey: "ok",
+					notebook_black: "ok",
 					hatCrownWordmark: "ok",
 					hatPaw: "ok",
 					hatRoyalSquishMan: "ok",
@@ -797,7 +802,7 @@ describe("merch catalog", () => {
 		}
 		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
 		// Color pillows print the color into the art, so their colors share one blank.
-		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING", "NOTEBOOK"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 });
@@ -861,6 +866,7 @@ describe("merch checkout", () => {
 			["SOCKS", 1699, 1699, 1699],
 			["BACKPACK", 4999],
 			["DRAWSTRING", 2499],
+			["NOTEBOOK", 1799],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1486,6 +1492,21 @@ describe("merch orders → Printful", () => {
 			name: "Squish Squad Drawstring Bag, Squish Man & Pudy — Black",
 			retail_price: "24.99",
 			options: [{ id: "stitch_color", value: "clear" }],
+		});
+	});
+
+	it("sends notebooks with each color's own front and back covers", async () => {
+		const grey = merchSelection("NOTEBOOK", "Grey", "One size", "PUDY")!.files;
+		expect(grey.map((f) => f.type)).toEqual(["front", "back"]);
+		expect(grey[0].fileId).not.toBe(grey[1].fileId);
+		expect(grey[0].fileId).not.toBe(merchSelection("NOTEBOOK", "Pink", "One size", "PUDY")!.files[0].fileId);
+
+		merchSession("cs_test_notebook", "NOTEBOOK|Grey|One size|PUDY");
+		await deliver(sandboxEnv(), paidEvent("cs_test_notebook"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 12141,
+			name: "Squish Squad Notebook, Squish Man & Pudy — Grey",
+			retail_price: "17.99",
 		});
 	});
 
