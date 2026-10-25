@@ -12,7 +12,7 @@ import {
 	health,
 	retry,
 } from "../src/fulfillment/service";
-import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection, ORNAMENT_SNOWGLOBE_FILE, SQUISH_SQUAD_FILE } from "../src/fulfillment/merch";
+import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection, MUG_WRAP_FULL_FILE, ORNAMENT_SNOWGLOBE_FILE, SQUISH_SQUAD_FILE } from "../src/fulfillment/merch";
 import { reconcile } from "../src/fulfillment/service";
 import * as store from "../src/fulfillment/store";
 import { verifyStripeSignature } from "../src/fulfillment/stripe";
@@ -69,6 +69,7 @@ const lulu = {
 const printful = {
 	orders: new Map<string, Record<string, unknown>>(),
 	creates: 0,
+	fileLookups: 0,
 	lastCreate: null as Record<string, unknown> | null,
 	lastConfirm: null as string | null,
 };
@@ -161,10 +162,13 @@ beforeAll(() => {
 		.persist();
 	const pf = fetchMock.get("https://api.printful.com");
 	pf.intercept({ path: (p) => p.startsWith("/files/"), method: "GET" })
-		.reply((opts) => ({
-			statusCode: 200,
-			data: JSON.stringify({ code: 200, result: { id: Number(String(opts.path).split("/")[2]), status: "ok" } }),
-		}))
+		.reply((opts) => {
+			printful.fileLookups++;
+			return {
+				statusCode: 200,
+				data: JSON.stringify({ code: 200, result: { id: Number(String(opts.path).split("/")[2]), status: "ok" } }),
+			};
+		})
 		.persist();
 	pf.intercept({ path: (p) => p.startsWith("/orders/@"), method: "GET" })
 		.reply((opts) => {
@@ -280,6 +284,7 @@ beforeEach(() => {
 	lulu.existingJobs = [];
 	printful.orders.clear();
 	printful.creates = 0;
+	printful.fileLookups = 0;
 	printful.lastCreate = null;
 	printful.lastConfirm = null;
 	stripeCreates.length = 0;
@@ -589,6 +594,12 @@ describe("Lulu status and tracking", () => {
 describe("configuration health check", () => {
 	it("reports what is configured and working while fulfillment is off, without values", async () => {
 		const result = await health(sandboxEnv({ FULFILLMENT_MODE: "off" }));
+		// Print files are looked up within a per-request budget; the rest are reported as not checked.
+		const files = (result as { printful: { printFiles: Record<string, string> } }).printful.printFiles;
+		expect(files).toMatchObject({ frontBanner: "ok", backCrown: "ok", mugWrapFull: "ok" });
+		expect(new Set(Object.values(files))).toEqual(new Set(["ok", "not checked"]));
+		expect(Object.values(files).filter((v) => v === "ok").length).toBeLessThanOrEqual(30);
+		expect(printful.fileLookups).toBeLessThanOrEqual(30);
 		expect(result).toEqual({
 			mode: "off",
 			ordersDb: "ok",
@@ -598,83 +609,7 @@ describe("configuration health check", () => {
 			printful: {
 				status: "ok",
 				storeProducts: 0,
-				printFiles: {
-					frontBanner: "ok",
-					backCrown: "ok",
-					mapleHollowLogo: "ok",
-					mugWrapMapleCrown: "ok",
-					mug_default: "missing",
-					stickerMapleHollowPals: "ok",
-					stickerMapleHollowHighFive: "ok",
-					stickerMapleHollowWave: "ok",
-					stickerMapleHollowTownSquare: "ok",
-					stickerValuesSignpost: "ok",
-					stickerRoyalSquishMan: "ok",
-					stickerMapleHollowSign: "ok",
-					stickerBestFriends: "ok",
-					puzzleWelcome: "ok",
-					puzzleRoyalHero: "ok",
-					puzzlePawPrints: "ok",
-					puzzleGardenGate: "ok",
-					puzzleGoodnight: "ok",
-					puzzleMoonlight: "ok",
-					lumbarWelcome: "ok",
-					lumbarRoyalHero: "ok",
-					lumbarPawPrints: "ok",
-					lumbarGardenGate: "ok",
-					lumbarGoodnight: "ok",
-					lumbarMoonlight: "ok",
-					colorpillow_royal_blue: "ok",
-					colorpillow_pink: "ok",
-					colorpillow_sky_blue: "ok",
-					colorpillow_sunshine_yellow: "ok",
-					kidshoodie_white: "ok",
-					kidshoodie_pink: "ok",
-					kidshoodie_sky_blue: "ok",
-					kidshoodie_sunshine_yellow: "ok",
-					kidshoodie_kelly_green: "ok",
-					kidshoodie_berry: "ok",
-					kidshoodie_royal_blue: "ok",
-					kidshoodie_lavender: "ok",
-					kidshoodie_mint_green: "ok",
-					blanket_royal_blue: "ok",
-					blanket_pink: "ok",
-					blanket_sky_blue: "ok",
-					blanket_sunshine_yellow: "ok",
-					socks_royal_blue: "ok",
-					socks_pink: "ok",
-					socks_sky_blue: "ok",
-					socks_sunshine_yellow: "ok",
-					socks_white: "ok",
-					backpack_royal_blue: "ok",
-					backpack_pink: "ok",
-					backpack_white: "ok",
-					backpack_grey: "ok",
-					backpack_black: "ok",
-					drawstring_white: "ok",
-					drawstring_pink: "ok",
-					drawstring_royal_blue: "ok",
-					drawstring_grey: "ok",
-					drawstring_black: "ok",
-					notebook_white: "ok",
-					notebook_pink: "ok",
-					notebook_royal_blue: "ok",
-					notebook_grey: "ok",
-					notebook_black: "ok",
-					leggings_white: "ok",
-					leggings_pink: "ok",
-					leggings_royal_blue: "ok",
-					leggings_grey: "ok",
-					leggings_black: "ok",
-					hatCrownWordmark: "ok",
-					hatPaw: "ok",
-					hatRoyalSquishMan: "ok",
-					hatBestFriends: "ok",
-					hatCrown: "ok",
-					beanieMapleHollow: "ok",
-					squishSquadLogo: "ok",
-					ornamentSnowGlobe: "ok",
-				},
+				printFiles: expect.any(Object),
 			},
 			merchCheckout: "off",
 			luluClientKey: "set (id format)",
@@ -1011,11 +946,13 @@ describe("merch orders → Printful", () => {
 		expect(printful.creates).toBe(1);
 	});
 
-	it("holds full-design mugs until the wrap artwork is uploaded", async () => {
+	it("sends full-design mugs with the banner-and-crown wrap", async () => {
 		merchSession("cs_test_mug", "MUG|White|11 oz");
 		const r = await deliver(sandboxEnv(), paidEvent("cs_test_mug"));
-		expect(r.body).toMatchObject({ fulfillment: "held", reason: "PRINT_FILES_MISSING:MUG" });
-		expect(printful.creates).toBe(0);
+		expect(r.body).toMatchObject({ fulfillment: "submitting" });
+		expect((printful.lastCreate as { items: Array<{ files: unknown[] }> }).items[0].files).toEqual([
+			{ type: "default", id: MUG_WRAP_FULL_FILE },
+		]);
 	});
 
 	it("sends crown-logo orders with only the logo on the front", async () => {

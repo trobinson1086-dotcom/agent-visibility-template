@@ -19,8 +19,9 @@ export default defineWorkersProject(async () => {
 						configPath: "./wrangler.jsonc",
 					},
 					miniflare: {
-						// Provide the admin secret for the mutating-route tests.
-						bindings: { ADMIN_TOKEN: "test-token", TEST_MIGRATIONS: migrations },
+						// Provide the admin secret for the mutating-route tests, and start
+						// from a closed shop whatever the live MERCH_CHECKOUT setting is.
+						bindings: { ADMIN_TOKEN: "test-token", MERCH_CHECKOUT: "off", TEST_MIGRATIONS: migrations },
 					},
 				},
 			},

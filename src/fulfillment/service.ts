@@ -40,6 +40,7 @@ import {
 	FRONT_BANNER_FILE,
 	MAPLE_HOLLOW_FILE,
 	MERCH,
+	MUG_WRAP_FULL_FILE,
 	MUG_WRAP_MAPLE_CROWN_FILE,
 	ORNAMENT_SNOWGLOBE_FILE,
 	HAT_FILES,
@@ -112,6 +113,8 @@ function luluKeyShape(raw: string | undefined): string {
 }
 
 const HEALTH_KEY = "fulfillment:health";
+/** Print-file lookups per health check (Workers allow 50 subrequests per request; the rest of the check needs about a dozen). */
+const PRINT_FILE_CHECKS = 30;
 const HEALTH_TTL = 300;
 
 /**
@@ -219,6 +222,7 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 			[FRONT_BANNER_FILE, "frontBanner"],
 			[BACK_CROWN_FILE, "backCrown"],
 			[MAPLE_HOLLOW_FILE, "mapleHollowLogo"],
+			[MUG_WRAP_FULL_FILE, "mugWrapFull"],
 			[MUG_WRAP_MAPLE_CROWN_FILE, "mugWrapMapleCrown"],
 			[STICKER_FILES.MH_PALS, "stickerMapleHollowPals"],
 			[STICKER_FILES.MH_HIGHFIVE, "stickerMapleHollowHighFive"],
@@ -251,6 +255,18 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 		]);
 		const printFiles: Record<string, string> = {};
 		const checked = new Set<number>();
+		// Workers cap subrequests per request, so look up at most this many
+		// files per health check and report the rest as not checked.
+		let budget = PRINT_FILE_CHECKS;
+		const status = async (id: number) => {
+			if (budget <= 0) return "not checked";
+			budget--;
+			try {
+				return (await getFile(t, id)).status;
+			} catch {
+				return "error";
+			}
+		};
 		for (const p of MERCH) {
 			for (const f of p.designs.flatMap((d) => d.files)) {
 				if (f.fileIdByColor) {
@@ -259,11 +275,7 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 						const name = `${p.key.toLowerCase()}_${color.split("|")[0].toLowerCase().replace(/\s+/g, "_")}`;
 						if ((printFiles[name] && printFiles[name] !== "ok") || (id !== null && checked.has(id))) continue;
 						if (id !== null) checked.add(id);
-						try {
-							printFiles[name] = id === null ? "missing" : (await getFile(t, id)).status;
-						} catch {
-							printFiles[name] = "error";
-						}
+						printFiles[name] = id === null ? "missing" : await status(id);
 					}
 					continue;
 				}
@@ -273,11 +285,7 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 					printFiles[name] = "missing";
 					continue;
 				}
-				try {
-					printFiles[name] = (await getFile(t, f.fileId)).status;
-				} catch {
-					printFiles[name] = "error";
-				}
+				printFiles[name] = await status(f.fileId);
 			}
 		}
 		return { status: "ok", storeProducts: body.paging?.total ?? 0, printFiles };
