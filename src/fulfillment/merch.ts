@@ -116,6 +116,8 @@ export const BACK_CROWN_FILE = 1090848220;
 export const MAPLE_HOLLOW_FILE = 1090919465;
 /** Mug wrap: Maple Hollow logo on one side, crown logo on the other (public/assets/merch/print/). */
 export const MUG_WRAP_MAPLE_CROWN_FILE = 1090966931;
+/** Mug wrap: Squish Man & Pudy on one side, crown logo on the other (public/assets/merch/print/). */
+export const MUG_WRAP_FULL_FILE = 1094800571;
 /** Squish Man & Pudy in Maple Hollow sticker art (public/assets/merch/print/stickers/). */
 export const STICKER_FILES = {
 	MH_PALS: 1091358905,
@@ -329,10 +331,9 @@ export const MERCH: MerchProduct[] = [
 		key: "MUG",
 		name: "Squish Squad Mug (11 oz)",
 		// Full: one 2700x1050 wrap, banner on one side and crown logo on the
-		// other (not uploaded yet, so those orders are held until it is).
-		// Pudy / Logo: that artwork alone on one side.
+		// other. Pudy / Logo: that artwork alone on one side.
 		designs: [
-			{ key: "FULL", label: "Squish Man & Pudy + crown logo", priceCents: 1599, files: [{ type: "default", fileId: null }] },
+			{ key: "FULL", label: "Squish Man & Pudy + crown logo", priceCents: 1599, files: [{ type: "default", fileId: MUG_WRAP_FULL_FILE }] },
 			{
 				key: "PUDY",
 				label: "Squish Man & Pudy only",
