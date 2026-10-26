@@ -250,3 +250,4 @@ html{scroll-padding-top:var(--header-h,110px)}
 .social-btn:hover,.social-btn:focus-visible{filter:brightness(1.1)}
 .social-links{margin:12px 0 4px}
 .social-links .social-btn{min-height:40px;padding:7px 14px;font-size:14px}
+.policy{max-width:780px;margin:0 auto;line-height:1.65}.policy h1{color:var(--deep)}.policy h2{text-align:left;font-size:22px;margin:28px 0 8px}.policy ul{padding-left:22px}.policy li{margin:6px 0}.policy a{color:var(--blue)}
