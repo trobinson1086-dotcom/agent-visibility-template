@@ -254,7 +254,7 @@ export const MERCH: MerchProduct[] = [
 			{ name: "Grey", hex: "#c9c9c9", variants: { S: 6948, M: 6949, L: 6950, XL: 6951, "2XL": 6952, "3XL": 6953 } },
 			{ name: "Red", hex: "#c8102e", variants: { S: 4141, M: 4142, L: 4143, XL: 4144, "2XL": 4145, "3XL": 5304 } },
 		],
-		productionEnabled: false,
+		productionEnabled: true,
 	},
 	{
 		key: "HOODIE",
@@ -278,7 +278,7 @@ export const MERCH: MerchProduct[] = [
 			{ name: "Grey", hex: "#c9c9c9", variants: { S: 5610, M: 5611, L: 5612, XL: 5613, "2XL": 5614, "3XL": 5615 } },
 			{ name: "Red", hex: "#c8102e", variants: { S: 5538, M: 5539, L: 5540, XL: 5541, "2XL": 5542, "3XL": 5543 } },
 		],
-		productionEnabled: false,
+		productionEnabled: true,
 	},
 	{
 		key: "LONGSLEEVE",
@@ -303,7 +303,7 @@ export const MERCH: MerchProduct[] = [
 			{ name: "Grey", hex: "#c9c9c9", variants: { S: 3600, M: 3601, L: 3602, XL: 3603, "2XL": 3604, "3XL": 3605 } },
 			{ name: "Red", hex: "#c8102e", variants: { S: 3568, M: 3569, L: 3570, XL: 3571, "2XL": 3572, "3XL": 3573 } },
 		],
-		productionEnabled: false,
+		productionEnabled: true,
 	},
 	{
 		// Econscious EC8000 organic cotton tote (Printful product 367): a
@@ -325,7 +325,7 @@ export const MERCH: MerchProduct[] = [
 			{ name: "Black", hex: "#111111", variants: { "One size": 10457 } },
 			{ name: "Natural", hex: "#e9dcc3", variants: { "One size": 10458 } },
 		],
-		productionEnabled: false,
+		productionEnabled: true,
 	},
 	{
 		key: "MUG",
@@ -381,7 +381,7 @@ export const MERCH: MerchProduct[] = [
 		shipping: { firstCents: 799, additionalCents: 399 },
 		sizes: ["11 oz"],
 		colors: [{ name: "White", hex: "#ffffff", variants: { "11 oz": 1320 } }],
-		productionEnabled: false,
+		productionEnabled: true,
 	},
 ];
 
@@ -415,7 +415,7 @@ MERCH.push({
 	shipping: { firstCents: 499, additionalCents: 25 },
 	sizes: ["3 in", "4 in", "5.5 in"],
 	colors: [{ name: "White", hex: "#ffffff", variants: { "3 in": 10163, "4 in": 10164, "5.5 in": 10165 } }],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Enhanced matte posters (Printful product 1): the art centered on white with
@@ -467,7 +467,7 @@ MERCH.push({
 	shipping: { firstCents: 599, additionalCents: 49 },
 	sizes: ["8×10 in", "10×10 in"],
 	colors: [{ name: "White", hex: "#ffffff", variants: { "8×10 in": 4463, "10×10 in": 6239 } }],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Jigsaw puzzles in a gift tin (Printful product 906): a book scene filling
@@ -505,7 +505,7 @@ MERCH.push({
 	shipping: { firstCents: 849, additionalCents: 249 },
 	sizes: ["30 pcs", "110 pcs", "252 pcs"],
 	colors: [{ name: "White", hex: "#ffffff", variants: { "30 pcs": 23246, "110 pcs": 23245, "252 pcs": 23247 } }],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Stainless steel water bottles (Printful product 382): one artwork on the
@@ -545,7 +545,7 @@ MERCH.push({
 		{ name: "White", hex: "#ffffff", variants: { "17 oz": 10798 } },
 		{ name: "Black", hex: "#111111", variants: { "17 oz": 16030 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Custom shaped pillows (Printful product 743): cut to the outline of the
@@ -572,7 +572,7 @@ MERCH.push({
 	shipping: { firstCents: 649, additionalCents: 159 },
 	sizes: ["10 in", "16 in"],
 	colors: [{ name: "White", hex: "#ffffff", variants: { "10 in": 19122, "16 in": 19123 } }],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Square color pillows (Printful product 83, all-over print): the art
@@ -655,7 +655,7 @@ MERCH.push({
 		{ name: "Sky Blue", hex: "#8fcbef", variants: { "16 in": 49854, "18 in": 4532 } },
 		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: { "16 in": 49854, "18 in": 4532 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Storybook lumbar pillows (Printful product 83, 20x12): a scene, cropped to
@@ -686,7 +686,7 @@ MERCH.push({
 	shipping: { firstCents: 1099, additionalCents: 449 },
 	sizes: ["20×12 in"],
 	colors: [{ name: "White", hex: "#ffffff", variants: { "20×12 in": 9513 } }],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Embroidered youth caps (Printful product 429, Valucap VC300Y). The cap takes
@@ -768,7 +768,7 @@ MERCH.push({
 		{ name: "Baby Blue", hex: "#96bbe5", variants: { Youth: 11459 } },
 		{ name: "Khaki", hex: "#e3c7b1", variants: { Youth: 16509 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Full-color dad hats (Printful product 206, Yupoong 6245CM, adjustable):
@@ -806,7 +806,7 @@ MERCH.push({
 		{ name: "Light Blue", hex: "#b5cbda", variants: { Adult: 7856 } },
 		{ name: "Khaki", hex: "#b49771", variants: { Adult: 7855 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Kids' tees (Printful product 307, Bella + Canvas 3001Y, youth S-XL) in the
@@ -852,7 +852,7 @@ MERCH.push({
 		{ name: "Kelly Green", hex: "#0e7b4e", variants: { "Youth S": 10628, "Youth M": 10629, "Youth L": 10630, "Youth XL": 10631 } },
 		{ name: "Berry", hex: "#c02773", variants: { "Youth S": 11209, "Youth M": 11210, "Youth L": 11211, "Youth XL": 11212 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Kids' long sleeves (Printful product 511, Bella + Canvas 3501Y, youth S-L)
@@ -877,7 +877,7 @@ MERCH.push({
 		{ name: "Heather Grey", hex: "#b5b5b7", variants: { "Youth S": 12853, "Youth M": 12854, "Youth L": 12855 } },
 		{ name: "Red", hex: "#d20e2a", variants: { "Youth S": 12865, "Youth M": 12866, "Youth L": 12867 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Kids' hoodies (Printful product 1720, all-over print youth hoodie, sizes
@@ -949,7 +949,7 @@ MERCH.push({
 		{ name: "Lavender", hex: "#b9a3e3", variants: KIDS_HOODIE_SIZES },
 		{ name: "Mint Green", hex: "#9fe3c9", variants: KIDS_HOODIE_SIZES },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Sherpa blankets (Printful product 711): the art centered on a solid color
@@ -1043,7 +1043,7 @@ MERCH.push({
 		{ name: "Sky Blue", hex: "#8fcbef", variants: BLANKET_VARIANTS },
 		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: BLANKET_VARIANTS },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Socks (Printful product 882, all-over print crew socks, S-L): the color with
@@ -1100,7 +1100,7 @@ MERCH.push({
 		{ name: "Sunshine Yellow", hex: "#ffd54a", variants: SOCK_SIZES },
 		{ name: "White", hex: "#ffffff", variants: SOCK_SIZES },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Backpacks (Printful product 279, all-over print, 16x12x4 in): The Amazing
@@ -1150,7 +1150,7 @@ MERCH.push({
 		{ name: "Grey", hex: "#a9adb3", variants: { "One size": 9063 } },
 		{ name: "Black", hex: "#151515", variants: { "One size": 9063 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Drawstring bags (Printful product 262, all-over print, 15x17 in): the
@@ -1195,7 +1195,7 @@ MERCH.push({
 		{ name: "Grey", hex: "#a9adb3", variants: { "One size": 8894 } },
 		{ name: "Black", hex: "#151515", variants: { "One size": 8894 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Spiral notebooks (Printful product 474, 5.5x8.5 in, 140 dotted pages): the
@@ -1229,7 +1229,7 @@ MERCH.push({
 		{ name: "Grey", hex: "#a9adb3", variants: { "One size": 12141 } },
 		{ name: "Black", hex: "#151515", variants: { "One size": 12141 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Kids' leggings: Printful's kids (322, sizes 2T-7) and youth (323, sizes 8-20)
@@ -1286,7 +1286,7 @@ MERCH.push({
 		{ name: "Grey", hex: "#a9adb3", variants: LEGGINGS_SIZES },
 		{ name: "Black", hex: "#151515", variants: LEGGINGS_SIZES },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Baby one-pieces (Printful product 308, Bella + Canvas 100B, 3-18 months)
@@ -1328,7 +1328,7 @@ MERCH.push({
 		{ name: "Heather Columbia Blue", hex: "#6495ff", variants: { "3–6 months": 9454, "6–12 months": 9455, "12–18 months": 9456 } },
 		{ name: "Athletic Heather", hex: "#cbcbcb", variants: { "3–6 months": 10333, "6–12 months": 10334, "12–18 months": 10335 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Cuffed beanies (Printful product 266, Yupoong 1501KC) with three logos
@@ -1377,7 +1377,7 @@ MERCH.push({
 		{ name: "Heather Grey", hex: "#b3b3b3", variants: { "One size": 8937 } },
 		{ name: "Red", hex: "#c4161c", variants: { "One size": 8939 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Kids' crewneck sweatshirts (Printful product 677, Gildan 18000B, youth
@@ -1404,7 +1404,7 @@ MERCH.push({
 		{ name: "Red", hex: "#da0a1a", variants: { "Youth XS": 16819, "Youth S": 16820, "Youth M": 16821, "Youth L": 16822, "Youth XL": 16823 } },
 		{ name: "Black", hex: "#0b0b0b", variants: { "Youth XS": 16787, "Youth S": 16788, "Youth M": 16789, "Youth L": 16790, "Youth XL": 16791 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Toddler tees (Printful product 489, Rabbit Skins 3321, 2T-5/6T) with the
@@ -1432,7 +1432,7 @@ MERCH.push({
 		{ name: "Heather", hex: "#c2bfbd", variants: toddlerSizes([12614, 12615, 12616, 12617]) },
 		{ name: "Black", hex: "#141414", variants: toddlerSizes([12610, 12611, 12612, 12613]) },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Grown-up crewneck sweatshirts (Printful product 145, Gildan 18000, S-3XL)
@@ -1460,7 +1460,7 @@ MERCH.push({
 		{ name: "Sport Grey", hex: "#ccccce", variants: { S: 5514, M: 5515, L: 5516, XL: 5517, "2XL": 5518, "3XL": 5519 } },
 		{ name: "Red", hex: "#da0a1a", variants: { S: 5442, M: 5443, L: 5444, XL: 5445, "2XL": 5446, "3XL": 5447 } },
 	],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 // Snow-globe Christmas ornament (Printful product 900, glossy 2-sided ceramic,
@@ -1489,7 +1489,7 @@ MERCH.push({
 	shipping: { firstCents: 599, additionalCents: 99 },
 	sizes: ["One size"],
 	colors: [{ name: "Royal Blue", hex: "#1d4fa8", variants: { "One size": 23133 } }],
-	productionEnabled: false,
+	productionEnabled: true,
 });
 
 const BY_KEY = new Map(MERCH.map((p) => [p.key, p]));

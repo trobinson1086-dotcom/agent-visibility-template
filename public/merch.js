@@ -1,4 +1,4 @@
-// Squish Squad Shop — merchandise design previews (Coming Soon), plus live
+// Squish Squad Shop — merchandise design previews, plus live
 // checkout for the Printful T-shirt, hoodie and mug once /api/merch says the
 // shop is open ("preview" shows it only at ?shop=preview). Book checkout lives
 // in app.js and is untouched.

@@ -52,10 +52,11 @@
 		"ENRICHMENT_CACHE_TTL": "3600",
 		"CONTENT_SIGNAL": "ai-input=yes, search=yes, ai-train=no",
 		"ENABLE_WEB_BOT_AUTH": "false",
-		// Lulu fulfillment: "off" | "sandbox" | "production". Off until Book 1 passes testing.
-		"FULFILLMENT_MODE": "off",
+		// Fulfillment: "off" | "sandbox" | "production". Production sends live orders only for
+		// products with productionEnabled (all merch; no books until Lulu specs are confirmed).
+		"FULFILLMENT_MODE": "production",
 		// Squish Squad Shop merch checkout: "off" | "preview" (shown only at ?shop=preview) | "on".
-		"MERCH_CHECKOUT": "preview",
+		"MERCH_CHECKOUT": "on",
 		// GROUND is not offered for Book 1 (8.5x11 paperback) to the US; MAIL is.
 		"LULU_SHIPPING_LEVEL": "MAIL",
 		"FULFILLMENT_CONTACT_EMAIL": "orders@squishman.com"
