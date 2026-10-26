@@ -310,13 +310,13 @@ describe("catalog", () => {
 		expect(new Set(CATALOG.map((e) => e.stripePriceId)).size).toBe(55);
 	});
 
-	it("ships with only Book 1 Paperback mapped and production disabled everywhere", async () => {
+	it("ships with only Book 1 Paperback mapped and no book enabled for production", async () => {
 		(book1 as { lulu: unknown }).lulu = BOOK1_SHIPPED_MAPPING;
 		const res = await SELF.fetch(`${BASE}/api/admin/fulfillment/catalog`, {
 			headers: { authorization: "Bearer test-token" },
 		});
 		const json = (await res.json()) as { mode: string; products: Array<{ key: string; lulu: unknown; productionEnabled: boolean }> };
-		expect(json.mode).toBe("off");
+		expect(json.mode).toBe("production");
 		expect(json.products.find((p) => p.key === "EN-PAPERBACK-1")?.lulu).toEqual({
 			podPackageId: "0850X1100.FC.STD.PB.080CW444.GXX",
 			pageCount: 32,
@@ -656,7 +656,7 @@ describe("configuration health check", () => {
 		const res = await SELF.fetch(`${BASE}/api/fulfillment/health`);
 		expect(res.status).toBe(200);
 		expect(await res.json()).toMatchObject({
-			mode: "off",
+			mode: "production",
 			ordersDb: "ok",
 			stripeSecretKey: "missing",
 			stripeWebhookSecret: "missing",
@@ -708,7 +708,7 @@ async function checkout(body: unknown) {
 }
 
 describe("merch catalog", () => {
-	it("sells the approved six colors in S–3XL, a mug, and nothing in production yet", () => {
+	it("sells the approved six colors in S–3XL, a mug, all enabled for production", () => {
 		const tee = merchProduct("TEE")!;
 		const hoodie = merchProduct("HOODIE")!;
 		const longSleeve = merchProduct("LONGSLEEVE")!;
@@ -746,7 +746,7 @@ describe("merch catalog", () => {
 				["back", 1090848220],
 			]);
 		}
-		expect(MERCH.every((p) => !p.productionEnabled)).toBe(true);
+		expect(MERCH.every((p) => p.productionEnabled)).toBe(true);
 		// Color pillows print the color into the art, so their colors share one blank.
 		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING", "NOTEBOOK", "LEGGINGS"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
@@ -1672,18 +1672,18 @@ describe("merch orders → Printful", () => {
 
 	it("in production, live orders stay drafts until the product is enabled, then are confirmed", async () => {
 		const prod = sandboxEnv({ FULFILLMENT_MODE: "production" });
-		merchSession("cs_live_teedraft", TEE_SKU, { livemode: true });
-		await deliver(prod, paidEvent("cs_live_teedraft"));
-		expect(printful.lastConfirm).toBe("false");
 		const tee = merchProduct("TEE")!;
-		tee.productionEnabled = true;
+		tee.productionEnabled = false;
 		try {
-			merchSession("cs_live_teego", TEE_SKU, { livemode: true });
-			await deliver(prod, paidEvent("cs_live_teego"));
-			expect(printful.lastConfirm).toBe("true");
+			merchSession("cs_live_teedraft", TEE_SKU, { livemode: true });
+			await deliver(prod, paidEvent("cs_live_teedraft"));
+			expect(printful.lastConfirm).toBe("false");
 		} finally {
-			tee.productionEnabled = false;
+			tee.productionEnabled = true;
 		}
+		merchSession("cs_live_teego", TEE_SKU, { livemode: true });
+		await deliver(prod, paidEvent("cs_live_teego"));
+		expect(printful.lastConfirm).toBe("true");
 		expect(printful.creates).toBe(2);
 	});
 
