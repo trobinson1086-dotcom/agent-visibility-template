@@ -310,7 +310,7 @@ describe("catalog", () => {
 		expect(new Set(CATALOG.map((e) => e.stripePriceId)).size).toBe(55);
 	});
 
-	it("ships with only Book 1 Paperback mapped and no book enabled for production", async () => {
+	it("ships with only Book 1 Paperback mapped and enabled for production", async () => {
 		(book1 as { lulu: unknown }).lulu = BOOK1_SHIPPED_MAPPING;
 		const res = await SELF.fetch(`${BASE}/api/admin/fulfillment/catalog`, {
 			headers: { authorization: "Bearer test-token" },
@@ -325,7 +325,7 @@ describe("catalog", () => {
 		expect(unmapped).toHaveLength(44);
 		expect(unmapped.every((p) => p.lulu === "FULFILLMENT_MAPPING_REQUIRED")).toBe(true);
 		expect(json.products.find((p) => p.key === "EN-EBOOK-1")?.lulu).toBe("NOT_PHYSICAL");
-		expect(json.products.every((p) => !p.productionEnabled)).toBe(true);
+		expect(json.products.filter((p) => p.productionEnabled).map((p) => p.key)).toEqual(["EN-PAPERBACK-1"]);
 	});
 });
 
@@ -403,9 +403,14 @@ describe("order trigger", () => {
 	});
 
 	it("holds production orders for products not yet enabled for production", async () => {
-		session("cs_live_prod", { livemode: true });
-		const r = await deliver(sandboxEnv({ FULFILLMENT_MODE: "production" }), paidEvent("cs_live_prod"));
-		expect(r.body).toMatchObject({ reason: "PRODUCTION_NOT_ENABLED:EN-PAPERBACK-1" });
+		book1.productionEnabled = false;
+		try {
+			session("cs_live_prod", { livemode: true });
+			const r = await deliver(sandboxEnv({ FULFILLMENT_MODE: "production" }), paidEvent("cs_live_prod"));
+			expect(r.body).toMatchObject({ reason: "PRODUCTION_NOT_ENABLED:EN-PAPERBACK-1" });
+		} finally {
+			book1.productionEnabled = true;
+		}
 		expect(lulu.creates).toBe(0);
 	});
 
