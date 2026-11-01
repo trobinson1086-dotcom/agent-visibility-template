@@ -228,6 +228,8 @@ export interface SquadPack {
 	heading: string;
 	intro: string;
 	items: Array<{ title: string; description?: string; url: string }>;
+	/** Optional picture at the top of the email. */
+	heroImage?: string;
 	/** Only published packs are sent to members (drafts can be test-sent). */
 	published: boolean;
 	updatedAt?: string;
@@ -236,16 +238,21 @@ export interface SquadPack {
 /** The monthly Squish Squad Pack email. */
 export function packEmail(env: Env, pack: SquadPack, childName: string): Pick<Email, "subject" | "html" | "text"> {
 	const name = childName || "Squish Squad member";
+	// Site paths ("/assets/…") become full squishman.com links.
+	const abs = (u: string) => (u.startsWith("/") ? `${baseUrl(env)}${u}` : u);
 	const items = pack.items
 		.map(
 			(i) =>
-				`<tr><td style="padding:10px 0;border-top:1px solid #eef2fa"><b>${esc(i.title)}</b>${i.description ? `<br><span style="font-size:14px;color:#4b5a7c">${esc(i.description)}</span>` : ""}<br>${button(i.url, "Open & print", true)}</td></tr>`,
+				`<tr><td style="padding:10px 0;border-top:1px solid #eef2fa"><b>${esc(i.title)}</b>${i.description ? `<br><span style="font-size:14px;color:#4b5a7c">${esc(i.description)}</span>` : ""}<br>${button(abs(i.url), /\.pdf$/i.test(i.url) ? "Open & print" : "Open", true)}</td></tr>`,
 		)
 		.join("");
+	const hero = pack.heroImage
+		? `<p style="text-align:center;margin:0 0 12px"><img src="${esc(abs(pack.heroImage))}" alt="Squish Man and Pudy in Maple Hollow" width="280" style="max-width:100%;height:auto;border-radius:14px"></p>`
+		: "";
 	const html = layout(
 		env,
 		pack.subject,
-		`<div style="font-size:12px;font-weight:900;letter-spacing:1.5px;color:#0758bd">SQUISH SQUAD PACK</div>
+		`${hero}<div style="font-size:12px;font-weight:900;letter-spacing:1.5px;color:#0758bd">SQUISH SQUAD PACK</div>
 <h1 style="font-size:24px;color:#07347d;margin:4px 0 12px">${esc(pack.heading)}</h1>
 <p>Hi ${esc(name)}! ${esc(pack.intro)}</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${items}</table>`,
@@ -256,7 +263,7 @@ export function packEmail(env: Env, pack: SquadPack, childName: string): Pick<Em
 		"",
 		`Hi ${name}! ${pack.intro}`,
 		"",
-		...pack.items.map((i) => `- ${i.title}${i.description ? ` (${i.description})` : ""}: ${i.url}`),
+		...pack.items.map((i) => `- ${i.title}${i.description ? ` (${i.description})` : ""}: ${abs(i.url)}`),
 		"",
 		`You get this email because your family is a Squish Squad member. To stop pack emails, reply "unsubscribe".`,
 	].join("\n");

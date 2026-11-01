@@ -90,7 +90,8 @@ subscription is `active`/`trialing`; each is idempotent via KV markers.
   Unconfirmed name spellings are HELD until
   `POST /api/admin/squad/members/:id/confirm-name`. Same `FULFILLMENT_MODE`
   gate as merch; test-mode and `draft` orders are Printful drafts.
-- **Squish Squad Packs**: `PUT /api/admin/squad/packs/YYYY-MM` stores a pack;
+- **Squish Squad Packs**: built-in packs live in `fulfillment/squad-packs.ts`
+  (files in `public/assets/squad-packs/YYYY-MM/`); `PUT /api/admin/squad/packs/YYYY-MM` stores one that overrides it;
   once `published`, the daily job emails it once to each active member.
 
 ## Email (Resend)

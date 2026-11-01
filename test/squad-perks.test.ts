@@ -402,6 +402,19 @@ describe("Squish Squad packs", () => {
 		expect(emails.filter((m) => m.subject === PACK.subject)).toHaveLength(1);
 	});
 
+	it("sends the built-in November pack with full squishman.com links", async () => {
+		const e = testEnv();
+		await recordSquadMember(e, member("cs_test_packnov", { email: "nov@example.com", childName: "Ava", birthMonth: 7 }));
+		subscriptions.set("sub_cs_test_packnov", "active");
+		await runSquadDaily(e, "sandbox", new Date("2026-11-03T15:00:00Z"), { force: true });
+		const nov = emails.find((m) => (m.to as string[])[0] === "nov@example.com" && String(m.subject).includes("November"));
+		expect(nov).toBeDefined();
+		expect(nov!.html).toContain("Hi Ava!");
+		expect(nov!.html).toContain("https://squishman.com/assets/squad-packs/2026-11/squish-squad-pack-november-2026.pdf");
+		expect(nov!.html).toContain('src="https://squishman.com/assets/squad-packs/2026-11/email-hero.jpg"');
+		expect(nov!.text).toContain("https://squishman.com/assets/squad-packs/2026-11/wallpaper-bridge-butterfly.jpg");
+	});
+
 	it("does not send drafts", async () => {
 		const e = testEnv();
 		await recordSquadMember(e, member("cs_test_packdraft", { email: "d@example.com", birthMonth: 7 }));

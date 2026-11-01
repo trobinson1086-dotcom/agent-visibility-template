@@ -17,6 +17,7 @@
  */
 import type { Env } from "../lib/types";
 import { baseUrl, type SquadPack, packEmail, posterEmail, sendOnce } from "./email";
+import { BUILT_IN_PACKS } from "./squad-packs";
 import { createOrder, externalId, getOrder, PrintfulError } from "./printful";
 import { listSquadMembers, membersByEmail, nextPoster, indexMemberEmail, type SquadMember } from "./squad";
 import { POSTER_SIZE_LABEL, POSTER_VARIANT_ID, renderPosterPng } from "./squad-poster";
@@ -370,11 +371,16 @@ export async function processPoster(
 export const packMonth = (d: Date) => d.toISOString().slice(0, 7);
 export const isPackMonth = (s: string) => /^20\d\d-(0[1-9]|1[0-2])$/.test(s);
 
+/** The month's pack: one saved via the admin API, else the built-in one (squad-packs.ts). */
 export async function getPack(env: Env, month: string): Promise<SquadPack | null> {
-	return getJson<SquadPack>(env, PACK_PREFIX + month);
+	return (await getJson<SquadPack>(env, PACK_PREFIX + month)) ?? BUILT_IN_PACKS[month] ?? null;
 }
 
-export const listPacks = (env: Env) => listJson<SquadPack>(env, PACK_PREFIX);
+export async function listPacks(env: Env): Promise<SquadPack[]> {
+	const saved = await listJson<SquadPack>(env, PACK_PREFIX);
+	const months = new Set(saved.map((p) => p.month));
+	return [...saved, ...Object.values(BUILT_IN_PACKS).filter((p) => !months.has(p.month))];
+}
 
 /** Validate admin input into a pack (throws with a readable message). */
 export function parsePack(month: string, body: unknown): SquadPack {
