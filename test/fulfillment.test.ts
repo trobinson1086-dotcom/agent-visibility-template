@@ -429,6 +429,14 @@ describe("order trigger", () => {
 		expect(lulu.creates).toBe(0);
 	});
 
+	it("never sends the new $4.99 eBook price to Lulu either", async () => {
+		session("cs_test_ebooknew", { price: "price_1UWu6n9cRroVv8pkyFxtACvV" });
+		const r = await deliver(sandboxEnv(), paidEvent("cs_test_ebooknew"));
+		expect(r.body).toMatchObject({ fulfillment: "not_required" });
+		expect(await store.get(env.ORDERS_DB!, "cs_test_ebooknew")).toBeNull();
+		expect(lulu.creates).toBe(0);
+	});
+
 	it("ignores prices outside the Squish Man catalog", async () => {
 		session("cs_test_other", { price: "price_not_squish_man" });
 		const r = await deliver(sandboxEnv(), paidEvent("cs_test_other"));
