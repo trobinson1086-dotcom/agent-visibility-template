@@ -1,11 +1,11 @@
 const A='assets/covers/';
 const sets={
  english:[
-  ['drive_master/Squish Man Book 1 - The Missing Puppy Parade.png','Book 1 — Missing Puppy Parade','https://book.stripe.com/8x29AN3B77ancW93Fz1Jm38','https://buy.stripe.com/bJe3cpgnTamz09n5NH1Jm3i','https://buy.stripe.com/8x27sF8Vr3Yb4pDdg91Jm3n','https://book.stripe.com/8x200ddbHfGT6xL2Bv1Jm3s'],
-  ['6542(4).png','Book 2 — Big Dream Adventure','https://book.stripe.com/28E8wJb3z66j4pDa3X1Jm39','https://buy.stripe.com/fZufZbdbH3Yb1drb811Jm3j','https://buy.stripe.com/28EdR31sZ0LZ6xLcc51Jm3o','https://book.stripe.com/9B68wJ3B7cuHcW92Bv1Jm3t'],
-  ['6543(5).png','Book 3 — Magical Garden','https://book.stripe.com/fZu8wJefL7an1dr2Bv1Jm3a','https://buy.stripe.com/14A14h9ZvdyL9JXekd1Jm3k','https://buy.stripe.com/00w3cpgnTeCPf4hekd1Jm3p','https://book.stripe.com/8x228l3B72U71dr1xr1Jm3u'],
-  ['6540(5).png','Book 4 — Saves the Snow Day','https://book.stripe.com/3cI00d0oVbqDcW92Bv1Jm3b','https://buy.stripe.com/5kQ9ANdbHeCPbS58ZT1Jm3l','https://buy.stripe.com/cNi14hb3z0LZf4hfoh1Jm3q','https://book.stripe.com/9B6eV72x366j4pD6RL1Jm3v'],
-  ['6541(5).png','Book 5 — Great Maple Hollow Derby','https://book.stripe.com/aFa28l3B7fGT8FTa3X1Jm3c','https://buy.stripe.com/7sY5kx5JfdyL3lza3X1Jm3m','https://buy.stripe.com/6oUeV74Fbamz8FT6RL1Jm3r','https://book.stripe.com/3cI4gt1sZ52f5tH8ZT1Jm3w']
+  ['drive_master/Squish Man Book 1 - The Missing Puppy Parade.png','Book 1 — Missing Puppy Parade','https://book.stripe.com/8x29AN3B77ancW93Fz1Jm38','https://buy.stripe.com/bJe3cpgnTamz09n5NH1Jm3i','','https://book.stripe.com/8x200ddbHfGT6xL2Bv1Jm3s'],
+  ['6542(4).png','Book 2 — Big Dream Adventure','https://book.stripe.com/28E8wJb3z66j4pDa3X1Jm39','https://buy.stripe.com/fZufZbdbH3Yb1drb811Jm3j','','https://book.stripe.com/9B68wJ3B7cuHcW92Bv1Jm3t'],
+  ['6543(5).png','Book 3 — Magical Garden','https://book.stripe.com/fZu8wJefL7an1dr2Bv1Jm3a','https://buy.stripe.com/14A14h9ZvdyL9JXekd1Jm3k','','https://book.stripe.com/8x228l3B72U71dr1xr1Jm3u'],
+  ['6540(5).png','Book 4 — Saves the Snow Day','https://book.stripe.com/3cI00d0oVbqDcW92Bv1Jm3b','https://buy.stripe.com/5kQ9ANdbHeCPbS58ZT1Jm3l','','https://book.stripe.com/9B6eV72x366j4pD6RL1Jm3v'],
+  ['6541(5).png','Book 5 — Great Maple Hollow Derby','https://book.stripe.com/aFa28l3B7fGT8FTa3X1Jm3c','https://buy.stripe.com/7sY5kx5JfdyL3lza3X1Jm3m','','https://book.stripe.com/3cI4gt1sZ52f5tH8ZT1Jm3w']
  ],
  bonus:[
   ['7594.png','Bonus Edition Book 1','https://buy.stripe.com/00w4gt3B71Q31drdg91Jm3C'],
