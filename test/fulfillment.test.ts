@@ -13,6 +13,7 @@ import {
 	retry,
 } from "../src/fulfillment/service";
 import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection, MUG_WRAP_FULL_FILE, ORNAMENT_SNOWGLOBE_FILE, SQUISH_SQUAD_FILE } from "../src/fulfillment/merch";
+import { ebookDownloadPage } from "../src/fulfillment/ebooks";
 import { reconcile } from "../src/fulfillment/service";
 import * as store from "../src/fulfillment/store";
 import { verifyStripeSignature } from "../src/fulfillment/stripe";
@@ -437,6 +438,62 @@ describe("paperback reprice ($19.99 → $14.99, English and Spanish)", () => {
 		}
 		const all = CATALOG.flatMap((e) => [e.stripePriceId, ...(e.previousPriceIds ?? [])]);
 		expect(new Set(all).size).toBe(all.length);
+	});
+});
+
+describe("eBook delivery", () => {
+	const EBOOK1_NEW = "price_1UWu6n9cRroVv8pkyFxtACvV";
+	const EBOOK3_NEW = "price_1UWu6r9cRroVv8pkne0HuLVx";
+
+	it("shows the Book 1 eBook links for a paid $4.99 eBook session", async () => {
+		session("cs_test_ebookpaid", { price: EBOOK1_NEW });
+		const r = await ebookDownloadPage(sandboxEnv(), "cs_test_ebookpaid");
+		expect(r.status).toBe(200);
+		expect(r.html).toContain("drive.google.com/file/d/11YNGwr_PZ0c2_RueXfMOlUBV4uvAsQFP/view");
+		expect(r.html).toContain("uc?export=download&id=11YNGwr_PZ0c2_RueXfMOlUBV4uvAsQFP");
+		expect(r.html).not.toContain("17cIZ5y2ZnS7KUaemw35szRXO3BApYAFW");
+	});
+
+	it("also works for an old $9.99 eBook price", async () => {
+		session("cs_test_ebookold", { price: BOOK1_EBOOK });
+		const r = await ebookDownloadPage(sandboxEnv(), "cs_test_ebookold");
+		expect(r.status).toBe(200);
+		expect(r.html).toContain("11YNGwr_PZ0c2_RueXfMOlUBV4uvAsQFP");
+	});
+
+	it("only shows the book that was bought", async () => {
+		session("cs_test_ebookthree", { price: EBOOK3_NEW });
+		const r = await ebookDownloadPage(sandboxEnv(), "cs_test_ebookthree");
+		expect(r.html).toContain("17cIZ5y2ZnS7KUaemw35szRXO3BApYAFW");
+		expect(r.html).not.toContain("11YNGwr_PZ0c2_RueXfMOlUBV4uvAsQFP");
+	});
+
+	it("never shows a download for an unpaid session", async () => {
+		session("cs_test_ebookunpaid", { price: EBOOK1_NEW, paid: false });
+		const r = await ebookDownloadPage(sandboxEnv(), "cs_test_ebookunpaid");
+		expect(r.status).toBe(402);
+		expect(r.html).not.toContain("drive.google.com");
+	});
+
+	it("never shows a download for a non-eBook purchase", async () => {
+		session("cs_test_ebookpaperback");
+		const r = await ebookDownloadPage(sandboxEnv(), "cs_test_ebookpaperback");
+		expect(r.status).toBe(404);
+		expect(r.html).not.toContain("drive.google.com");
+	});
+
+	it("rejects missing, malformed and unknown session ids", async () => {
+		expect((await ebookDownloadPage(sandboxEnv(), undefined)).status).toBe(400);
+		expect((await ebookDownloadPage(sandboxEnv(), "cs_test_<script>")).status).toBe(400);
+		const unknown = await ebookDownloadPage(sandboxEnv(), "cs_test_doesnotexist");
+		expect(unknown.status).toBe(404);
+		expect(unknown.html).not.toContain("drive.google.com");
+	});
+
+	it("is served by the worker at /api/ebook-download", async () => {
+		const res = await SELF.fetch(`${BASE}/api/ebook-download`);
+		expect(res.status).toBe(400);
+		expect(res.headers.get("content-type")).toContain("text/html");
 	});
 });
 

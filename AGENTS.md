@@ -57,6 +57,14 @@ and the hourly cron. Admin routes live under `/api/admin/*` (ADMIN_TOKEN).
   products with `productionEnabled`.
 - Schema changes go in `migrations/` (applied to tests automatically).
 
+## eBook delivery
+
+The eBook payment links redirect to `GET /api/ebook-download?session_id=…`,
+which re-reads the Checkout Session from Stripe and, only if it is paid, shows
+Drive links for the `EN-EBOOK-N` items bought (`fulfillment/ebooks.ts`, files in
+the "Squishman Books 1-5 Published" Drive folder). Audiobooks are paused
+("Coming soon") until recordings exist.
+
 ## Printful merch (Squish Squad Shop)
 
 `GET /api/merch` gives the shop page its prices, sizes, colors and checkout
