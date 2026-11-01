@@ -16,6 +16,7 @@
  */
 import type { Env } from "../lib/types";
 import { byKey, byPriceId, luluMapping, printFiles } from "./catalog";
+import { memberFromSession, recordSquadMember, squadPlanOf } from "./squad";
 import {
 	calculateCost,
 	checkAuth,
@@ -485,6 +486,13 @@ export async function handleStripeWebhook(
 	if (session.payment_status !== "paid") {
 		log("awaiting_payment", { session: sessionId, payment_status: session.payment_status });
 		return { status: 200, body: { received: true, awaiting_payment: true } };
+	}
+	const squadPlan = squadPlanOf(session);
+	if (squadPlan) {
+		const member = memberFromSession(session, squadPlan);
+		await recordSquadMember(env, member);
+		log("squad_member", { session: sessionId, plan: squadPlan, name_confirmed: member.nameConfirmed });
+		return { status: 200, body: { received: true, squad: "member_recorded" } };
 	}
 	if (session.metadata?.merch_sku) {
 		return recordMerchOrder(env, mode(env), db, event.id, session);
