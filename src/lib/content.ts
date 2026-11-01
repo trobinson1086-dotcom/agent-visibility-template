@@ -48,10 +48,10 @@ SquishMan.com · © 2026 Travis Robinson.`,
 		url: `${SITE}/#books`,
 		title: "The Squish Man Book Series",
 		prices:
-			"Paperback $14.99 • Hardcover $29.99 • eBook $9.99 • Audiobook $14.99",
+			"Paperback $14.99 • Hardcover $29.99 • eBook $4.99 • Audiobook $14.99",
 		body: `# The Squish Man Book Series
 
-Original English adventures. Paperback $14.99 • Hardcover $29.99 • eBook $9.99 • Audiobook $14.99.
+Original English adventures. Paperback $14.99 • Hardcover $29.99 • eBook $4.99 • Audiobook $14.99.
 Each book has a product page with real "Look Inside" interior preview pages.
 
 ## Book 1 — Squish Man and the Missing Puppy Parade
