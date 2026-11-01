@@ -13,13 +13,13 @@ export const BUILT_IN_PACKS: Readonly<Record<string, SquadPack>> = {
 		subject: "Your November Squish Squad Pack is here 🍂",
 		heading: "Autumn in Maple Hollow",
 		intro:
-			"The leaves are falling in Maple Hollow, and Squish Man and Pudy made you something special: ten pages to color, trace, count, solve and stick, plus autumn wallpapers for a grown-up's phone or tablet. Print the pack and have fun!",
+			"The leaves are falling in Maple Hollow, and Squish Man and Pudy made you something special: pages to color, trace and stick, a Thanksgiving \"I'm Thankful For\" page, a November Kindness Challenge, autumn bookmarks, and wallpapers for a grown-up's phone or tablet. Print the pack and have fun!",
 		heroImage: `${NOV}/email-hero.jpg`,
 		items: [
 			{
 				title: "November printable pack (10 pages, PDF)",
 				description:
-					"3 coloring pages, Color with Squish Man, Trace the Alphabet, Match & Maze activities, Count & Add math, Find Squish Man, and two sticker pages.",
+					"3 coloring pages, Trace the Alphabet, I'm Thankful For…, the November Kindness Challenge, 2 sticker pages, autumn bookmarks, and a sneak peek from Bonus Edition 3.",
 				url: `${NOV}/squish-squad-pack-november-2026.pdf`,
 			},
 			{ title: "Wallpaper: Squish Man & Pudy meet a butterfly", url: `${NOV}/wallpaper-bridge-butterfly.jpg` },
