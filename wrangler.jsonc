@@ -66,8 +66,8 @@
 		"PUBLIC_BASE_URL": "https://squishman.com",
 		"EMAIL_FROM": "Squish Man <orders@squishman.com>",
 		"SQUAD_EMAIL_FROM": "Squish Squad <squad@squishman.com>",
-		// Squish Squad birthday posters: "off" | "draft" (Printful drafts) | "on" (ordered and paid automatically).
-		"SQUAD_POSTERS": "on",
+		// Squish Squad birthday posters: "off" | "draft" (Printful drafts, confirm each in the dashboard) | "on" (ordered and paid automatically).
+		"SQUAD_POSTERS": "draft",
 		// Refund up to $5.99 shipping on members' $25+ book orders: "off" | "on".
 		"SQUAD_SHIPPING_REFUNDS": "on"
 	}

@@ -214,10 +214,10 @@ export function posterEmail(
 		env,
 		"A birthday surprise is on its way",
 		`<h1 style="font-size:24px;color:#07347d;margin:0 0 12px">A birthday surprise is on its way! 🎂</h1>
-<p>Squish Man and Pudy are getting ready for ${esc(m.childName)}'s birthday in ${esc(m.birthday.split(" ")[0])}. A personalized Squish Squad birthday poster is being printed now and will arrive by mail before the big day.</p>
+<p>Squish Man and Pudy are getting ready for ${esc(m.childName)}'s birthday in ${esc(m.birthday.split(" ")[0])}. We're making a personalized Squish Squad birthday poster just for them, and it will arrive by mail before the big day.</p>
 <p>Thank you for being part of the Squish Squad!</p>`,
 	);
-	const text = `A birthday surprise is on its way!\n\nSquish Man and Pudy are getting ready for ${m.childName}'s birthday in ${m.birthday.split(" ")[0]}. A personalized Squish Squad birthday poster is being printed now and will arrive by mail before the big day.\n\nThank you for being part of the Squish Squad!`;
+	const text = `A birthday surprise is on its way!\n\nSquish Man and Pudy are getting ready for ${m.childName}'s birthday in ${m.birthday.split(" ")[0]}. We're making a personalized Squish Squad birthday poster just for them, and it will arrive by mail before the big day.\n\nThank you for being part of the Squish Squad!`;
 	return { subject: `${m.childName}'s Squish Squad birthday poster is on its way 🎂`, html, text };
 }
 
