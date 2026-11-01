@@ -84,14 +84,14 @@ to shine.`,
 		url: `${SITE}/#learning`,
 		title: "Learning, Activity, Bonus & Coloring Books",
 		prices:
-			"Learning & Activity Books $19.99 • Bonus Activities & Learning Editions $39.99 • Coloring Books $18.99",
+			"Learning & Activity Books $19.99 • Bonus Activities & Learning Editions $29.99 • Coloring Books $18.99",
 		body: `# Learning, Activity, Bonus & Coloring Books
 
 ## Learning & Activity Books 1–5 — $19.99 each
 Practice early skills with puzzles, mazes, letters, numbers, reading,
 creativity and more, alongside familiar Maple Hollow characters.
 
-## Bonus Activities & Learning Editions 1–5 — $39.99 each
+## Bonus Activities & Learning Editions 1–5 — $29.99 each
 More story, more learning: expanded editions of each adventure with activities.
 
 ## Coloring Books 1–5 — $18.99 each
@@ -107,12 +107,12 @@ Screen-free creative fun with familiar Maple Hollow characters and scenes.
 		url: `${SITE}/#spanish`,
 		title: "Squish Man en Español",
 		prices:
-			"Libros 1–5: Paperback $14.99 • Hardcover $21.00 • Edición Especial $39.99 • Aprendizaje y Actividades $19.99",
+			"Libros 1–5: Paperback $14.99 • Hardcover $21.00 • Edición Especial $29.99 • Aprendizaje y Actividades $19.99",
 		body: `# Squish Man en Español — Aventuras en Español
 
 Storybooks, special editions and learning & activity books for Spanish-reading
 families. Libros 1–5: Paperback $14.99 • Hardcover $21.00. Edición Especial
-$39.99 • Aprendizaje y Actividades $19.99.
+$29.99 • Aprendizaje y Actividades $19.99.
 
 ## Libros 1–5 — Paperback $14.99 • Hardcover $21.00
 1. Squish Man y el Desfile del Cachorro Perdido
@@ -121,7 +121,7 @@ $39.99 • Aprendizaje y Actividades $19.99.
 4. Squish Man Salva el Día de Nieve
 5. Squish Man y Pudy y el Gran Derby de Maple Hollow
 
-## Edición Especial 1–5 — $39.99 each
+## Edición Especial 1–5 — $29.99 each
 Special activity & learning editions of each Spanish storybook.
 
 ## Aprendizaje y Actividades 1–5 — $19.99 each
