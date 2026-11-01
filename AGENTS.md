@@ -65,6 +65,17 @@ Drive links for the `EN-EBOOK-N` items bought (`fulfillment/ebooks.ts`, files in
 the "Squishman Books 1-5 Published" Drive folder). Audiobooks are paused
 ("Coming soon") until recordings exist.
 
+## Squish Squad Membership
+
+$4.99/month or $49/year Stripe subscriptions (product `prod_VYAPqBiyvkZhBT`,
+prices in `fulfillment/squad.ts`) sold through two Payment Links that collect
+the child's first name (twice) and birthday month plus a US shipping address.
+They redirect to `GET /api/squad/welcome?session_id=…` (free eBook + printable
+member card). The Stripe webhook records members in KV (`squad:member:*`);
+`GET /api/admin/squad/members` lists them with each birthday poster's order
+date and eligibility (yearly: always; monthly: after 3 months). Only a parent's
+input of the child's first name and birth month is stored.
+
 ## Printful merch (Squish Squad Shop)
 
 `GET /api/merch` gives the shop page its prices, sizes, colors and checkout

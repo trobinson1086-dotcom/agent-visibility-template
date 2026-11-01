@@ -61,6 +61,7 @@ import {
 } from "../fulfillment/service";
 import { type CheckoutRequest, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import { ebookDownloadPage } from "../fulfillment/ebooks";
+import { listSquadMembers, nextPoster, squadWelcomePage } from "../fulfillment/squad";
 import * as orders from "../fulfillment/store";
 import {
 	directoryDocument,
@@ -328,6 +329,12 @@ app.get("/api/ebook-download", async (c) => {
 	return c.html(html, status as 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
 });
 
+/** Squish Squad Membership: welcome page after a membership checkout (see fulfillment/squad.ts). */
+app.get("/api/squad/welcome", async (c) => {
+	const { status, html } = await squadWelcomePage(c.env, c.req.query("session_id"));
+	return c.html(html, status as 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
+});
+
 /** Squish Squad Shop: checkout state, prices, sizes and colors for the shop page. */
 app.get("/api/merch", (c) => {
 	return c.json(merchCatalog(c.env), 200, { "Cache-Control": "no-store" });
@@ -388,6 +395,15 @@ app.get("/api/admin/fulfillment/catalog", (c) => {
 			productionEnabled: e.productionEnabled,
 		})),
 	});
+});
+
+/** Squish Squad members and the birthday poster each one is due (admin only). */
+app.get("/api/admin/squad/members", async (c) => {
+	const today = new Date();
+	const members = (await listSquadMembers(c.env))
+		.map((m) => ({ ...m, poster: nextPoster(m, today) }))
+		.sort((a, b) => (a.poster?.orderOn ?? "9999").localeCompare(b.poster?.orderOn ?? "9999"));
+	return c.json({ count: members.length, members }, 200, { "Cache-Control": "no-store" });
 });
 
 app.get("/api/admin/fulfillments", async (c) => {

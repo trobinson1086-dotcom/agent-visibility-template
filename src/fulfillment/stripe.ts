@@ -62,6 +62,16 @@ export interface StripeCheckoutSession {
 		shipping_details?: { name?: string | null; address?: StripeAddress | null } | null;
 	} | null;
 	line_items?: { data: StripeLineItem[]; has_more: boolean };
+	mode?: "payment" | "subscription" | "setup";
+	subscription?: string | null;
+	created?: number;
+	/** Payment Link custom fields (Squish Squad: child's first name, birthday month). */
+	custom_fields?: Array<{
+		key: string;
+		type: string;
+		text?: { value: string | null } | null;
+		dropdown?: { value: string | null } | null;
+	}> | null;
 	/** Set by our own merch checkout (merch_sku = "TEE|Black|M"). */
 	metadata?: Record<string, string> | null;
 }

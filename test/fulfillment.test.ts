@@ -14,6 +14,7 @@ import {
 } from "../src/fulfillment/service";
 import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection, MUG_WRAP_FULL_FILE, ORNAMENT_SNOWGLOBE_FILE, SQUISH_SQUAD_FILE } from "../src/fulfillment/merch";
 import { ebookDownloadPage } from "../src/fulfillment/ebooks";
+import { cleanChildName, listSquadMembers, nextPoster, squadWelcomePage, type SquadMember } from "../src/fulfillment/squad";
 import { reconcile } from "../src/fulfillment/service";
 import * as store from "../src/fulfillment/store";
 import { verifyStripeSignature } from "../src/fulfillment/stripe";
@@ -494,6 +495,99 @@ describe("eBook delivery", () => {
 		const res = await SELF.fetch(`${BASE}/api/ebook-download`);
 		expect(res.status).toBe(400);
 		expect(res.headers.get("content-type")).toContain("text/html");
+	});
+});
+
+describe("Squish Squad membership", () => {
+	const MONTHLY = "price_1UX44w9cRroVv8pkpabnr9HH";
+	const YEARLY = "price_1UX44y9cRroVv8pkGOan5njh";
+	function squadSession(id: string, price: string, name: string, again: string, month: string, paid = true) {
+		session(id, { price, paid });
+		Object.assign(sessions.get(id)!, {
+			mode: "subscription",
+			subscription: `sub_${id}`,
+			created: 1793560000,
+			custom_fields: [
+				{ key: "childname", type: "text", text: { value: name } },
+				{ key: "childname2", type: "text", text: { value: again } },
+				{ key: "birthmonth", type: "dropdown", dropdown: { value: month } },
+			],
+		});
+	}
+
+	it("tidies a child's name for printing", () => {
+		expect(cleanChildName("  maya-rose   o'neil 3! ")).toBe("Maya-Rose O'neil");
+		expect(cleanChildName("josé")).toBe("José");
+		expect(cleanChildName(null)).toBe("");
+	});
+
+	it("records a new member from the webhook and never sends it to Lulu", async () => {
+		squadSession("cs_test_squadyearly", YEARLY, "maya", "Maya", "12");
+		const r = await deliver(sandboxEnv(), paidEvent("cs_test_squadyearly"));
+		expect(r.body).toMatchObject({ squad: "member_recorded" });
+		expect(lulu.creates).toBe(0);
+		const m = (await listSquadMembers(sandboxEnv())).find((x) => x.sessionId === "cs_test_squadyearly");
+		expect(m).toMatchObject({
+			plan: "yearly",
+			childName: "Maya",
+			nameConfirmed: true,
+			birthMonth: 12,
+			email: "parent@example.com",
+			subscriptionId: "sub_cs_test_squadyearly",
+			shipping: { line1: "100 Maple St", city: "Austin", state: "TX", postalCode: "78701" },
+		});
+	});
+
+	it("flags names that were typed two different ways", async () => {
+		squadSession("cs_test_squadtypo", MONTHLY, "Mya", "Maya", "03");
+		await deliver(sandboxEnv(), paidEvent("cs_test_squadtypo"));
+		const m = (await listSquadMembers(sandboxEnv())).find((x) => x.sessionId === "cs_test_squadtypo");
+		expect(m?.nameConfirmed).toBe(false);
+		const page = await squadWelcomePage(sandboxEnv(), "cs_test_squadtypo");
+		expect(page.html).toContain("didn't match");
+	});
+
+	it("shows the welcome page with the free eBook and member card", async () => {
+		squadSession("cs_test_squadwelcome", MONTHLY, "leo", "Leo", "07");
+		const r = await squadWelcomePage(sandboxEnv(), "cs_test_squadwelcome");
+		expect(r.status).toBe(200);
+		expect(r.html).toContain("Welcome to the Squish Squad, Leo!");
+		expect(r.html).toContain("OFFICIAL SQUISH SQUAD MEMBER");
+		expect(r.html).toContain("11YNGwr_PZ0c2_RueXfMOlUBV4uvAsQFP");
+		expect(r.html).toContain("After 3 months of membership");
+		expect(r.html).toContain("July");
+	});
+
+	it("never shows member gifts for unpaid, non-member or malformed sessions", async () => {
+		squadSession("cs_test_squadunpaid", YEARLY, "Ava", "Ava", "01", false);
+		expect((await squadWelcomePage(sandboxEnv(), "cs_test_squadunpaid")).status).toBe(402);
+		session("cs_test_squadpaperback");
+		const notMember = await squadWelcomePage(sandboxEnv(), "cs_test_squadpaperback");
+		expect(notMember.status).toBe(404);
+		expect(notMember.html).not.toContain("drive.google.com");
+		expect((await squadWelcomePage(sandboxEnv(), "nope")).status).toBe(400);
+	});
+
+	it("schedules birthday posters: yearly right away, monthly after 3 months", () => {
+		const base: SquadMember = {
+			sessionId: "x", subscriptionId: null, plan: "yearly", childName: "Maya", nameConfirmed: true,
+			birthMonth: 12, email: null, shipping: null, joinedAt: "2026-11-01T00:00:00.000Z", livemode: true,
+		};
+		const today = new Date("2026-11-01T12:00:00Z");
+		expect(nextPoster(base, today)).toEqual({ birthday: "December 2026", orderOn: "2026-11-17", eligible: true });
+		expect(nextPoster({ ...base, plan: "monthly" }, today)?.eligible).toBe(false);
+		expect(nextPoster({ ...base, plan: "monthly", birthMonth: 3 }, today)).toEqual({ birthday: "March 2027", orderOn: "2027-02-15", eligible: true });
+		// A birthday earlier in the year rolls to next year.
+		expect(nextPoster({ ...base, birthMonth: 6 }, today)?.birthday).toBe("June 2027");
+		expect(nextPoster({ ...base, birthMonth: null }, today)).toBeNull();
+	});
+
+	it("serves the welcome page and keeps the member list admin-only", async () => {
+		const res = await SELF.fetch(`${BASE}/api/squad/welcome`);
+		expect(res.status).toBe(400);
+		expect((await SELF.fetch(`${BASE}/api/admin/squad/members`)).status).toBe(401);
+		const ok = await SELF.fetch(`${BASE}/api/admin/squad/members`, { headers: { authorization: "Bearer test-token" } });
+		expect(ok.status).toBe(200);
 	});
 });
 
