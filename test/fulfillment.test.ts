@@ -310,7 +310,7 @@ describe("catalog", () => {
 		expect(new Set(CATALOG.map((e) => e.stripePriceId)).size).toBe(55);
 	});
 
-	it("maps the five story paperbacks and enables only Book 1 for production", async () => {
+	it("maps the five story paperbacks and enables them for production", async () => {
 		(book1 as { lulu: unknown }).lulu = BOOK1_SHIPPED_MAPPING;
 		const res = await SELF.fetch(`${BASE}/api/admin/fulfillment/catalog`, {
 			headers: { authorization: "Bearer test-token" },
@@ -330,7 +330,7 @@ describe("catalog", () => {
 		expect(unmapped).toHaveLength(40);
 		expect(unmapped.every((p) => p.lulu === "FULFILLMENT_MAPPING_REQUIRED")).toBe(true);
 		expect(json.products.find((p) => p.key === "EN-EBOOK-1")?.lulu).toBe("NOT_PHYSICAL");
-		expect(json.products.filter((p) => p.productionEnabled).map((p) => p.key)).toEqual(["EN-PAPERBACK-1"]);
+		expect(json.products.filter((p) => p.productionEnabled).map((p) => p.key)).toEqual(["EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5"]);
 	});
 });
 
