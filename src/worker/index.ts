@@ -60,6 +60,7 @@ import {
 	retry,
 } from "../fulfillment/service";
 import { type CheckoutRequest, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
+import { ebookDownloadPage } from "../fulfillment/ebooks";
 import * as orders from "../fulfillment/store";
 import {
 	directoryDocument,
@@ -319,6 +320,12 @@ app.post("/api/stripe/webhook", async (c) => {
 	);
 	if (result.background) c.executionCtx.waitUntil(result.background);
 	return c.json(result.body, result.status as 200);
+});
+
+/** eBook delivery: Stripe redirects paid eBook checkouts here (see fulfillment/ebooks.ts). */
+app.get("/api/ebook-download", async (c) => {
+	const { status, html } = await ebookDownloadPage(c.env, c.req.query("session_id"));
+	return c.html(html, status as 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
 });
 
 /** Squish Squad Shop: checkout state, prices, sizes and colors for the shop page. */
