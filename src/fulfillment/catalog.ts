@@ -3,7 +3,9 @@ import type { CatalogEntry, LuluMapping } from "./types";
 
 export { CATALOG };
 
-const BY_PRICE = new Map(CATALOG.map((e) => [e.stripePriceId, e]));
+const BY_PRICE = new Map(
+	CATALOG.flatMap((e) => [e.stripePriceId, ...(e.previousPriceIds ?? [])].map((id) => [id, e] as const)),
+);
 const BY_KEY = new Map(CATALOG.map((e) => [e.key, e]));
 
 export function byPriceId(priceId: string): CatalogEntry | undefined {

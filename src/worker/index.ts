@@ -375,6 +375,7 @@ app.get("/api/admin/fulfillment/catalog", (c) => {
 			format: e.format,
 			stripeProductId: e.stripeProductId,
 			stripePriceId: e.stripePriceId,
+			previousPriceIds: e.previousPriceIds ?? [],
 			physical: e.physical,
 			lulu: e.physical ? (luluMapping(e) ?? "FULFILLMENT_MAPPING_REQUIRED") : "NOT_PHYSICAL",
 			productionEnabled: e.productionEnabled,

@@ -32,6 +32,8 @@ export interface CatalogEntry {
 	format: Format;
 	stripeProductId: string;
 	stripePriceId: string;
+	/** Earlier Stripe prices for this same item (orders placed before a price change). */
+	previousPriceIds?: readonly string[];
 	/** Only physical items can ever be sent to Lulu. */
 	physical: boolean;
 	/** null for digital items; the sentinel until print specs are confirmed. */
