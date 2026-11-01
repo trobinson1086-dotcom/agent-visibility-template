@@ -196,7 +196,11 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 				? "production"
 				: null;
 	if (creds && checkEnv) {
-		result.book1Paperback = await book1Check(env, { ...creds, mode: checkEnv });
+		result.book1Paperback = await bookCheck(env, { ...creds, mode: checkEnv }, "EN-PAPERBACK-1", [
+			"MAIL",
+			"PRIORITY_MAIL",
+			"EXPEDITED",
+		]);
 	}
 
 	await env.VISIBILITY_CACHE.put(HEALTH_KEY, JSON.stringify(result), { expirationTtl: HEALTH_TTL });
@@ -294,6 +298,31 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 	}
 }
 
+const BOOKS_KEY = "fulfillment:books";
+/** The story paperbacks checked by booksCheck (each needs about six Lulu calls). */
+const STORY_PAPERBACKS = ["EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5"];
+
+/**
+ * Lulu's read-only checks for every mapped story paperback: cover size, the
+ * cost of one copy by mail, file validation and whether it auto-prints.
+ * Cached in KV for 5 minutes like the health check. Creates no print jobs.
+ */
+export async function booksCheck(env: Env): Promise<Record<string, unknown>> {
+	const cached = await env.VISIBILITY_CACHE.get(BOOKS_KEY, "json");
+	if (cached) return { ...(cached as Record<string, unknown>), cached: true };
+	const creds = luluCredentials(env, true);
+	if (!creds) return { lulu: "missing" };
+	const result: Record<string, unknown> = { luluEnvironment: creds.mode };
+	for (const key of STORY_PAPERBACKS) {
+		const entry = byKey(key);
+		result[key] = entry
+			? { productionEnabled: entry.productionEnabled, ...(await bookCheck(env, creds, key, ["MAIL"])) }
+			: "not in catalog";
+	}
+	await env.VISIBILITY_CACHE.put(BOOKS_KEY, JSON.stringify(result), { expirationTtl: HEALTH_TTL });
+	return result;
+}
+
 /** A sample US destination for price checks (Lulu's own docs example address). */
 const SAMPLE_US_ADDRESS = {
 	street1: "101 Independence Ave SE",
@@ -305,11 +334,16 @@ const SAMPLE_US_ADDRESS = {
 };
 
 /**
- * Read-only Lulu checks for Book 1 Paperback: exact cover size and the real
- * cost of one copy at each common shipping level. Creates nothing.
+ * Read-only Lulu checks for one mapped book: exact cover size, the real cost
+ * of one copy at the given shipping levels, and Lulu's file checks. Creates nothing.
  */
-async function book1Check(env: Env, creds: LuluCredentials): Promise<Record<string, unknown>> {
-	const entry = byKey("EN-PAPERBACK-1");
+async function bookCheck(
+	env: Env,
+	creds: LuluCredentials,
+	key: string,
+	levels: readonly ("MAIL" | "PRIORITY_MAIL" | "EXPEDITED")[],
+): Promise<Record<string, unknown>> {
+	const entry = byKey(key);
 	const spec = entry && luluMapping(entry);
 	if (!spec) return { status: "FULFILLMENT_MAPPING_REQUIRED" };
 	const out: Record<string, unknown> = {
@@ -324,7 +358,7 @@ async function book1Check(env: Env, creds: LuluCredentials): Promise<Record<stri
 		out.coverSize = `error: ${errorDetail(err).slice(0, 200)}`;
 	}
 	const quotes: Record<string, unknown> = {};
-	for (const level of ["MAIL", "PRIORITY_MAIL", "EXPEDITED"] as const) {
+	for (const level of levels) {
 		try {
 			const q = (await calculateCost(
 				creds,
@@ -350,7 +384,7 @@ async function book1Check(env: Env, creds: LuluCredentials): Promise<Record<stri
 		}
 	}
 	out.costForOneCopyToWashingtonDC = quotes;
-	out.printFiles = await validateFiles(env, creds, "EN-PAPERBACK-1", spec.podPackageId, spec.pageCount);
+	out.printFiles = await validateFiles(env, creds, key, spec.podPackageId, spec.pageCount);
 	return out;
 }
 

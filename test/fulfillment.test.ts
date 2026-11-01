@@ -24,7 +24,7 @@ const WHSEC = "whsec_test_secret";
 const LULU_SECRET = "3395bde8-0d24-4d47-aa4c-c84c76248dbc";
 const BOOK1_PAPERBACK = "price_1UNmh49cRroVv8pkheBXH7ag";
 const BOOK1_EBOOK = "price_1UNmnk9cRroVv8pkjzdKzEBB";
-const BOOK2_PAPERBACK = "price_1UNmqj9cRroVv8pkgo2woTcw";
+const BONUS1 = "price_1UNmtV9cRroVv8pkF4lqTqYY";
 const PROD_ONLY_KEY = "aaaaaaaa-1111-2222-3333-444444444444";
 
 // Test-only Lulu specs for Book 1 Paperback. The shipped catalog keeps it
@@ -310,7 +310,7 @@ describe("catalog", () => {
 		expect(new Set(CATALOG.map((e) => e.stripePriceId)).size).toBe(55);
 	});
 
-	it("ships with only Book 1 Paperback mapped and enabled for production", async () => {
+	it("maps the five story paperbacks and enables only Book 1 for production", async () => {
 		(book1 as { lulu: unknown }).lulu = BOOK1_SHIPPED_MAPPING;
 		const res = await SELF.fetch(`${BASE}/api/admin/fulfillment/catalog`, {
 			headers: { authorization: "Bearer test-token" },
@@ -321,8 +321,13 @@ describe("catalog", () => {
 			podPackageId: "0850X1100.FC.STD.PB.080CW444.GXX",
 			pageCount: 32,
 		});
-		const unmapped = json.products.filter((p) => p.key !== "EN-PAPERBACK-1" && p.lulu !== "NOT_PHYSICAL");
-		expect(unmapped).toHaveLength(44);
+		const square = { podPackageId: "0850X0850.FC.STD.PB.080CW444.GXX", pageCount: 32 };
+		const letter = { podPackageId: "0850X1100.FC.STD.PB.080CW444.GXX", pageCount: 32 };
+		const lulu = (k: string) => json.products.find((p) => p.key === k)?.lulu;
+		expect(lulu("EN-PAPERBACK-2")).toEqual(square);
+		for (const k of ["EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5"]) expect(lulu(k)).toEqual(letter);
+		const unmapped = json.products.filter((p) => !/^EN-PAPERBACK-[1-5]$/.test(p.key) && p.lulu !== "NOT_PHYSICAL");
+		expect(unmapped).toHaveLength(40);
 		expect(unmapped.every((p) => p.lulu === "FULFILLMENT_MAPPING_REQUIRED")).toBe(true);
 		expect(json.products.find((p) => p.key === "EN-EBOOK-1")?.lulu).toBe("NOT_PHYSICAL");
 		expect(json.products.filter((p) => p.productionEnabled).map((p) => p.key)).toEqual(["EN-PAPERBACK-1"]);
@@ -388,10 +393,10 @@ describe("order trigger", () => {
 		expect(lulu.creates).toBe(0);
 	});
 
-	it("holds an unmapped physical product (Book 2) instead of guessing", async () => {
-		session("cs_test_book2", { price: BOOK2_PAPERBACK });
-		const r = await deliver(sandboxEnv(), paidEvent("cs_test_book2"));
-		expect(r.body).toMatchObject({ reason: "FULFILLMENT_MAPPING_REQUIRED:EN-PAPERBACK-2" });
+	it("holds an unmapped physical product (Bonus Edition 1) instead of guessing", async () => {
+		session("cs_test_bonus1", { price: BONUS1 });
+		const r = await deliver(sandboxEnv(), paidEvent("cs_test_bonus1"));
+		expect(r.body).toMatchObject({ reason: "FULFILLMENT_MAPPING_REQUIRED:EN-BONUS-1" });
 		expect(lulu.creates).toBe(0);
 	});
 
@@ -669,6 +674,14 @@ describe("configuration health check", () => {
 			luluClientKey: "missing",
 			lulu: "missing",
 		});
+	});
+});
+
+describe("story paperback checks", () => {
+	it("is public and reports missing Lulu keys without calling Lulu", async () => {
+		const res = await SELF.fetch(`${BASE}/api/fulfillment/books`);
+		expect(res.status).toBe(200);
+		expect(await res.json()).toEqual({ lulu: "missing" });
 	});
 });
 

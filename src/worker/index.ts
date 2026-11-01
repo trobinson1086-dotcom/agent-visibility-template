@@ -50,6 +50,7 @@ import {
 import {
 	handleLuluWebhook,
 	handleStripeWebhook,
+	booksCheck as fulfillmentBooks,
 	health as fulfillmentHealth,
 	luluCredentials,
 	mode as fulfillmentMode,
@@ -341,6 +342,11 @@ app.post("/api/merch/checkout", async (c) => {
 /** Which fulfillment pieces are configured and working; never shows values. */
 app.get("/api/fulfillment/health", async (c) => {
 	return c.json(await fulfillmentHealth(c.env), 200, { "Cache-Control": "no-store" });
+});
+
+/** Lulu's read-only file and price checks for each story paperback. */
+app.get("/api/fulfillment/books", async (c) => {
+	return c.json(await fulfillmentBooks(c.env), 200, { "Cache-Control": "no-store" });
 });
 
 app.post("/api/lulu/webhook", async (c) => {
