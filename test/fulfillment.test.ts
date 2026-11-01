@@ -4,7 +4,7 @@
  */
 import { env, fetchMock, SELF } from "cloudflare:test";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { byKey, CATALOG } from "../src/fulfillment/catalog";
+import { byKey, byPriceId, CATALOG } from "../src/fulfillment/catalog";
 import { hmacSha256, toHex } from "../src/fulfillment/crypto";
 import {
 	handleLuluWebhook,
@@ -22,7 +22,23 @@ import type { Env } from "../src/lib/types";
 const BASE = "https://example.com";
 const WHSEC = "whsec_test_secret";
 const LULU_SECRET = "3395bde8-0d24-4d47-aa4c-c84c76248dbc";
+// The $19.99 price (orders placed before 2026-11-01) and the current $14.99 one.
 const BOOK1_PAPERBACK = "price_1UNmh49cRroVv8pkheBXH7ag";
+const BOOK1_PAPERBACK_1499 = "price_1UWsRI9cRroVv8pkLtEYUWcc";
+const PAPERBACKS_1499 = [
+	BOOK1_PAPERBACK_1499,
+	"price_1UWsRP9cRroVv8pkxNqvGXuY",
+	"price_1UWsRS9cRroVv8pkYeeEC3si",
+	"price_1UWsRY9cRroVv8pk9BaizMJv",
+	"price_1UWsRb9cRroVv8pkqTpdDBDU",
+];
+const PAPERBACKS_1999 = [
+	BOOK1_PAPERBACK,
+	"price_1UNmqj9cRroVv8pkgo2woTcw",
+	"price_1UNmqq9cRroVv8pkfwDTMRRw",
+	"price_1UNmtD9cRroVv8pkoeigDyEI",
+	"price_1UNmtL9cRroVv8pk1gYcbRUO",
+];
 const BOOK1_EBOOK = "price_1UNmnk9cRroVv8pkjzdKzEBB";
 const BONUS1 = "price_1UNmtV9cRroVv8pkF4lqTqYY";
 const PROD_ONLY_KEY = "aaaaaaaa-1111-2222-3333-444444444444";
@@ -334,6 +350,21 @@ describe("catalog", () => {
 	});
 });
 
+describe("paperback reprice ($19.99 → $14.99)", () => {
+	it("maps both the new and the old paperback prices to the same Lulu item", () => {
+		for (const [i, id] of PAPERBACKS_1499.entries()) {
+			const entry = byPriceId(id);
+			expect(entry?.key).toBe(`EN-PAPERBACK-${i + 1}`);
+			expect(entry?.stripePriceId).toBe(id);
+			expect(entry?.productionEnabled).toBe(true);
+			expect(byPriceId(PAPERBACKS_1999[i])).toBe(entry);
+			expect(entry?.previousPriceIds).toEqual([PAPERBACKS_1999[i]]);
+		}
+		const all = CATALOG.flatMap((e) => [e.stripePriceId, ...(e.previousPriceIds ?? [])]);
+		expect(new Set(all).size).toBe(all.length);
+	});
+});
+
 describe("Stripe webhook security", () => {
 	it("is disabled (503) until the webhook secret is configured", async () => {
 		const res = await SELF.fetch(`${BASE}/api/stripe/webhook`, { method: "POST", body: "{}" });
@@ -470,6 +501,24 @@ describe("Book 1 Paperback → Lulu sandbox", () => {
 		const rec = await store.get(env.ORDERS_DB!, "cs_test_book1");
 		expect(rec).toMatchObject({ status: "SUBMITTED", lulu_print_job_id: "9001", lulu_status: "CREATED", attempts: 1 });
 		expect(JSON.parse(rec!.lulu_cost_json!)).toMatchObject({ total_cost_incl_tax: "9.87" });
+	});
+
+	it("sends a paid order at the new $14.99 price to Lulu with the same print files", async () => {
+		session("cs_test_book1new", { price: BOOK1_PAPERBACK_1499 });
+		const r = await deliver(sandboxEnv(), paidEvent("cs_test_book1new"));
+		expect(r.body).toMatchObject({ fulfillment: "submitting" });
+		expect(lulu.creates).toBe(1);
+		expect((lulu.lastCreate?.line_items as unknown[])[0]).toMatchObject({
+			external_id: "EN-PAPERBACK-1",
+			quantity: 1,
+			printable_normalization: {
+				pod_package_id: TEST_SPEC.podPackageId,
+				cover: { source_url: "https://files.example.com/book1-cover.pdf" },
+				interior: { source_url: "https://files.example.com/book1-interior.pdf" },
+			},
+		});
+		const rec = await store.get(env.ORDERS_DB!, "cs_test_book1new");
+		expect(rec).toMatchObject({ status: "SUBMITTED" });
 	});
 
 	it("DUPLICATE PROTECTION: redelivered webhooks never create a second print job", async () => {
