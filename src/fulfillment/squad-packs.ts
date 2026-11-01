@@ -2,6 +2,10 @@
  * Squish Squad Packs shipped with the site. A pack saved through the admin API
  * (`PUT /api/admin/squad/packs/YYYY-MM`) replaces the built-in one for that
  * month. Paths starting with "/" are served from public/ on squishman.com.
+ *
+ * Owner's rule for every month from December 2026 on (see AGENTS.md): exactly
+ * 7 printable pages, made only from illustrations and pages in the Squish Man
+ * Google Drive folders.
  */
 import type { SquadPack } from "./email";
 
