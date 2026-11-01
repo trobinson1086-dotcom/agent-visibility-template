@@ -82,8 +82,9 @@ export interface PrintfulOrderItem {
 	variant_id: number;
 	quantity: number;
 	name: string;
-	retail_price: string;
-	files: Array<{ type: string; id: number; position?: Record<string, number> }>;
+	retail_price?: string;
+	/** A file-library id, or a public URL Printful downloads (personalized art). */
+	files: Array<{ type: string; id?: number; url?: string; position?: Record<string, number> }>;
 	options?: Array<{ id: string; value: unknown }>;
 }
 

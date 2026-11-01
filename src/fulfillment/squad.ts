@@ -112,9 +112,58 @@ export function memberFromSession(session: StripeCheckoutSession, plan: SquadPla
 }
 
 const KEY_PREFIX = "squad:member:";
+const EMAIL_PREFIX = "squad:email:";
+
+export const emailKey = (email: string) => EMAIL_PREFIX + email.trim().toLowerCase();
 
 export async function recordSquadMember(env: Env, member: SquadMember): Promise<void> {
 	await env.VISIBILITY_CACHE.put(KEY_PREFIX + member.sessionId, JSON.stringify(member));
+	if (member.email) await indexMemberEmail(env, member);
+}
+
+/** Index a member by email (lowercased) so book orders can find their membership. */
+export async function indexMemberEmail(env: Env, member: SquadMember): Promise<void> {
+	if (!member.email) return;
+	const key = emailKey(member.email);
+	const ids = new Set<string>(JSON.parse((await env.VISIBILITY_CACHE.get(key)) ?? "[]") as string[]);
+	if (ids.has(member.sessionId)) return;
+	ids.add(member.sessionId);
+	await env.VISIBILITY_CACHE.put(key, JSON.stringify([...ids]));
+}
+
+export async function getSquadMember(env: Env, sessionId: string): Promise<SquadMember | null> {
+	const v = await env.VISIBILITY_CACHE.get(KEY_PREFIX + sessionId);
+	return v ? (JSON.parse(v) as SquadMember) : null;
+}
+
+/** Memberships bought with this email (any status; check the subscription before granting perks). */
+export async function membersByEmail(env: Env, email: string | null | undefined): Promise<SquadMember[]> {
+	if (!email) return [];
+	const ids = JSON.parse((await env.VISIBILITY_CACHE.get(emailKey(email))) ?? "[]") as string[];
+	const out: SquadMember[] = [];
+	for (const id of ids) {
+		const m = await getSquadMember(env, id);
+		if (m) out.push(m);
+	}
+	return out;
+}
+
+/**
+ * Admin: confirm (or correct) the child's name before anything is printed with
+ * it. Returns null if there is no such member or the name is empty once cleaned.
+ */
+export async function confirmChildName(
+	env: Env,
+	sessionId: string,
+	childName?: string,
+): Promise<SquadMember | null> {
+	const m = await getSquadMember(env, sessionId);
+	if (!m) return null;
+	const name = childName === undefined ? m.childName : cleanChildName(childName);
+	if (!name) return null;
+	const updated = { ...m, childName: name, nameConfirmed: true };
+	await env.VISIBILITY_CACHE.put(KEY_PREFIX + sessionId, JSON.stringify(updated));
+	return updated;
 }
 
 export async function listSquadMembers(env: Env): Promise<SquadMember[]> {

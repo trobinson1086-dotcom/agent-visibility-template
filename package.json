@@ -37,6 +37,7 @@
 		}
 	},
 	"dependencies": {
+		"@resvg/resvg-wasm": "2.6.2",
 		"hono": "4.11.1",
 		"react": "19.2.1",
 		"react-dom": "19.2.1"
