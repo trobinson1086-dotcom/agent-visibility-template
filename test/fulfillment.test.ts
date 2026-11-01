@@ -350,7 +350,7 @@ describe("catalog", () => {
 	});
 });
 
-describe("paperback reprice ($19.99 → $14.99)", () => {
+describe("paperback reprice ($19.99 → $14.99, English and Spanish)", () => {
 	it("maps both the new and the old paperback prices to the same Lulu item", () => {
 		for (const [i, id] of PAPERBACKS_1499.entries()) {
 			const entry = byPriceId(id);
@@ -359,6 +359,18 @@ describe("paperback reprice ($19.99 → $14.99)", () => {
 			expect(entry?.productionEnabled).toBe(true);
 			expect(byPriceId(PAPERBACKS_1999[i])).toBe(entry);
 			expect(entry?.previousPriceIds).toEqual([PAPERBACKS_1999[i]]);
+		}
+		const es = [
+			["price_1UWtJt9cRroVv8pkr2Rtlglc", "price_1UNmuW9cRroVv8pkBwzsPYnQ"],
+			["price_1UWtJz9cRroVv8pkYKpvt8pX", "price_1UNmuY9cRroVv8pkmcY7tfEn"],
+			["price_1UWtK29cRroVv8pkpk0hTnTu", "price_1UNmua9cRroVv8pk4G5ZdnzR"],
+			["price_1UWtK49cRroVv8pkcna8bo0a", "price_1UNmuc9cRroVv8pk1Q8rZ1CC"],
+			["price_1UWtK69cRroVv8pkhvzdM68F", "price_1UNmul9cRroVv8pkuoNZ04si"],
+		];
+		for (const [i, [now, before]] of es.entries()) {
+			const entry = byPriceId(now);
+			expect(entry?.key).toBe(`ES-PAPERBACK-${i + 1}`);
+			expect(byPriceId(before)).toBe(entry);
 		}
 		const all = CATALOG.flatMap((e) => [e.stripePriceId, ...(e.previousPriceIds ?? [])]);
 		expect(new Set(all).size).toBe(all.length);
