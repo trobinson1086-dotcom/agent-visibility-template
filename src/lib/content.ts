@@ -84,7 +84,7 @@ to shine.`,
 		url: `${SITE}/#learning`,
 		title: "Learning, Activity, Bonus & Coloring Books",
 		prices:
-			"Learning & Activity Books $16.99 • Bonus Activities & Learning Editions $29.99 • Coloring Books $18.99",
+			"Learning & Activity Books $16.99 • Bonus Activities & Learning Editions $29.99 • Coloring Books $12.99",
 		body: `# Learning, Activity, Bonus & Coloring Books
 
 ## Learning & Activity Books 1–5 — $16.99 each
@@ -94,7 +94,7 @@ creativity and more, alongside familiar Maple Hollow characters.
 ## Bonus Activities & Learning Editions 1–5 — $29.99 each
 More story, more learning: expanded editions of each adventure with activities.
 
-## Coloring Books 1–5 — $18.99 each
+## Coloring Books 1–5 — $12.99 each
 Screen-free creative fun with familiar Maple Hollow characters and scenes.
 
 ## Complete collections

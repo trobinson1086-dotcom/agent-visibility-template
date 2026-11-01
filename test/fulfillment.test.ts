@@ -423,6 +423,18 @@ describe("paperback reprice ($19.99 → $14.99, English and Spanish)", () => {
 			expect(entry?.key).toBe(`${i < 5 ? "EN" : "ES"}-LEARNING-${(i % 5) + 1}`);
 			expect(byPriceId(before)).toBe(entry);
 		}
+		const coloring = [
+			["price_1UWv3X9cRroVv8pkuHrvApoW", "price_1UNmzD9cRroVv8pka8mStaYS"],
+			["price_1UWv3Y9cRroVv8pkpUxpDsil", "price_1UNmzF9cRroVv8pkqhpUZGqD"],
+			["price_1UWv3a9cRroVv8pkz9V6SGhV", "price_1UNmzH9cRroVv8pkKxTrE8xZ"],
+			["price_1UWv3b9cRroVv8pkm8ToHogg", "price_1UNmzl9cRroVv8pkltxySX5y"],
+			["price_1UWv3d9cRroVv8pkV6kLQhY5", "price_1UNmzs9cRroVv8pkwQaDhNjQ"],
+		];
+		for (const [i, [now, before]] of coloring.entries()) {
+			const entry = byPriceId(now);
+			expect(entry?.key).toBe(`EN-COLORING-${i + 1}`);
+			expect(byPriceId(before)).toBe(entry);
+		}
 		const all = CATALOG.flatMap((e) => [e.stripePriceId, ...(e.previousPriceIds ?? [])]);
 		expect(new Set(all).size).toBe(all.length);
 	});
