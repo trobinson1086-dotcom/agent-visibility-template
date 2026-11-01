@@ -406,6 +406,23 @@ describe("paperback reprice ($19.99 → $14.99, English and Spanish)", () => {
 			expect(entry?.key).toBe(`${i < 5 ? "EN" : "ES"}-BONUS-${(i % 5) + 1}`);
 			expect(byPriceId(before)).toBe(entry);
 		}
+		const learning = [
+			["price_1UWuv39cRroVv8pkgSMSw4FZ", "price_1UNmuC9cRroVv8pkXDdP6hjD"],
+			["price_1UWuv49cRroVv8pkKCQPJgyb", "price_1UNmuJ9cRroVv8pkfvZCswf2"],
+			["price_1UWuv59cRroVv8pk1HnTYYzY", "price_1UNmuL9cRroVv8pkWt7L5zls"],
+			["price_1UWuv79cRroVv8pksxP3eKEp", "price_1UNmuN9cRroVv8pkFJFyU1LU"],
+			["price_1UWuv89cRroVv8pkokciPeVM", "price_1UNmuP9cRroVv8pkcNgYsPTx"],
+			["price_1UWuv99cRroVv8pkCG74YPOr", "price_1UNmyz9cRroVv8pk2e1Jyo0p"],
+			["price_1UWuvC9cRroVv8pkXgf2KLMb", "price_1UNmz19cRroVv8pkzMoHtMuv"],
+			["price_1UWuvD9cRroVv8pkgr5Kzqmd", "price_1UNmz79cRroVv8pkbKA5zF4g"],
+			["price_1UWuvF9cRroVv8pkhDzCEZRf", "price_1UNmz99cRroVv8pk0poq7382"],
+			["price_1UWuvG9cRroVv8pkXTlKRjRl", "price_1UNmzB9cRroVv8pkMVfVtL5m"],
+		];
+		for (const [i, [now, before]] of learning.entries()) {
+			const entry = byPriceId(now);
+			expect(entry?.key).toBe(`${i < 5 ? "EN" : "ES"}-LEARNING-${(i % 5) + 1}`);
+			expect(byPriceId(before)).toBe(entry);
+		}
 		const all = CATALOG.flatMap((e) => [e.stripePriceId, ...(e.previousPriceIds ?? [])]);
 		expect(new Set(all).size).toBe(all.length);
 	});
