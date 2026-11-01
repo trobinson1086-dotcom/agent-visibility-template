@@ -17,6 +17,9 @@
 import type { Env } from "../lib/types";
 import { byKey, byPriceId, luluMapping, printFiles } from "./catalog";
 import { memberFromSession, recordSquadMember, squadPlanOf } from "./squad";
+import { refundMemberShipping } from "./squad-perks";
+import { orderEmail, sendOnce, squadWelcomeEmail, type OrderLine } from "./email";
+import { paidEbooks } from "./ebooks";
 import {
 	calculateCost,
 	checkAuth,
@@ -55,6 +58,7 @@ import { getFile } from "./printful";
 import * as store from "./store";
 import {
 	fetchCheckoutSession,
+	type StripeCheckoutSession,
 	missingShippingFields,
 	shippingFromSession,
 	verifyStripeSignature,
@@ -492,7 +496,14 @@ export async function handleStripeWebhook(
 		const member = memberFromSession(session, squadPlan);
 		await recordSquadMember(env, member);
 		log("squad_member", { session: sessionId, plan: squadPlan, name_confirmed: member.nameConfirmed });
-		return { status: 200, body: { received: true, squad: "member_recorded" } };
+		const welcome = member.email
+			? sendOnce(env, `squad-welcome:${sessionId}`, {
+					to: member.email,
+					...squadWelcomeEmail(env, member),
+					tags: [{ name: "type", value: "squad_welcome" }],
+				}).catch((err) => log("email_failed", { session: sessionId, error: errorDetail(err).slice(0, 120) }))
+			: undefined;
+		return { status: 200, body: { received: true, squad: "member_recorded" }, background: welcome };
 	}
 	if (session.metadata?.merch_sku) {
 		return recordMerchOrder(env, mode(env), db, event.id, session);
@@ -500,6 +511,7 @@ export async function handleStripeWebhook(
 
 	const lineItems = session.line_items?.data ?? [];
 	const items: OrderItem[] = [];
+	const lines: OrderLine[] = [];
 	const unknown: string[] = [];
 	for (const li of lineItems) {
 		const priceId = li.price?.id ?? "";
@@ -508,6 +520,7 @@ export async function handleStripeWebhook(
 			unknown.push(priceId || "(none)");
 			continue;
 		}
+		lines.push({ title: entry.title, quantity: Math.max(1, Math.trunc(li.quantity ?? 1)) });
 		if (!entry.physical) continue; // eBooks / audiobooks never go to Lulu
 		const quantity = Math.trunc(li.quantity ?? 0);
 		if (quantity < 1 || quantity > 100) {
@@ -518,7 +531,11 @@ export async function handleStripeWebhook(
 	}
 	if (items.length === 0) {
 		log("no_physical_items", { session: sessionId, unknown });
-		return { status: 200, body: { received: true, fulfillment: "not_required" } };
+		return {
+			status: 200,
+			body: { received: true, fulfillment: "not_required" },
+			background: lines.length ? orderFollowUp(env, session, lines, false) : undefined,
+		};
 	}
 
 	const { shipping, missing } = shippingFromSession(session);
@@ -540,14 +557,55 @@ export async function handleStripeWebhook(
 		return { status: 200, body: { received: true, duplicate: true } };
 	}
 	log("recorded", { session: sessionId, event: event.id, held: hold, items: items.map((i) => i.key) });
+	const followUp = orderFollowUp(env, session, lines, true);
 	if (hold) {
-		return { status: 200, body: { received: true, fulfillment: "held", reason: hold } };
+		return { status: 200, body: { received: true, fulfillment: "held", reason: hold }, background: followUp };
 	}
 	return {
 		status: 200,
 		body: { received: true, fulfillment: "submitting" },
-		background: submit(env, sessionId),
+		background: Promise.allSettled([submit(env, sessionId), followUp]),
 	};
+}
+
+/**
+ * After a paid book/eBook order: refund a Squish Squad member's shipping
+ * ($25+ physical orders), then send the order email with the eBook download
+ * link. Never throws: failures are logged (the refund is retryable by admin).
+ */
+export async function orderFollowUp(
+	env: Env,
+	session: StripeCheckoutSession,
+	lines: OrderLine[],
+	physical: boolean,
+): Promise<void> {
+	let refundCents = 0;
+	if (physical) {
+		try {
+			const refund = await refundMemberShipping(env, session);
+			if (refund?.status === "REFUNDED") refundCents = refund.amountCents;
+		} catch (err) {
+			log("shipping_refund_error", { session: session.id, error: errorDetail(err).slice(0, 120) });
+		}
+	}
+	const to = session.customer_details?.email?.trim();
+	if (!to) return;
+	try {
+		await sendOnce(env, `order:${session.id}`, {
+			to,
+			...orderEmail(env, {
+				sessionId: session.id,
+				name: session.customer_details?.name ?? null,
+				lines,
+				ebooks: paidEbooks(session),
+				physical,
+				shippingRefundCents: refundCents,
+			}),
+			tags: [{ name: "type", value: "order" }],
+		});
+	} catch (err) {
+		log("email_failed", { session: session.id, error: errorDetail(err).slice(0, 120) });
+	}
 }
 
 /** Why an order must not be sent to Lulu right now, or null if it may. */

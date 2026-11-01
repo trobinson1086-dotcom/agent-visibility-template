@@ -74,6 +74,71 @@ export interface StripeCheckoutSession {
 	}> | null;
 	/** Set by our own merch checkout (merch_sku = "TEE|Black|M"). */
 	metadata?: Record<string, string> | null;
+	/** Cents, before discounts, tax and shipping. */
+	amount_subtotal?: number | null;
+	amount_total?: number | null;
+	total_details?: { amount_discount?: number; amount_shipping?: number; amount_tax?: number } | null;
+	shipping_cost?: { amount_total?: number } | null;
+}
+
+export class StripeError extends Error {
+	constructor(
+		readonly status: number,
+		readonly detail: string,
+	) {
+		super(`Stripe API error ${status}`);
+	}
+}
+
+export interface StripeSubscription {
+	id: string;
+	/** active | trialing | past_due | unpaid | incomplete | incomplete_expired | canceled | paused */
+	status: string;
+}
+
+/** Fetch a subscription's status (needs Subscriptions: read on a restricted key). */
+export async function fetchSubscription(secretKey: string, id: string): Promise<StripeSubscription> {
+	const res = await fetch(`${STRIPE_API}/subscriptions/${encodeURIComponent(id)}`, {
+		headers: { Authorization: `Bearer ${secretKey}` },
+		signal: AbortSignal.timeout(TIMEOUT_MS),
+	});
+	const text = await res.text();
+	if (!res.ok) throw new StripeError(res.status, text.slice(0, 500));
+	const sub = JSON.parse(text) as StripeSubscription;
+	return { id: sub.id, status: sub.status };
+}
+
+/**
+ * Refund part of a payment (needs Refunds: write). The idempotency key makes
+ * a retry return the same refund instead of refunding twice.
+ */
+export async function createRefund(
+	secretKey: string,
+	paymentIntent: string,
+	amountCents: number,
+	idempotencyKey: string,
+	metadata: Record<string, string> = {},
+): Promise<{ id: string; status: string; amount: number }> {
+	const fields = new URLSearchParams({
+		payment_intent: paymentIntent,
+		amount: String(amountCents),
+		reason: "requested_by_customer",
+	});
+	for (const [k, v] of Object.entries(metadata)) fields.set(`metadata[${k}]`, v);
+	const res = await fetch(`${STRIPE_API}/refunds`, {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${secretKey}`,
+			"Content-Type": "application/x-www-form-urlencoded",
+			"Idempotency-Key": idempotencyKey,
+		},
+		body: fields.toString(),
+		signal: AbortSignal.timeout(TIMEOUT_MS),
+	});
+	const text = await res.text();
+	if (!res.ok) throw new StripeError(res.status, text.slice(0, 500));
+	const r = JSON.parse(text) as { id: string; status: string; amount: number };
+	return { id: r.id, status: r.status, amount: r.amount };
 }
 
 /** Fetch the Checkout Session (with line items) straight from Stripe. */

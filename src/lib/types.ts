@@ -100,4 +100,20 @@ export interface Env {
 	MERCH_CHECKOUT?: string;
 	/** Secret: JSON of print PDF URLs by catalog key, {"EN-PAPERBACK-1": {"cover": …, "interior": …}}. */
 	LULU_PRINT_FILES?: string;
+
+	// --- Email (Resend) and Squish Squad perks ------------------------------
+	/** Static assets (public/), used to render birthday poster art. */
+	ASSETS?: Fetcher;
+	/** Public origin used in email links and poster art URLs, e.g. https://squishman.com. */
+	PUBLIC_BASE_URL?: string;
+	/** Secret: Resend API key with sending access for squishman.com. Unset = no emails. */
+	RESEND_API_KEY?: string;
+	/** Sender of order emails, e.g. "Squish Man <orders@squishman.com>". */
+	EMAIL_FROM?: string;
+	/** Sender of Squish Squad Pack emails, e.g. "Squish Squad <squad@squishman.com>". */
+	SQUAD_EMAIL_FROM?: string;
+	/** Birthday posters: "off" | "draft" (Printful drafts to confirm by hand) | "on". */
+	SQUAD_POSTERS?: string;
+	/** Members' $5.99 shipping refund on $25+ book orders: "off" | "on". */
+	SQUAD_SHIPPING_REFUNDS?: string;
 }

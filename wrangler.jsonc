@@ -9,6 +9,8 @@
 	},
 	"assets": {
 		"directory": "./dist/client",
+		// Used to render Squish Squad birthday poster art (src/fulfillment/squad-poster.ts).
+		"binding": "ASSETS",
 		"not_found_handling": "404-page",
 		"run_worker_first": [
 			"/.well-known/web-bot-auth/*",
@@ -59,6 +61,14 @@
 		"MERCH_CHECKOUT": "on",
 		// GROUND is not offered for Book 1 (8.5x11 paperback) to the US; MAIL is.
 		"LULU_SHIPPING_LEVEL": "MAIL",
-		"FULFILLMENT_CONTACT_EMAIL": "orders@squishman.com"
+		"FULFILLMENT_CONTACT_EMAIL": "orders@squishman.com",
+		// Email from squishman.com via Resend (secret RESEND_API_KEY; no key = no emails).
+		"PUBLIC_BASE_URL": "https://squishman.com",
+		"EMAIL_FROM": "Squish Man <orders@squishman.com>",
+		"SQUAD_EMAIL_FROM": "Squish Squad <squad@squishman.com>",
+		// Squish Squad birthday posters: "off" | "draft" (Printful drafts) | "on" (ordered and paid automatically).
+		"SQUAD_POSTERS": "on",
+		// Refund up to $5.99 shipping on members' $25+ book orders: "off" | "on".
+		"SQUAD_SHIPPING_REFUNDS": "on"
 	}
 }

@@ -61,7 +61,24 @@ import {
 } from "../fulfillment/service";
 import { type CheckoutRequest, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import { ebookDownloadPage } from "../fulfillment/ebooks";
-import { listSquadMembers, nextPoster, squadWelcomePage } from "../fulfillment/squad";
+import { confirmChildName, getSquadMember, listSquadMembers, nextPoster, squadWelcomePage } from "../fulfillment/squad";
+import {
+	getPack,
+	isPackMonth,
+	listPacks,
+	listPosters,
+	listShippingRefunds,
+	parsePack,
+	posterArt,
+	processPoster,
+	refundMemberShipping,
+	runSquadDaily,
+	savePack,
+	testSendPack,
+} from "../fulfillment/squad-perks";
+import { cleanChildName as cleanName } from "../fulfillment/squad";
+import { renderPosterPng } from "../fulfillment/squad-poster";
+import { fetchCheckoutSession } from "../fulfillment/stripe";
 import * as orders from "../fulfillment/store";
 import {
 	directoryDocument,
@@ -329,6 +346,21 @@ app.get("/api/ebook-download", async (c) => {
 	return c.html(html, status as 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
 });
 
+/**
+ * Rendered birthday poster art for Printful to download. The token is a
+ * random 144-bit id stored only in the poster record, so it can't be guessed.
+ */
+app.get("/api/squad/poster-art/:file", async (c) => {
+	const token = c.req.param("file").replace(/\.png$/, "");
+	const png = await posterArt(c.env, token);
+	if (!png) return c.json({ error: "Not found" }, 404);
+	return c.body(png, 200, {
+		"Content-Type": "image/png",
+		"Cache-Control": "private, max-age=3600",
+		"X-Robots-Tag": "noindex",
+	});
+});
+
 /** Squish Squad Membership: welcome page after a membership checkout (see fulfillment/squad.ts). */
 app.get("/api/squad/welcome", async (c) => {
 	const { status, html } = await squadWelcomePage(c.env, c.req.query("session_id"));
@@ -404,6 +436,93 @@ app.get("/api/admin/squad/members", async (c) => {
 		.map((m) => ({ ...m, poster: nextPoster(m, today) }))
 		.sort((a, b) => (a.poster?.orderOn ?? "9999").localeCompare(b.poster?.orderOn ?? "9999"));
 	return c.json({ count: members.length, members }, 200, { "Cache-Control": "no-store" });
+});
+
+/** Confirm (or correct) a child's name so their birthday poster can be printed. */
+app.post("/api/admin/squad/members/:id/confirm-name", async (c) => {
+	const body = (await c.req.json().catch(() => ({}))) as { childName?: string };
+	const m = await confirmChildName(c.env, c.req.param("id"), body.childName);
+	return m ? c.json(m) : c.json({ error: "Unknown member or empty name" }, 404);
+});
+
+/** Preview the birthday poster art for any name (PNG; nothing is ordered). */
+app.get("/api/admin/squad/poster-preview", async (c) => {
+	if (!c.env.ASSETS) return c.json({ error: "ASSETS binding not configured" }, 503);
+	const name = cleanName(c.req.query("name") ?? "") || "Squish Squad";
+	const png = await renderPosterPng(c.env.ASSETS, name);
+	return c.body(png as Uint8Array<ArrayBuffer>, 200, { "Content-Type": "image/png", "Cache-Control": "no-store" });
+});
+
+/** Birthday posters ordered, held or failed. */
+app.get("/api/admin/squad/posters", async (c) => {
+	const posters = (await listPosters(c.env)).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+	return c.json({ count: posters.length, posters }, 200, { "Cache-Control": "no-store" });
+});
+
+/** Order (or retry) one member's next poster now, even before its order date. */
+app.post("/api/admin/squad/posters/:id/order", async (c) => {
+	const m = await getSquadMember(c.env, c.req.param("id"));
+	if (!m) return c.json({ error: "Unknown member" }, 404);
+	const rec = await processPoster(c.env, fulfillmentMode(c.env), m, new Date(), { force: true });
+	return rec ? c.json(rec) : c.json({ error: "No poster is due: no birthday month, or not eligible yet" }, 409);
+});
+
+/** Members' shipping refunds. */
+app.get("/api/admin/squad/refunds", async (c) => {
+	const refunds = (await listShippingRefunds(c.env)).sort((a, b) => b.at.localeCompare(a.at));
+	return c.json({ count: refunds.length, refunds }, 200, { "Cache-Control": "no-store" });
+});
+
+/** Re-check (and refund) one order's shipping, e.g. after a FAILED refund. */
+app.post("/api/admin/squad/refunds/:id/retry", async (c) => {
+	if (!c.env.STRIPE_SECRET_KEY) return c.json({ error: "Stripe not configured" }, 503);
+	const session = await fetchCheckoutSession(c.env.STRIPE_SECRET_KEY, c.req.param("id"));
+	if (session.payment_status !== "paid") return c.json({ error: "Order is not paid" }, 409);
+	const rec = await refundMemberShipping(c.env, session, { force: true });
+	return rec ? c.json(rec) : c.json({ error: "Not a member order with shipping (or refunds are off)" }, 409);
+});
+
+/** Squish Squad Packs by month. */
+app.get("/api/admin/squad/packs", async (c) => {
+	return c.json({ packs: (await listPacks(c.env)).sort((a, b) => b.month.localeCompare(a.month)) });
+});
+
+app.get("/api/admin/squad/packs/:month", async (c) => {
+	const pack = isPackMonth(c.req.param("month")) ? await getPack(c.env, c.req.param("month")) : null;
+	return pack ? c.json(pack) : c.json({ error: "Not found" }, 404);
+});
+
+/**
+ * Create or replace a month's pack: {subject, heading, intro, items: [{title,
+ * description?, url}], published}. Published packs are emailed to every
+ * active member by the daily job (once each).
+ */
+app.put("/api/admin/squad/packs/:month", async (c) => {
+	try {
+		const pack = parsePack(c.req.param("month"), await c.req.json().catch(() => null));
+		await savePack(c.env, pack);
+		return c.json(pack);
+	} catch (err) {
+		return c.json({ error: (err as Error).message }, 400);
+	}
+});
+
+/** Email a pack to one address to check it ({"to": "you@example.com"}). */
+app.post("/api/admin/squad/packs/:month/test", async (c) => {
+	const pack = isPackMonth(c.req.param("month")) ? await getPack(c.env, c.req.param("month")) : null;
+	if (!pack) return c.json({ error: "Not found" }, 404);
+	const { to } = (await c.req.json().catch(() => ({}))) as { to?: string };
+	if (!to) return c.json({ error: "to is required" }, 400);
+	try {
+		return c.json(await testSendPack(c.env, pack, to));
+	} catch (err) {
+		return c.json({ error: (err as Error).message }, 502);
+	}
+});
+
+/** Run today's Squish Squad job (posters due + this month's pack) now. */
+app.post("/api/admin/squad/run", async (c) => {
+	return c.json(await runSquadDaily(c.env, fulfillmentMode(c.env), new Date(), { force: true }));
 });
 
 app.get("/api/admin/fulfillments", async (c) => {
@@ -500,5 +619,10 @@ export default {
 	async scheduled(_controller, env, ctx) {
 		ctx.waitUntil(rebuildCache(env));
 		ctx.waitUntil(reconcile(env));
+		ctx.waitUntil(
+			runSquadDaily(env, fulfillmentMode(env)).catch((err) =>
+				console.error(JSON.stringify({ at: "squad", event: "daily_error", error: String(err).slice(0, 200) })),
+			),
+		);
 	},
 } satisfies ExportedHandler<Env>;

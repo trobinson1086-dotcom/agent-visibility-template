@@ -76,6 +76,31 @@ member card). The Stripe webhook records members in KV (`squad:member:*`);
 date and eligibility (yearly: always; monthly: after 3 months). Only a parent's
 input of the child's first name and birth month is stored.
 
+Phase 2 perks (`fulfillment/squad-perks.ts`) only go to members whose Stripe
+subscription is `active`/`trialing`; each is idempotent via KV markers.
+
+- **Shipping refunds** (`SQUAD_SHIPPING_REFUNDS=on`): a paid book order whose
+  email matches a member (`squad:email:*` index) with books ≥ $25 after
+  discounts gets up to $5.99 of shipping refunded (`squad:refund:<session>`).
+- **Birthday posters** (`SQUAD_POSTERS`: `off` | `draft` | `on`): the daily job
+  (hourly cron, once per UTC day after 14:00) renders "Happy Birthday,
+  <name>!" art (`squad-poster.ts`, resvg-wasm + embedded Fredoka font) into KV,
+  serves it at `/api/squad/poster-art/<token>.png` and orders an 8×10 poster
+  (Printful variant 4463) per member per birthday (`squad:poster:<id>:<year>`).
+  Unconfirmed name spellings are HELD until
+  `POST /api/admin/squad/members/:id/confirm-name`. Same `FULFILLMENT_MODE`
+  gate as merch; test-mode and `draft` orders are Printful drafts.
+- **Squish Squad Packs**: `PUT /api/admin/squad/packs/YYYY-MM` stores a pack;
+  once `published`, the daily job emails it once to each active member.
+
+## Email (Resend)
+
+`fulfillment/email.ts` sends from squishman.com through Resend (secret
+`RESEND_API_KEY`; without it emails are skipped, never failed). Every send has
+a KV marker (`email:sent:<key>`) so redeliveries never email twice. Emails:
+order confirmation (with the eBook download link), Squish Squad welcome,
+birthday poster on its way, and the monthly pack.
+
 ## Printful merch (Squish Squad Shop)
 
 `GET /api/merch` gives the shop page its prices, sizes, colors and checkout
