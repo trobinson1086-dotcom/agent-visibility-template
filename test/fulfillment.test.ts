@@ -429,6 +429,14 @@ describe("order trigger", () => {
 		expect(lulu.creates).toBe(0);
 	});
 
+	it("never sends the new $7.99 audiobook price to Lulu", async () => {
+		session("cs_test_audionew", { price: "price_1UWuBy9cRroVv8pkQaQzbgzm" });
+		const r = await deliver(sandboxEnv(), paidEvent("cs_test_audionew"));
+		expect(r.body).toMatchObject({ fulfillment: "not_required" });
+		expect(await store.get(env.ORDERS_DB!, "cs_test_audionew")).toBeNull();
+		expect(lulu.creates).toBe(0);
+	});
+
 	it("never sends the new $4.99 eBook price to Lulu either", async () => {
 		session("cs_test_ebooknew", { price: "price_1UWu6n9cRroVv8pkyFxtACvV" });
 		const r = await deliver(sandboxEnv(), paidEvent("cs_test_ebooknew"));

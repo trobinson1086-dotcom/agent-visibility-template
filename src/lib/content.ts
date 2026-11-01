@@ -48,10 +48,10 @@ SquishMan.com · © 2026 Travis Robinson.`,
 		url: `${SITE}/#books`,
 		title: "The Squish Man Book Series",
 		prices:
-			"Paperback $14.99 • Hardcover $29.99 • eBook $4.99 • Audiobook $14.99",
+			"Paperback $14.99 • Hardcover $29.99 • eBook $4.99 • Audiobook $7.99",
 		body: `# The Squish Man Book Series
 
-Original English adventures. Paperback $14.99 • Hardcover $29.99 • eBook $4.99 • Audiobook $14.99.
+Original English adventures. Paperback $14.99 • Hardcover $29.99 • eBook $4.99 • Audiobook $7.99.
 Each book has a product page with real "Look Inside" interior preview pages.
 
 ## Book 1 — Squish Man and the Missing Puppy Parade
@@ -157,7 +157,7 @@ Schools: schools@squishman.com • Parents: parents@squishman.com • Media: med
 		slug: "watch",
 		url: `${SITE}/#watch`,
 		title: "Maple Hollow Entertainment Center",
-		prices: "Audiobook editions of Books 1–5: $14.99",
+		prices: "Audiobook editions of Books 1–5: $7.99",
 		body: `# The Maple Hollow Entertainment Center
 
 Watch • Listen • Read Along. A home for Squish Man cartoons, book trailers,
@@ -166,7 +166,7 @@ read-alouds and audiobook samples.
 - Official video: "Watch Squish Man Come to Life" — Squish Man and Pudy in the
   official SquishMan.com featured video.
 - Mini cartoons, read-alouds and book trailers: coming soon.
-- Audiobook editions of Books 1–5 are $14.99 where offered.`,
+- Audiobook editions of Books 1–5 are $7.99 where offered.`,
 	},
 	{
 		slug: "squish-squad",
