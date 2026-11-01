@@ -48,10 +48,10 @@ SquishMan.com · © 2026 Travis Robinson.`,
 		url: `${SITE}/#books`,
 		title: "The Squish Man Book Series",
 		prices:
-			"Paperback $14.99 • Hardcover $29.99 • eBook $4.99 • Audiobook $7.99",
+			"Paperback $14.99 • Hardcover $21.00 • eBook $4.99 • Audiobook $7.99",
 		body: `# The Squish Man Book Series
 
-Original English adventures. Paperback $14.99 • Hardcover $29.99 • eBook $4.99 • Audiobook $7.99.
+Original English adventures. Paperback $14.99 • Hardcover $21.00 • eBook $4.99 • Audiobook $7.99.
 Each book has a product page with real "Look Inside" interior preview pages.
 
 ## Book 1 — Squish Man and the Missing Puppy Parade
@@ -107,14 +107,14 @@ Screen-free creative fun with familiar Maple Hollow characters and scenes.
 		url: `${SITE}/#spanish`,
 		title: "Squish Man en Español",
 		prices:
-			"Libros 1–5: Paperback $14.99 • Hardcover $29.99 • Edición Especial $39.99 • Aprendizaje y Actividades $19.99",
+			"Libros 1–5: Paperback $14.99 • Hardcover $21.00 • Edición Especial $39.99 • Aprendizaje y Actividades $19.99",
 		body: `# Squish Man en Español — Aventuras en Español
 
 Storybooks, special editions and learning & activity books for Spanish-reading
-families. Libros 1–5: Paperback $14.99 • Hardcover $29.99. Edición Especial
+families. Libros 1–5: Paperback $14.99 • Hardcover $21.00. Edición Especial
 $39.99 • Aprendizaje y Actividades $19.99.
 
-## Libros 1–5 — Paperback $14.99 • Hardcover $29.99
+## Libros 1–5 — Paperback $14.99 • Hardcover $21.00
 1. Squish Man y el Desfile del Cachorro Perdido
 2. La Gran Aventura del Gran Sueño
 3. Squish Man y el Jardín Mágico
