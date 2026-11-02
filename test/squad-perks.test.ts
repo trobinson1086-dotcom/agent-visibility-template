@@ -437,17 +437,6 @@ describe("Squish Squad packs", () => {
 		expect(dec?.html).toContain('src="https://squishman.com/assets/squad-packs/2026-12/email-hero.jpg"');
 	});
 
-	it("sends the built-in January pack on January 1", async () => {
-		const e = testEnv();
-		await recordSquadMember(e, member("cs_test_packjan", { email: "jan@example.com", childName: "Mia", birthMonth: 7 }));
-		subscriptions.set("sub_cs_test_packjan", "active");
-		await runSquadDaily(e, "sandbox", new Date("2027-01-01T15:00:00Z"), { force: true });
-		const jan = emails.find((m) => (m.to as string[])[0] === "jan@example.com" && String(m.subject).includes("January"));
-		expect(jan?.html).toContain("Hi Mia!");
-		expect(jan?.html).toContain("https://squishman.com/assets/squad-packs/2027-01/squish-squad-pack-january-2027.pdf");
-		expect(jan?.text).toContain("https://squishman.com/assets/squad-packs/2027-01/wallpaper-forest-friends.jpg");
-	});
-
 	it("does not send drafts", async () => {
 		const e = testEnv();
 		await recordSquadMember(e, member("cs_test_packdraft", { email: "d@example.com", birthMonth: 7 }));

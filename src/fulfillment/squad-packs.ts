@@ -11,7 +11,6 @@ import type { SquadPack } from "./email";
 
 const NOV = "/assets/squad-packs/2026-11";
 const DEC = "/assets/squad-packs/2026-12";
-const JAN = "/assets/squad-packs/2027-01";
 
 export const BUILT_IN_PACKS: Readonly<Record<string, SquadPack>> = {
 	"2026-11": {
@@ -52,28 +51,6 @@ export const BUILT_IN_PACKS: Readonly<Record<string, SquadPack>> = {
 					"I'm a Squish Squad Member!, Friends Make Life Brighter coloring page, Park Path Adventure maze, math practice, December Kindness Challenge, and a Great Job certificate.",
 				url: `${DEC}/squish-squad-pack-december-2026.pdf`,
 			},
-		],
-		published: true,
-	},
-	// From the New Year package in the tier 1 Drive folder (file titled
-	// "Squish_Squad_decemeber _Member_Package_Complete.pdf", whose pages say
-	// January). The owner dropped its Park Path maze (already in December) and
-	// made the full-color forest scene the wallpaper: 5 printable pages.
-	"2027-01": {
-		month: "2027-01",
-		subject: "Your January Squish Squad Pack is here ✨",
-		heading: "Big Dreams for the New Year",
-		intro:
-			"Happy New Year from Maple Hollow! Squish Man and Pudy made you five new pages: My Big Dreams for the New Year, the Squish Man Superhero Adventure and Be Kind coloring pages, All About Kindness activities and word search, and a Great Job certificate. Plus a cozy wallpaper for a grown-up's phone or tablet. Print the pack and have fun!",
-		heroImage: `${JAN}/email-hero.jpg`,
-		items: [
-			{
-				title: "January printable pack (5 pages, PDF)",
-				description:
-					"My Big Dreams for the New Year, Superhero Adventure coloring page, Be Kind coloring page, All About Kindness activities, and a Great Job certificate.",
-				url: `${JAN}/squish-squad-pack-january-2027.pdf`,
-			},
-			{ title: "Wallpaper: Squish Man & Pudy in the forest", url: `${JAN}/wallpaper-forest-friends.jpg` },
 		],
 		published: true,
 	},
