@@ -10,6 +10,7 @@
 import type { SquadPack } from "./email";
 
 const NOV = "/assets/squad-packs/2026-11";
+const DEC = "/assets/squad-packs/2026-12";
 
 export const BUILT_IN_PACKS: Readonly<Record<string, SquadPack>> = {
 	"2026-11": {
@@ -29,6 +30,27 @@ export const BUILT_IN_PACKS: Readonly<Record<string, SquadPack>> = {
 			{ title: "Wallpaper: Squish Man & Pudy meet a butterfly", url: `${NOV}/wallpaper-bridge-butterfly.jpg` },
 			{ title: "Wallpaper: Maple Hollow town square", url: `${NOV}/wallpaper-maple-hollow-square.jpg` },
 			{ title: "Wallpaper: A flower for a friend", url: `${NOV}/wallpaper-bridge-flowers.jpg` },
+		],
+		published: true,
+	},
+	// From "Squish_Squad_Pal_December_2026_Complete_Monthly_Package.pdf" (Drive,
+	// "Squishman subscription membership tier 1"), 6 pages as the owner made it.
+	// The "THE AMAZING ADVENTURES OF" ribbon text on pages 1 and 5 was misspelled
+	// in the source art and is redrawn.
+	"2026-12": {
+		month: "2026-12",
+		subject: "Your December Squish Squad Pack is here ❄️",
+		heading: "December Fun in Maple Hollow",
+		intro:
+			"Snow is falling in Maple Hollow, and Squish Man and Pudy made you six new pages: your own Squish Squad Member page, the Friends Make Life Brighter coloring page, the Park Path Adventure maze, math practice, the December Kindness Challenge and a Great Job certificate. Print the pack and have fun!",
+		heroImage: `${DEC}/email-hero.jpg`,
+		items: [
+			{
+				title: "December printable pack (6 pages, PDF)",
+				description:
+					"I'm a Squish Squad Member!, Friends Make Life Brighter coloring page, Park Path Adventure maze, math practice, December Kindness Challenge, and a Great Job certificate.",
+				url: `${DEC}/squish-squad-pack-december-2026.pdf`,
+			},
 		],
 		published: true,
 	},
