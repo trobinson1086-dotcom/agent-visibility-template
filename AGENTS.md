@@ -67,29 +67,48 @@ the "Squishman Books 1-5 Published" Drive folder). Audiobooks are paused
 
 ## Squish Squad Membership
 
-$4.99/month or $49/year Stripe subscriptions (product `prod_VYAPqBiyvkZhBT`,
-prices in `fulfillment/squad.ts`) sold through two Payment Links that collect
-the child's first name (twice) and birthday month plus a US shipping address.
-They redirect to `GET /api/squad/welcome?session_id=…` (free eBook + printable
-member card). The Stripe webhook records members in KV (`squad:member:*`);
-`GET /api/admin/squad/members` lists them with each birthday poster's order
-date and eligibility (yearly: always; monthly: after 3 months). Only a parent's
-input of the child's first name and birth month is stored.
+Three tiers, each a monthly or yearly Stripe subscription sold through a
+Payment Link (prices and links in `fulfillment/squad.ts`):
+
+| Tier | Price | Stripe product |
+|---|---|---|
+| Squish Squad Pal | $4.99/mo or $49/yr | `prod_VYAPqBiyvkZhBT` (the original membership) |
+| Squish Squad Hero | $9.99/mo or $99/yr | `prod_VYM54gTY7DODed` |
+| Platinum Crown | $19.99/mo or $199/yr | `prod_VYM5ij3gUcugRI` |
+
+The links collect the child's first name (twice) and birthday month plus a US
+shipping address, and redirect to `GET /api/squad/welcome?session_id=…`
+(tier perks, eBooks, printable member card; Platinum also picks the child's
+tee size there, `POST /api/squad/shirt-size`). The Stripe webhook records
+members in KV (`squad:member:*`, with `tier`; records without one are Pal);
+`GET /api/admin/squad/members` lists them with tier, birthday gift and date.
+Only a parent's input of the child's first name and birth month is stored.
 
 Phase 2 perks (`fulfillment/squad-perks.ts`) only go to members whose Stripe
 subscription is `active`/`trialing`; each is idempotent via KV markers.
 
-- **Shipping refunds** (`SQUAD_SHIPPING_REFUNDS=on`): a paid book order whose
-  email matches a member (`squad:email:*` index) with books ≥ $25 after
-  discounts gets up to $5.99 of shipping refunded (`squad:refund:<session>`).
-- **Birthday posters** (`SQUAD_POSTERS`: `off` | `draft` | `on`): the daily job
-  (hourly cron, once per UTC day after 14:00) renders "Happy Birthday,
-  <name>!" art (`squad-poster.ts`, resvg-wasm + embedded Fredoka font) into KV,
-  serves it at `/api/squad/poster-art/<token>.png` and orders an 8×10 poster
-  (Printful variant 4463) per member per birthday (`squad:poster:<id>:<year>`).
-  Unconfirmed name spellings are HELD until
-  `POST /api/admin/squad/members/:id/confirm-name`. Same `FULFILLMENT_MODE`
-  gate as merch; test-mode and `draft` orders are Printful drafts.
+- **Order refunds** (`SQUAD_SHIPPING_REFUNDS=on`, `squad:refund:<session>`),
+  by the best active tier on the order's email (`squad:email:*` index): Pal
+  gets up to $5.99 book shipping on $25+ book orders; Hero book shipping on
+  every book order plus 10% back on books and merch; Platinum shipping on
+  books and merch plus 20% back.
+- **Birthday gifts** (`squad:poster:<id>:<year>`), two weeks before the 1st of
+  the birthday month: Pal gets the printable poster by email (Pal members who
+  joined before `TIERS_LAUNCHED_AT` keep the printed poster); Hero a printed
+  8×10 poster; Platinum a box (poster + name tee + sticker). Mailed gifts need
+  yearly, or 3 months of monthly. The box waits for the tee size.
+- **Squish Mail** (`squad:mail:<id>:<quarter>`): Platinum members get a 5.5″
+  Squish Man sticker every 3 months (`GET /api/admin/squad/mail`).
+- **eBooks**: Pal Book 1; Hero 2 more every 6 months; Platinum all.
+- **How gifts are made** (`SQUAD_POSTERS`: `off` | `draft` | `on`): the daily
+  job (hourly cron, once per UTC day after 14:00) renders "Happy Birthday,
+  <name>!" poster art and the Platinum name-tee art (`squad-poster.ts`,
+  resvg-wasm + embedded Fredoka font) into KV, serves them at
+  `/api/squad/poster-art/<token>.png` and creates the Printful order (poster
+  variant 4463; tee 3001Y white; sticker 10165). Unconfirmed name spellings
+  are HELD until `POST /api/admin/squad/members/:id/confirm-name`. Same
+  `FULFILLMENT_MODE` gate as merch; test-mode and `draft` orders are Printful
+  drafts.
 - **Squish Squad Packs**: built-in packs live in `fulfillment/squad-packs.ts`
   (files in `public/assets/squad-packs/YYYY-MM/`); `PUT /api/admin/squad/packs/YYYY-MM` stores one that overrides it;
   once `published`, the daily job emails it once to each active member.

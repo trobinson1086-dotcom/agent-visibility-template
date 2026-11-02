@@ -16,7 +16,7 @@
  */
 import type { Env } from "../lib/types";
 import { byKey, byPriceId, luluMapping, printFiles } from "./catalog";
-import { memberFromSession, recordSquadMember, squadPlanOf } from "./squad";
+import { memberFromSession, recordSquadMember, squadOf } from "./squad";
 import { refundMemberShipping } from "./squad-perks";
 import { orderEmail, sendOnce, squadWelcomeEmail, type OrderLine } from "./email";
 import { paidEbooks } from "./ebooks";
@@ -491,11 +491,11 @@ export async function handleStripeWebhook(
 		log("awaiting_payment", { session: sessionId, payment_status: session.payment_status });
 		return { status: 200, body: { received: true, awaiting_payment: true } };
 	}
-	const squadPlan = squadPlanOf(session);
-	if (squadPlan) {
-		const member = memberFromSession(session, squadPlan);
+	const squad = squadOf(session);
+	if (squad) {
+		const member = memberFromSession(session, squad.plan, squad.tier);
 		await recordSquadMember(env, member);
-		log("squad_member", { session: sessionId, plan: squadPlan, name_confirmed: member.nameConfirmed });
+		log("squad_member", { session: sessionId, tier: squad.tier, plan: squad.plan, name_confirmed: member.nameConfirmed });
 		const welcome = member.email
 			? sendOnce(env, `squad-welcome:${sessionId}`, {
 					to: member.email,
@@ -503,10 +503,16 @@ export async function handleStripeWebhook(
 					tags: [{ name: "type", value: "squad_welcome" }],
 				}).catch((err) => log("email_failed", { session: sessionId, error: errorDetail(err).slice(0, 120) }))
 			: undefined;
-		return { status: 200, body: { received: true, squad: "member_recorded" }, background: welcome };
+		return { status: 200, body: { received: true, squad: "member_recorded", tier: squad.tier }, background: welcome };
 	}
 	if (session.metadata?.merch_sku) {
-		return recordMerchOrder(env, mode(env), db, event.id, session);
+		const result = await recordMerchOrder(env, mode(env), db, event.id, session);
+		if (result.body.duplicate) return result;
+		// Hero / Platinum Crown members get cash back (and Platinum free shipping) on merch.
+		const perks = refundMemberShipping(env, session, { kind: "merch" }).catch((err) =>
+			log("merch_perks_error", { session: sessionId, error: errorDetail(err).slice(0, 120) }),
+		);
+		return { ...result, background: Promise.allSettled([result.background, perks]) };
 	}
 
 	const lineItems = session.line_items?.data ?? [];
@@ -580,13 +586,16 @@ export async function orderFollowUp(
 	physical: boolean,
 ): Promise<void> {
 	let refundCents = 0;
-	if (physical) {
-		try {
-			const refund = await refundMemberShipping(env, session);
-			if (refund?.status === "REFUNDED") refundCents = refund.amountCents;
-		} catch (err) {
-			log("shipping_refund_error", { session: session.id, error: errorDetail(err).slice(0, 120) });
+	let cashbackCents = 0;
+	try {
+		// Shipping refunds need printed books; Hero/Platinum cash back covers eBooks too.
+		const refund = await refundMemberShipping(env, session);
+		if (refund?.status === "REFUNDED") {
+			refundCents = refund.shippingCents ?? refund.amountCents;
+			cashbackCents = refund.cashbackCents ?? 0;
 		}
+	} catch (err) {
+		log("shipping_refund_error", { session: session.id, error: errorDetail(err).slice(0, 120) });
 	}
 	const to = session.customer_details?.email?.trim();
 	if (!to) return;
@@ -600,6 +609,7 @@ export async function orderFollowUp(
 				ebooks: paidEbooks(session),
 				physical,
 				shippingRefundCents: refundCents,
+				cashbackCents,
 			}),
 			tags: [{ name: "type", value: "order" }],
 		});

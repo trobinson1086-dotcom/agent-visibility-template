@@ -138,6 +138,8 @@ export function orderEmail(
 		ebooks: EbookFile[];
 		physical: boolean;
 		shippingRefundCents: number;
+		/** Hero/Platinum: percentage of the order refunded as a member perk. */
+		cashbackCents?: number;
 	},
 ): Pick<Email, "subject" | "html" | "text"> {
 	const download = `${baseUrl(env)}/api/ebook-download?session_id=${encodeURIComponent(o.sessionId)}`;
@@ -157,8 +159,9 @@ ${o.ebooks
 	const physicalHtml = o.physical
 		? `<p>📦 Printed books are made to order just for you. We'll ship them to the address you gave at checkout.</p>`
 		: "";
-	const refundHtml = o.shippingRefundCents
-		? `<p style="background:#fff3cd;border-radius:12px;padding:12px">🐾 <b>Squish Squad perk:</b> we refunded your ${dollars(o.shippingRefundCents)} shipping to your card. It can take 5–10 days to show on your statement.</p>`
+	const perkText = perkRefundText(o.shippingRefundCents, o.cashbackCents ?? 0);
+	const refundHtml = perkText
+		? `<p style="background:#fff3cd;border-radius:12px;padding:12px">🐾 <b>Squish Squad perk:</b> ${esc(perkText)} It can take 5–10 days to show on your statement.</p>`
 		: "";
 	const html = layout(
 		env,
@@ -175,9 +178,7 @@ ${o.ebooks
 			? ["", `Download your eBook${o.ebooks.length > 1 ? "s" : ""}: ${download}`, ...o.ebooks.map((b) => `- ${b.title}: ${driveDownloadUrl(b.driveFileId)}`)]
 			: []),
 		...(o.physical ? ["", "Printed books are made to order just for you. We'll ship them to the address you gave at checkout."] : []),
-		...(o.shippingRefundCents
-			? ["", `Squish Squad perk: we refunded your ${dollars(o.shippingRefundCents)} shipping to your card.`]
-			: []),
+		...(perkText ? ["", `Squish Squad perk: ${perkText}`] : []),
 		"",
 		`Questions? Reply to this email or write to ${REPLY_TO}.`,
 	].join("\n");
@@ -185,40 +186,91 @@ ${o.ebooks
 	return { subject, html, text };
 }
 
+/** "we refunded your $5.99 shipping and $2.99 (10% back) to your card." */
+export function perkRefundText(shippingCents: number, cashbackCents: number): string {
+	const parts = [
+		...(shippingCents ? [`your ${dollars(shippingCents)} shipping`] : []),
+		...(cashbackCents ? [`${dollars(cashbackCents)} member cash back`] : []),
+	];
+	return parts.length ? `we refunded ${parts.join(" and ")} to your card.` : "";
+}
+
+const TIER_LABEL = { pal: "Squish Squad Pal", hero: "Squish Squad Hero", platinum: "Platinum Crown" } as const;
+
 /** Sent when a Squish Squad membership starts: link back to the welcome page. */
 export function squadWelcomeEmail(
 	env: Env,
-	m: { sessionId: string; childName: string; plan: "monthly" | "yearly" },
+	m: { sessionId: string; childName: string; plan: "monthly" | "yearly"; tier?: "pal" | "hero" | "platinum" },
 ): Pick<Email, "subject" | "html" | "text"> {
 	const url = `${baseUrl(env)}/api/squad/welcome?session_id=${encodeURIComponent(m.sessionId)}`;
 	const name = m.childName || "your Squish Squad member";
+	const tier = m.tier ?? "pal";
+	const gifts =
+		tier === "platinum"
+			? ["🎁 Every Squish Man eBook", "🪪 A printable member card", "👕 Choose your child's tee size for the birthday box"]
+			: tier === "hero"
+				? ["🎁 Free Squish Man eBooks", "🪪 A printable member card"]
+				: ["🎁 A free Squish Man eBook", "🪪 A printable member card"];
+	const perks =
+		tier === "platinum"
+			? "Every month we'll email a new <b>Squish Squad Pack</b>. Book and merch orders placed with this email get free shipping and 20% back, and Squish Mail stickers arrive every 3 months."
+			: tier === "hero"
+				? "Every month we'll email a new <b>Squish Squad Pack</b>. Book orders placed with this email get their shipping refunded, and books and merch get 10% back."
+				: "Every month we'll email a new <b>Squish Squad Pack</b> of coloring and activity pages, and book orders of $25 or more placed with this email get their shipping refunded.";
 	const html = layout(
 		env,
 		"Welcome to the Squish Squad",
 		`<h1 style="font-size:24px;color:#07347d;margin:0 0 12px">Welcome to the Squish Squad, ${esc(name)}! 🐾</h1>
-<p>Thank you for joining (${m.plan} membership). Your welcome gifts are waiting:</p>
-<ul><li>🎁 A free Squish Man eBook</li><li>🪪 A printable member card</li></ul>
-<p>${button(url, "Open your welcome gifts")}</p>
-<p>Every month we'll email a new <b>Squish Squad Pack</b> of coloring and activity pages, and book orders of $25 or more placed with this email get their shipping refunded.</p>`,
+<p>Thank you for joining as a <b>${TIER_LABEL[tier]}</b> (${m.plan} membership). Your welcome gifts are waiting:</p>
+<ul>${gifts.map((g) => `<li>${g}</li>`).join("")}</ul>
+<p>${button(url, tier === "platinum" ? "Open your gifts & choose tee size" : "Open your welcome gifts")}</p>
+<p>${perks}</p>`,
 	);
-	const text = `Welcome to the Squish Squad, ${name}!\n\nYour welcome gifts (free eBook and printable member card): ${url}\n\nEvery month we'll email a new Squish Squad Pack, and book orders of $25 or more placed with this email get their shipping refunded.\n\nQuestions? Reply to this email or write to ${REPLY_TO}.`;
+	const text = `Welcome to the Squish Squad, ${name}!\n\nYou joined as a ${TIER_LABEL[tier]} (${m.plan}).\n\nYour welcome gifts: ${url}\n${gifts.map((g) => `- ${g.replace(/^\S+ /, "")}`).join("\n")}\n\n${perks.replace(/<[^>]+>/g, "")}\n\nQuestions? Reply to this email or write to ${REPLY_TO}.`;
 	return { subject: "Welcome to the Squish Squad! 🐾", html, text };
 }
 
-/** Sent when the birthday poster order goes to the printer. */
+/** Pal birthday: the printable personalized poster, by email. */
+export function digitalBirthdayEmail(
+	env: Env,
+	m: { childName: string; birthday: string; artUrl: string },
+): Pick<Email, "subject" | "html" | "text"> {
+	const month = m.birthday.split(" ")[0];
+	const html = layout(
+		env,
+		`Happy birthday, ${m.childName}!`,
+		`<h1 style="font-size:24px;color:#07347d;margin:0 0 12px">Happy birthday, ${esc(m.childName)}! 🎂</h1>
+<p>Squish Man and Pudy heard there's a birthday in ${esc(month)}! They made ${esc(m.childName)} a personalized Squish Squad birthday poster to print and hang up.</p>
+<p>${button(m.artUrl, "Open & print the birthday poster")}</p>
+<p>"Big heart, tiny hero, endless adventures. Have the happiest birthday!" — Squish Man &amp; Pudy</p>
+<p style="font-size:14px;color:#4b5a7c">Tip: print it on letter paper in landscape. The link works for 4 months.</p>`,
+	);
+	const text = `Happy birthday, ${m.childName}!\n\nSquish Man and Pudy heard there's a birthday in ${month}! They made ${m.childName} a personalized Squish Squad birthday poster to print and hang up:\n${m.artUrl}\n\n"Big heart, tiny hero, endless adventures. Have the happiest birthday!" — Squish Man & Pudy`;
+	return { subject: `A birthday surprise for ${m.childName} from Squish Man 🎂`, html, text };
+}
+
+/** Sent when a mailed birthday gift (poster, or Platinum box) goes to the printer. */
 export function posterEmail(
 	env: Env,
-	m: { childName: string; birthday: string },
+	m: { childName: string; birthday: string; box?: boolean },
 ): Pick<Email, "subject" | "html" | "text"> {
+	const what = m.box
+		? "a Squish Squad birthday box: a personalized poster, a kids' tee with their name and Squish Man stickers"
+		: "a personalized Squish Squad birthday poster";
+	const body = `Squish Man and Pudy are getting ready for ${m.childName}'s birthday in ${m.birthday.split(" ")[0]}. We're making ${what} just for them, and it will arrive by mail before the big day.`;
 	const html = layout(
 		env,
 		"A birthday surprise is on its way",
 		`<h1 style="font-size:24px;color:#07347d;margin:0 0 12px">A birthday surprise is on its way! 🎂</h1>
-<p>Squish Man and Pudy are getting ready for ${esc(m.childName)}'s birthday in ${esc(m.birthday.split(" ")[0])}. We're making a personalized Squish Squad birthday poster just for them, and it will arrive by mail before the big day.</p>
+<p>${esc(body)}</p>
 <p>Thank you for being part of the Squish Squad!</p>`,
 	);
-	const text = `A birthday surprise is on its way!\n\nSquish Man and Pudy are getting ready for ${m.childName}'s birthday in ${m.birthday.split(" ")[0]}. We're making a personalized Squish Squad birthday poster just for them, and it will arrive by mail before the big day.\n\nThank you for being part of the Squish Squad!`;
-	return { subject: `${m.childName}'s Squish Squad birthday poster is on its way 🎂`, html, text };
+	const text = `A birthday surprise is on its way!\n\n${body}\n\nThank you for being part of the Squish Squad!`;
+	return {
+		subject: `${m.childName}'s Squish Squad birthday ${m.box ? "box" : "poster"} is on its way 🎂`,
+		html,
+		text,
+	};
 }
 
 export interface SquadPack {
