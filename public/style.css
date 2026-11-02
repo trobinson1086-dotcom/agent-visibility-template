@@ -40,8 +40,8 @@
 .maple-home .ghost{padding:13px 18px;font-size:15px}
 /* hero: the Maple Hollow map */
 .maple-hero{background:linear-gradient(180deg,var(--sky2),#e9f7ff);padding:0 0 34px;overflow-x:clip}
-.hollow-map{position:relative;max-width:1672px;margin:0 auto;line-height:0}
-.hollow-map img{display:block;width:100%;height:auto;aspect-ratio:1672/941}
+.hollow-map{position:relative;max-width:1688px;margin:0 auto;line-height:0}
+.hollow-map img{display:block;width:100%;height:auto;aspect-ratio:1688/932}
 .spot{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);border-radius:10px;outline:0;transition:box-shadow .15s,background .15s}
 .spot:hover,.spot:focus-visible{background:#fff3;box-shadow:0 0 0 3px #ffd632,0 0 18px 4px #ffd632aa}
 .spot[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);background:var(--wood-dark);color:#fff6dc;border:2px solid var(--wood-light);border-radius:10px;padding:7px 11px;font:600 13px/1.2 'Fredoka',Arial,sans-serif;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:3;box-shadow:0 6px 14px #0004}
