@@ -121,3 +121,17 @@ Books 3–5 may be in the 21 unreviewed large files (for example the six website
 - Pudy's collar is **pink**, and Pudy is **female**. Every existing Pudy clip (C47, C50–C65, C86, C90) has a blue collar, so those clips are off-model.
 - The Book 1 Lost Puppy is the **brown-and-white design (C33/C34), approved**. C03–C05, C07, C10, C11, C15 and C25–C32 are off-model for Book 1.
 - Still open: the Lost Puppy's name, and what to do with C09. See [`../continuity.md`](../continuity.md) and the Flow shot list in [`02-book1-flow-shot-list.md`](02-book1-flow-shot-list.md).
+
+## Addendum: the 21 large files, reviewed 2 Nov 2026 (after the owner shared them by link)
+Every file has now been opened (downloaded, probed, frames viewed, transcribed locally). **None contain
+Book 3, 4 or 5 footage.**
+
+| File(s) | What it is |
+|---|---|
+| `SquishMan_WebsiteCartoon_Scene01–06` (10 s each, 1176×1764) | Book 1: Squish Man **and Pudy** follow paw prints through town, past a gate, into a garden ("Let's find those puppies"). Each opens with ~2.5 s of the character-bible sheet (trim). |
+| `Squish_Man_Final_Website_Video` (22 MB and 211 MB; both 60 s, same edit) | Website teaser: theme song + the Scene 01–06 footage. |
+| `lv_0_20261026002059` (7:12, CapCut export) | The owner's earlier full Book 1 edit: theme song, parade, search, Pudy as the lost puppy, then the Squish Squad and SquishMan.com promos. |
+| `Final_TikTok_9x16` (5:33; one link returned 404, an identical copy downloaded fine) | Vertical version of the same Book 1 edit. |
+| `screen-20261005…` (4:57) and `screen-20261026…` (52 s), plus their `~2` crops | Silent screen recordings of the CapCut edit in progress. |
+| `Squish_Man_Theme_Song_With_Logo` (55 s) | Theme song over the Squish Man + Pudy autumn art, with the logo. |
+| `Squish_Man_9454_Vertical` (12 s) | Book 1 parade-street shots: Squish Man sniffing for clues. |
