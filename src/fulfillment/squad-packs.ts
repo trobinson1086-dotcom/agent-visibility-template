@@ -33,25 +33,24 @@ export const BUILT_IN_PACKS: Readonly<Record<string, SquadPack>> = {
 		],
 		published: true,
 	},
-	// From "Squish_Squad_decemeber _Member_Package_Complete.pdf" (Drive, "Squishman
-	// subscription membership tier 1"). 6 printable pages this month: the owner
-	// moved the full-color forest scene (page 6) to the wallpaper, and asked for
-	// "January" on the last page to read "December".
+	// From "Squish_Squad_Pal_December_2026_Complete_Monthly_Package.pdf" (Drive,
+	// "Squishman subscription membership tier 1"), 6 pages as the owner made it.
+	// The "THE AMAZING ADVENTURES OF" ribbon text on pages 1 and 5 was misspelled
+	// in the source art and is redrawn.
 	"2026-12": {
 		month: "2026-12",
 		subject: "Your December Squish Squad Pack is here ❄️",
-		heading: "Big Dreams in Maple Hollow",
+		heading: "December Fun in Maple Hollow",
 		intro:
-			"Snow is falling in Maple Hollow, and Squish Man and Pudy made you six new pages: My Big Dreams for the New Year, the Squish Man Superhero Adventure and Be Kind coloring pages, the Park Path Adventure maze, All About Kindness activities and word search, and a Great Job certificate. Plus a cozy wallpaper for a grown-up's phone or tablet. Print the pack and have fun!",
+			"Snow is falling in Maple Hollow, and Squish Man and Pudy made you six new pages: your own Squish Squad Member page, the Friends Make Life Brighter coloring page, the Park Path Adventure maze, math practice, the December Kindness Challenge and a Great Job certificate. Print the pack and have fun!",
 		heroImage: `${DEC}/email-hero.jpg`,
 		items: [
 			{
 				title: "December printable pack (6 pages, PDF)",
 				description:
-					"My Big Dreams for the New Year, Superhero Adventure coloring page, Be Kind coloring page, Park Path Adventure maze, All About Kindness activities, and a Great Job certificate.",
+					"I'm a Squish Squad Member!, Friends Make Life Brighter coloring page, Park Path Adventure maze, math practice, December Kindness Challenge, and a Great Job certificate.",
 				url: `${DEC}/squish-squad-pack-december-2026.pdf`,
 			},
-			{ title: "Wallpaper: Squish Man & Pudy in the forest", url: `${DEC}/wallpaper-forest-friends.jpg` },
 		],
 		published: true,
 	},
