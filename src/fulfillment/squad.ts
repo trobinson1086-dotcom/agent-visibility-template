@@ -1,27 +1,64 @@
-// Squish Squad Membership: $4.99/month or $49/year Stripe subscriptions sold
-// through two Payment Links. The links collect the child's first name (twice,
-// to catch typos), birthday month and a US shipping address for the birthday
-// poster, then redirect to /api/squad/welcome?session_id=... .
+// Squish Squad Membership in three tiers, each a monthly or yearly Stripe
+// subscription sold through a Payment Link:
+//
+//   Pal $4.99/mo or $49/yr · Hero $9.99/mo or $99/yr · Platinum Crown $19.99/mo or $199/yr
+//
+// The links collect the child's first name (twice, to catch typos), birthday
+// month and a US shipping address for mailed gifts, then redirect to
+// /api/squad/welcome?session_id=... . Perks by tier live in squad-perks.ts.
 //
 // The Stripe webhook records each new member in KV (`squad:member:<session>`)
 // so birthday posters can be scheduled; /api/admin/squad/members lists them
 // with the poster each one is due.
 import { EBOOK_FILES, driveDownloadUrl, driveViewUrl } from "./ebooks";
-import { fetchCheckoutSession, type StripeCheckoutSession } from "./stripe";
+import { fetchCheckoutSession, fetchSubscription, type StripeCheckoutSession } from "./stripe";
 import type { Env } from "../lib/types";
 
 export type SquadPlan = "monthly" | "yearly";
+export type SquadTier = "pal" | "hero" | "platinum";
 
-/** Stripe recurring prices of the Squish Squad Membership product (prod_VYAPqBiyvkZhBT). */
-export const SQUAD_PRICES: Readonly<Record<string, SquadPlan>> = {
-	price_1UX44w9cRroVv8pkpabnr9HH: "monthly",
-	price_1UX44y9cRroVv8pkGOan5njh: "yearly",
+export const TIER_NAMES: Readonly<Record<SquadTier, string>> = {
+	pal: "Squish Squad Pal",
+	hero: "Squish Squad Hero",
+	platinum: "Platinum Crown",
 };
 
-export const SQUAD_JOIN_LINKS: Readonly<Record<SquadPlan, string>> = {
-	monthly: "https://buy.stripe.com/5kQ8wJ3B7eCP2hv6RL1Jm41",
-	yearly: "https://buy.stripe.com/28E6oBc7DbqD3lza3X1Jm42",
+/**
+ * Stripe recurring prices: Pal (prod_VYAPqBiyvkZhBT, the original membership),
+ * Hero (prod_VYM54gTY7DODed) and Platinum Crown (prod_VYM5ij3gUcugRI).
+ */
+export const SQUAD_PRICES: Readonly<Record<string, { tier: SquadTier; plan: SquadPlan }>> = {
+	price_1UX44w9cRroVv8pkpabnr9HH: { tier: "pal", plan: "monthly" },
+	price_1UX44y9cRroVv8pkGOan5njh: { tier: "pal", plan: "yearly" },
+	price_1UXFN49cRroVv8pkKQjymk1H: { tier: "hero", plan: "monthly" },
+	price_1UXFN69cRroVv8pkP2HM68jr: { tier: "hero", plan: "yearly" },
+	price_1UXFN99cRroVv8pkMqNzyQ2s: { tier: "platinum", plan: "monthly" },
+	price_1UXFNB9cRroVv8pkaYk5FW1R: { tier: "platinum", plan: "yearly" },
 };
+
+export const SQUAD_JOIN_LINKS: Readonly<Record<SquadTier, Record<SquadPlan, string>>> = {
+	pal: {
+		monthly: "https://buy.stripe.com/5kQ8wJ3B7eCP2hv6RL1Jm41",
+		yearly: "https://buy.stripe.com/28E6oBc7DbqD3lza3X1Jm42",
+	},
+	hero: {
+		monthly: "https://buy.stripe.com/aFa14h9ZvfGT6xL8ZT1Jm43",
+		yearly: "https://buy.stripe.com/6oU00d9Zv3Yb4pD5NH1Jm44",
+	},
+	platinum: {
+		monthly: "https://buy.stripe.com/cNifZbdbH52f4pD7VP1Jm45",
+		yearly: "https://buy.stripe.com/eVqdR34Fb0LZ7BPfoh1Jm46",
+	},
+};
+
+/**
+ * Pal members who joined before the tiers launched were promised the printed
+ * birthday poster, so they keep it; later Pal members get the digital kit.
+ */
+export const TIERS_LAUNCHED_AT = "2026-11-03T00:00:00.000Z";
+
+/** Kids' tee sizes for the Platinum birthday box (Printful Bella + Canvas 3001Y). */
+export const SHIRT_SIZES = ["Youth S", "Youth M", "Youth L", "Youth XL"] as const;
 
 /** Monthly members earn the birthday poster after this many paid months. */
 export const MONTHLY_POSTER_AFTER_MONTHS = 3;
@@ -54,15 +91,36 @@ export interface SquadMember {
 	} | null;
 	joinedAt: string;
 	livemode: boolean;
+	/** Absent on members recorded before the tiers existed: they are Pal. */
+	tier?: SquadTier;
+	/** Platinum only: the child's tee size, chosen on the welcome page. */
+	shirtSize?: string | null;
+}
+
+export const tierOf = (m: Pick<SquadMember, "tier">): SquadTier => m.tier ?? "pal";
+
+/** What a member gets for their birthday. */
+export type BirthdayGift = "digital" | "poster" | "box";
+
+export function birthdayGift(m: Pick<SquadMember, "tier" | "joinedAt">): BirthdayGift {
+	const tier = tierOf(m);
+	if (tier === "platinum") return "box";
+	if (tier === "hero") return "poster";
+	return m.joinedAt < TIERS_LAUNCHED_AT ? "poster" : "digital";
+}
+
+/** The tier and plan a Checkout Session bought, or null if it is not a membership. */
+export function squadOf(session: StripeCheckoutSession): { tier: SquadTier; plan: SquadPlan } | null {
+	for (const item of session.line_items?.data ?? []) {
+		const hit = item.price?.id ? SQUAD_PRICES[item.price.id] : undefined;
+		if (hit) return hit;
+	}
+	return null;
 }
 
 /** The plan a Checkout Session bought, or null if it is not a Squish Squad membership. */
 export function squadPlanOf(session: StripeCheckoutSession): SquadPlan | null {
-	for (const item of session.line_items?.data ?? []) {
-		const plan = item.price?.id ? SQUAD_PRICES[item.price.id] : undefined;
-		if (plan) return plan;
-	}
-	return null;
+	return squadOf(session)?.plan ?? null;
 }
 
 /** A child's first name, tidied for printing: letters, spaces, hyphens and apostrophes only. */
@@ -81,7 +139,11 @@ function field(session: StripeCheckoutSession, key: string): string | null {
 	return f?.text?.value ?? f?.dropdown?.value ?? null;
 }
 
-export function memberFromSession(session: StripeCheckoutSession, plan: SquadPlan): SquadMember {
+export function memberFromSession(
+	session: StripeCheckoutSession,
+	plan: SquadPlan,
+	tier: SquadTier = "pal",
+): SquadMember {
 	const name = cleanChildName(field(session, "childname"));
 	const again = cleanChildName(field(session, "childname2"));
 	const month = Number.parseInt(field(session, "birthmonth") ?? "", 10);
@@ -108,6 +170,8 @@ export function memberFromSession(session: StripeCheckoutSession, plan: SquadPla
 			: null,
 		joinedAt: new Date((session.created ?? Math.floor(Date.now() / 1000)) * 1000).toISOString(),
 		livemode: session.livemode,
+		tier,
+		shirtSize: null,
 	};
 }
 
@@ -117,8 +181,23 @@ const EMAIL_PREFIX = "squad:email:";
 export const emailKey = (email: string) => EMAIL_PREFIX + email.trim().toLowerCase();
 
 export async function recordSquadMember(env: Env, member: SquadMember): Promise<void> {
-	await env.VISIBILITY_CACHE.put(KEY_PREFIX + member.sessionId, JSON.stringify(member));
-	if (member.email) await indexMemberEmail(env, member);
+	// A webhook redelivery must not wipe what the parent set since (shirt size, confirmed name).
+	const prev = await getSquadMember(env, member.sessionId);
+	const merged = prev
+		? { ...member, shirtSize: prev.shirtSize ?? member.shirtSize ?? null, childName: prev.nameConfirmed ? prev.childName : member.childName, nameConfirmed: prev.nameConfirmed || member.nameConfirmed }
+		: member;
+	await env.VISIBILITY_CACHE.put(KEY_PREFIX + member.sessionId, JSON.stringify(merged));
+	if (member.email) await indexMemberEmail(env, merged);
+}
+
+/** Platinum: save the child's tee size for the birthday box. */
+export async function setShirtSize(env: Env, sessionId: string, size: string): Promise<SquadMember | null> {
+	if (!(SHIRT_SIZES as readonly string[]).includes(size)) return null;
+	const m = await getSquadMember(env, sessionId);
+	if (!m || tierOf(m) !== "platinum") return null;
+	const updated = { ...m, shirtSize: size };
+	await env.VISIBILITY_CACHE.put(KEY_PREFIX + sessionId, JSON.stringify(updated));
+	return updated;
 }
 
 /** Index a member by email (lowercased) so book orders can find their membership. */
@@ -187,9 +266,10 @@ function addMonths(d: Date, n: number): Date {
 }
 
 /**
- * The next birthday poster for a member, on or after `today`: the date to order
+ * The next birthday gift for a member, on or after `today`: the date to send
  * it (two weeks before the 1st of the birthday month) and whether the member is
- * eligible by then (yearly: always; monthly: after 3 months of membership).
+ * eligible by then. The digital kit: always. Mailed gifts: yearly always,
+ * monthly after 3 months of membership.
  */
 export function nextPoster(
 	member: SquadMember,
@@ -202,7 +282,7 @@ export function nextPoster(
 	if (addMonths(first, 1) <= today) first = new Date(Date.UTC(year + 1, member.birthMonth - 1, 1));
 	const orderOn = new Date(first.getTime() - POSTER_LEAD_DAYS * 86_400_000);
 	const eligibleFrom =
-		member.plan === "yearly"
+		member.plan === "yearly" || birthdayGift(member) === "digital"
 			? new Date(member.joinedAt)
 			: addMonths(new Date(member.joinedAt), MONTHLY_POSTER_AFTER_MONTHS);
 	return {
@@ -210,6 +290,22 @@ export function nextPoster(
 		orderOn: orderOn.toISOString().slice(0, 10),
 		eligible: eligibleFrom <= (orderOn > today ? orderOn : today),
 	};
+}
+
+/**
+ * eBooks unlocked by membership. Everyone gets Book 1 on joining; Hero adds 2
+ * more every 6 months of membership; Platinum Crown gets all of them.
+ */
+export function memberEbooks(m: Pick<SquadMember, "tier" | "joinedAt">, today: Date): readonly (typeof EBOOK_FILES)[number][] {
+	const tier = tierOf(m);
+	if (tier === "platinum") return EBOOK_FILES;
+	if (tier === "pal") return EBOOK_FILES.slice(0, 1);
+	const joined = new Date(m.joinedAt);
+	const months =
+		(today.getUTCFullYear() - joined.getUTCFullYear()) * 12 + today.getUTCMonth() - joined.getUTCMonth() -
+		(today.getUTCDate() < joined.getUTCDate() ? 1 : 0);
+	const periods = Math.floor(Math.max(0, months) / 6) + 1;
+	return EBOOK_FILES.slice(0, Math.min(EBOOK_FILES.length, 1 + 2 * periods));
 }
 
 const esc = (s: string) =>
@@ -255,43 +351,100 @@ export async function squadWelcomePage(
 	} catch {
 		return fail(404, "We couldn't find your membership", "Please try the link again in a minute. If it still doesn't work, email us.");
 	}
-	const plan = squadPlanOf(session);
-	if (!plan) {
+	const squad = squadOf(session);
+	if (!squad) {
 		return fail(404, "We couldn't find your membership", "This order isn't a Squish Squad membership. If you think that's wrong, email us.");
 	}
 	if (session.payment_status !== "paid") {
 		return fail(402, "Your payment is still processing", "Refresh this page in a minute. Your welcome gifts will appear as soon as the payment goes through.");
 	}
-	const m = memberFromSession(session, plan);
+	const { tier, plan } = squad;
+	// The stored record has what the parent set since checkout (tee size, confirmed name).
+	const m = (await getSquadMember(env, session.id)) ?? memberFromSession(session, plan, tier);
 	const name = m.childName || "Squish Squad Member";
 	const since = new Date(m.joinedAt);
 	const sinceText = `${MONTHS[since.getUTCMonth()]} ${since.getUTCFullYear()}`;
-	const book = EBOOK_FILES[0];
-	const posterText =
-		plan === "yearly"
-			? `Your Squish Man birthday poster with <b>${esc(name)}</b>'s name ships before the birthday${m.birthMonth ? ` in <b>${MONTHS[m.birthMonth - 1]}</b>` : ""}.`
-			: `After ${MONTHLY_POSTER_AFTER_MONTHS} months of membership, a Squish Man birthday poster with <b>${esc(name)}</b>'s name ships before the birthday${m.birthMonth ? ` in <b>${MONTHS[m.birthMonth - 1]}</b>` : ""}.`;
+	const month = m.birthMonth ? ` in <b>${MONTHS[m.birthMonth - 1]}</b>` : "";
+	const after = plan === "monthly" ? `After ${MONTHLY_POSTER_AFTER_MONTHS} months of membership, ` : "";
+	const gift = birthdayGift({ ...m, tier });
+	const giftText =
+		gift === "digital"
+			? `Before the birthday${month}, we'll email a printable Squish Man birthday poster with <b>${esc(name)}</b>'s name and a birthday message from Squish Man and Pudy.`
+			: gift === "poster"
+				? `${after ? after : ""}${after ? "a" : "A"} printed Squish Man birthday poster with <b>${esc(name)}</b>'s name ships before the birthday${month}.`
+				: `${after ? after : ""}${after ? "a" : "A"} birthday box ships before the birthday${month}: a printed poster and a kids' tee with <b>${esc(name)}</b>'s name, plus Squish Man stickers.`;
+
+	// eBooks unlocked by the tier (only while the membership is active).
+	let books: readonly (typeof EBOOK_FILES)[number][] = EBOOK_FILES.slice(0, 1);
+	if (tier !== "pal" && session.subscription) {
+		try {
+			const sub = await fetchSubscription(env.STRIPE_SECRET_KEY, session.subscription);
+			if (sub.status === "active" || sub.status === "trialing") books = memberEbooks({ ...m, tier }, new Date());
+		} catch {
+			// Can't check the subscription right now: show the welcome eBook only.
+		}
+	}
+	const bookCards = books
+		.map(
+			(b) =>
+				`<p style="margin:10px 0 2px"><b>${esc(b.title)}</b></p><a class="btn alt" href="${driveViewUrl(b.driveFileId)}" target="_blank" rel="noopener">Read now</a><a class="btn" href="${driveDownloadUrl(b.driveFileId)}">Download PDF</a>`,
+		)
+		.join("");
+	const ebookNote =
+		tier === "hero"
+			? `<p class="small">As a Hero, you unlock 2 more eBooks every 6 months.</p>`
+			: tier === "platinum"
+				? `<p class="small">As a Platinum Crown member, every Squish Man eBook is yours.</p>`
+				: "";
+
+	const shirt =
+		tier === "platinum"
+			? `<div class="box"><h2>👕 ${esc(name)}'s tee size</h2>
+<p>The birthday box includes a Squish Squad kids' tee with ${esc(name)}'s name. ${m.shirtSize ? `Saved size: <b>${esc(m.shirtSize)}</b>. You can change it any time before the birthday.` : "<b>Please choose a size</b> so we can make it."}</p>
+<form method="post" action="/api/squad/shirt-size"><input type="hidden" name="session_id" value="${esc(session.id)}">
+<select name="size" required style="font-size:1rem;padding:10px;border-radius:10px">${SHIRT_SIZES.map((sz) => `<option${m.shirtSize === sz ? " selected" : ""}>${sz}</option>`).join("")}</select>
+<button class="btn" type="submit">Save size</button></form></div>`
+			: "";
+
+	const perks: Record<SquadTier, string[]> = {
+		pal: [
+			`<b>Monthly Squish Squad Pack</b>: 7 new coloring and activity pages by email${m.email ? ` to ${esc(m.email)}` : ""} each month.`,
+			"<b>Shipping refunded on book orders of $25+</b>: use the same email at checkout and we refund the shipping to your card.",
+			"<b>Early access</b> to new Squish Man books.",
+		],
+		hero: [
+			`<b>Monthly Squish Squad Pack</b>: 7 new coloring and activity pages by email${m.email ? ` to ${esc(m.email)}` : ""} each month.`,
+			"<b>Shipping refunded on every book order</b>: use the same email at checkout and we refund it to your card.",
+			"<b>10% back</b> on Squish Man books and Squish Squad Shop merch, refunded to your card.",
+			"<b>2 free eBooks every 6 months.</b>",
+			"<b>Early access</b> to new Squish Man books.",
+		],
+		platinum: [
+			`<b>Monthly Squish Squad Pack</b>: 7 new coloring and activity pages by email${m.email ? ` to ${esc(m.email)}` : ""} each month.`,
+			"<b>Free shipping on everything</b>: book and merch shipping refunded to your card.",
+			"<b>20% back</b> on Squish Man books and Squish Squad Shop merch, refunded to your card.",
+			"<b>Squish Mail</b>: a Squish Man sticker in the mail every 3 months.",
+			"<b>Every Squish Man eBook</b>, plus first copies of new releases.",
+		],
+	};
 	const warn = m.nameConfirmed
 		? ""
-		: `<p class="warn">The two name spellings you typed didn't match. We'll email you to confirm the spelling before printing anything with your child's name.</p>`;
+		: `<p class="warn">The two name spellings you typed didn't match. We'll email you to confirm the spelling before making anything with your child's name.</p>`;
 	const body = `
 <div class="noprint">
 <h1>Welcome to the Squish Squad, ${esc(name)}! 🐾</h1>
-<p>Thank you for joining (${plan === "yearly" ? "yearly" : "monthly"} membership). Bookmark this page to come back to your gifts any time.</p>
+<p>Thank you for joining as a <b>${TIER_NAMES[tier]}</b> (${plan} membership). Bookmark this page to come back to your gifts any time.</p>
 ${warn}
-<div class="box"><h2>🎁 Your free eBook</h2><p>${esc(book.title)}</p>
-<a class="btn alt" href="${driveViewUrl(book.driveFileId)}" target="_blank" rel="noopener">Read now</a><a class="btn" href="${driveDownloadUrl(book.driveFileId)}">Download PDF</a></div>
+<div class="box"><h2>🎁 Your eBook${books.length > 1 ? "s" : ""}</h2>${bookCards}${ebookNote}</div>
+${shirt}
 </div>
 <div class="box"><h2 class="noprint">🪪 Your member card</h2>
-<div class="card"><img src="/assets/squishman-maple-hollow-logo.webp" alt="Squish Man — Maple Hollow"><div class="tag">OFFICIAL SQUISH SQUAD MEMBER</div><div class="who">${esc(name)}</div><div>Member since ${sinceText}</div><div class="tag" style="margin-top:8px">BIG HEART. TINY HERO. ENDLESS ADVENTURES!™</div></div>
+<div class="card"><img src="/assets/squishman-maple-hollow-logo.webp" alt="Squish Man — Maple Hollow"><div class="tag">OFFICIAL SQUISH SQUAD ${tier === "platinum" ? "PLATINUM CROWN" : tier === "hero" ? "HERO" : "MEMBER"}</div><div class="who">${esc(name)}</div><div>Member since ${sinceText}</div><div class="tag" style="margin-top:8px">BIG HEART. TINY HERO. ENDLESS ADVENTURES!™</div></div>
 <p class="noprint"><button class="btn" onclick="window.print()">Print member card</button></p></div>
 <div class="noprint">
-<div class="box"><h2>🎂 Birthday poster</h2><p>${posterText}</p></div>
-<div class="box"><h2>📦 Your member perks</h2><ul>
-<li><b>Monthly Squish Squad Pack</b>: new coloring and activity pages by email${m.email ? ` to ${esc(m.email)}` : ""} each month.</li>
-<li><b>Free shipping on book orders of $25+</b>: use the same email at checkout and we refund the shipping to your card.</li>
-<li><b>Early access</b> to new Squish Man books.</li>
-</ul><p class="small">Manage or cancel your membership any time by emailing orders@squishman.com.</p></div>
+<div class="box"><h2>🎂 Birthday surprise</h2><p>${giftText}</p></div>
+<div class="box"><h2>📦 Your member perks</h2><ul>${perks[tier].map((p) => `<li>${p}</li>`).join("\n")}</ul>
+<p class="small">Manage or cancel your membership any time by emailing orders@squishman.com.</p></div>
 </div>`;
 	return { status: 200, html: page("Welcome to the Squish Squad", body) };
 }

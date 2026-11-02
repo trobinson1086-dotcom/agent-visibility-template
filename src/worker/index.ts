@@ -61,13 +61,23 @@ import {
 } from "../fulfillment/service";
 import { type CheckoutRequest, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import { ebookDownloadPage } from "../fulfillment/ebooks";
-import { confirmChildName, getSquadMember, listSquadMembers, nextPoster, squadWelcomePage } from "../fulfillment/squad";
+import {
+	birthdayGift,
+	confirmChildName,
+	getSquadMember,
+	listSquadMembers,
+	nextPoster,
+	setShirtSize,
+	squadWelcomePage,
+	tierOf,
+} from "../fulfillment/squad";
 import {
 	getPack,
 	isPackMonth,
 	listPacks,
 	listPosters,
 	listShippingRefunds,
+	listSquishMail,
 	parsePack,
 	posterArt,
 	processPoster,
@@ -361,6 +371,17 @@ app.get("/api/squad/poster-art/:file", async (c) => {
 	});
 });
 
+/** Platinum Crown: the parent picks the child's tee size on the welcome page. */
+app.post("/api/squad/shirt-size", async (c) => {
+	const form = await c.req.parseBody().catch(() => ({}) as Record<string, unknown>);
+	const sessionId = typeof form.session_id === "string" ? form.session_id : "";
+	const size = typeof form.size === "string" ? form.size : "";
+	if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId)) return c.text("Unknown membership", 400);
+	const m = await setShirtSize(c.env, sessionId, size);
+	if (!m) return c.text("We couldn't save that size. Please try again, or email orders@squishman.com.", 400);
+	return c.redirect(`/api/squad/welcome?session_id=${encodeURIComponent(sessionId)}`, 303);
+});
+
 /** Squish Squad Membership: welcome page after a membership checkout (see fulfillment/squad.ts). */
 app.get("/api/squad/welcome", async (c) => {
 	const { status, html } = await squadWelcomePage(c.env, c.req.query("session_id"));
@@ -433,7 +454,7 @@ app.get("/api/admin/fulfillment/catalog", (c) => {
 app.get("/api/admin/squad/members", async (c) => {
 	const today = new Date();
 	const members = (await listSquadMembers(c.env))
-		.map((m) => ({ ...m, poster: nextPoster(m, today) }))
+		.map((m) => ({ ...m, tier: tierOf(m), birthdayGift: birthdayGift(m), poster: nextPoster(m, today) }))
 		.sort((a, b) => (a.poster?.orderOn ?? "9999").localeCompare(b.poster?.orderOn ?? "9999"));
 	return c.json({ count: members.length, members }, 200, { "Cache-Control": "no-store" });
 });
@@ -467,6 +488,12 @@ app.post("/api/admin/squad/posters/:id/order", async (c) => {
 	return rec ? c.json(rec) : c.json({ error: "No poster is due: no birthday month, or not eligible yet" }, 409);
 });
 
+/** Platinum Crown Squish Mail stickers ordered, held or failed. */
+app.get("/api/admin/squad/mail", async (c) => {
+	const mail = (await listSquishMail(c.env)).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+	return c.json({ count: mail.length, mail }, 200, { "Cache-Control": "no-store" });
+});
+
 /** Members' shipping refunds. */
 app.get("/api/admin/squad/refunds", async (c) => {
 	const refunds = (await listShippingRefunds(c.env)).sort((a, b) => b.at.localeCompare(a.at));
@@ -478,7 +505,7 @@ app.post("/api/admin/squad/refunds/:id/retry", async (c) => {
 	if (!c.env.STRIPE_SECRET_KEY) return c.json({ error: "Stripe not configured" }, 503);
 	const session = await fetchCheckoutSession(c.env.STRIPE_SECRET_KEY, c.req.param("id"));
 	if (session.payment_status !== "paid") return c.json({ error: "Order is not paid" }, 409);
-	const rec = await refundMemberShipping(c.env, session, { force: true });
+	const rec = await refundMemberShipping(c.env, session, { force: true, kind: session.metadata?.merch_sku ? "merch" : "books" });
 	return rec ? c.json(rec) : c.json({ error: "Not a member order with shipping (or refunds are off)" }, 409);
 });
 

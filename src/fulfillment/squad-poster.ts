@@ -101,17 +101,51 @@ async function asset(assets: Fetcher, path: string): Promise<Uint8Array> {
 	return new Uint8Array(await res.arrayBuffer());
 }
 
-/** Rasterize the poster for `childName` to a 3000×2400 PNG. */
-export async function renderPosterPng(assets: Fetcher, childName: string): Promise<Uint8Array> {
+async function render(
+	assets: Fetcher,
+	build: (artHref: string) => string,
+	background?: string,
+): Promise<Uint8Array> {
 	const [mod, art] = await Promise.all([resvg(), asset(assets, POSTER_ART_PATH)]);
 	const font = Uint8Array.from(atob(FREDOKA_BOLD_TTF_BASE64), (c) => c.charCodeAt(0));
-	const svg = posterSvg(childName, `data:image/png;base64,${base64(art)}`);
-	const r = new mod.Resvg(svg, {
+	const r = new mod.Resvg(build(`data:image/png;base64,${base64(art)}`), {
 		font: { fontBuffers: [font], defaultFontFamily: "Fredoka", loadSystemFonts: false },
 		fitTo: { mode: "original" },
-		background: "#ffffff",
+		...(background ? { background } : {}),
 	});
 	const png = r.render().asPng();
 	r.free();
 	return png;
+}
+
+/** Rasterize the poster for `childName` to a 3000×2400 PNG. */
+export function renderPosterPng(assets: Fetcher, childName: string): Promise<Uint8Array> {
+	return render(assets, (href) => posterSvg(childName, href), "#ffffff");
+}
+
+// --- Platinum Crown birthday tee ------------------------------------------------
+// Front of a white kids' tee (Printful 3001Y, front print area 1500×1800 at
+// 150 DPI): Squish Man & Pudy above the child's name, on a transparent background.
+
+export const TEE_WIDTH = 1500;
+export const TEE_HEIGHT = 1800;
+
+export function teeSvg(childName: string, artHref: string): string {
+	const name = xml(childName);
+	// Same fit as the poster name, scaled to the tee's 1400px width.
+	const size = Math.max(110, Math.min(300, Math.floor(1400 / ((childName.length + 1) * 0.7))));
+	const squeeze = size === 110 || /[WMwm]{4,}/.test(childName);
+	const font = `font-family="Fredoka" font-weight="700"`;
+	return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${TEE_WIDTH}" height="${TEE_HEIGHT}" viewBox="0 0 ${TEE_WIDTH} ${TEE_HEIGHT}">
+<image x="110" y="0" width="1280" height="1170" preserveAspectRatio="xMidYMid meet" xlink:href="${artHref}" href="${artHref}"/>
+<g text-anchor="middle" ${font}>
+<text x="750" y="${1410 + Math.round(size * 0.35)}" font-size="${size}"${squeeze ? ` textLength="1400" lengthAdjust="spacingAndGlyphs"` : ""} fill="#ef4338" stroke="#07347d" stroke-width="18" paint-order="stroke" stroke-linejoin="round">${name}</text>
+<text x="750" y="1760" font-size="110" fill="#0758bd" letter-spacing="8">SQUISH SQUAD</text>
+</g>
+</svg>`;
+}
+
+/** Rasterize the tee front for `childName` to a transparent 1500×1800 PNG. */
+export function renderTeePng(assets: Fetcher, childName: string): Promise<Uint8Array> {
+	return render(assets, (href) => teeSvg(childName, href));
 }

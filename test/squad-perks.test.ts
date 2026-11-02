@@ -7,8 +7,19 @@ import { env, fetchMock, SELF } from "cloudflare:test";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { hmacSha256, toHex } from "../src/fulfillment/crypto";
 import { handleStripeWebhook } from "../src/fulfillment/service";
-import { recordSquadMember, type SquadMember } from "../src/fulfillment/squad";
 import {
+	birthdayGift,
+	getSquadMember,
+	memberEbooks,
+	recordSquadMember,
+	type SquadMember,
+	squadWelcomePage,
+} from "../src/fulfillment/squad";
+import {
+	listSquishMail,
+	perkAmounts,
+	processSquishMail,
+	refundMemberShipping,
 	listPosters,
 	listShippingRefunds,
 	orderAmounts,
@@ -458,5 +469,186 @@ describe("admin routes", () => {
 			body: JSON.stringify({ childName: "maya" }),
 		});
 		expect(await ok.json()).toMatchObject({ childName: "Maya", nameConfirmed: true });
+	});
+});
+
+// --- Three tiers: Pal · Hero · Platinum Crown ------------------------------------
+
+describe("membership tiers", () => {
+	const HERO_MONTHLY = "price_1UXFN49cRroVv8pkKQjymk1H";
+	const PLATINUM_YEARLY = "price_1UXFNB9cRroVv8pkaYk5FW1R";
+	const NOW = new Date("2026-11-20T15:00:00Z");
+
+	function joinSession(id: string, price: string, name = "Zoe", month = "12") {
+		sessions.set(id, {
+			id,
+			object: "checkout.session",
+			livemode: false,
+			payment_status: "paid",
+			status: "complete",
+			payment_intent: null,
+			subscription: `sub_${id}`,
+			created: Math.floor(Date.parse("2026-11-05T12:00:00Z") / 1000),
+			customer_details: { email: `${id}@example.com`, name: "Pat Parent", phone: null },
+			collected_information: {
+				shipping_details: {
+					name: "Pat Parent",
+					address: { line1: "100 Maple St", line2: null, city: "Austin", state: "TX", postal_code: "78701", country: "US" },
+				},
+			},
+			custom_fields: [
+				{ key: "childname", type: "text", text: { value: name } },
+				{ key: "childname2", type: "text", text: { value: name } },
+				{ key: "birthmonth", type: "dropdown", dropdown: { value: month } },
+			],
+			line_items: { data: [{ quantity: 1, price: { id: price } }], has_more: false },
+			metadata: {},
+		});
+		subscriptions.set(`sub_${id}`, "active");
+		return id;
+	}
+
+	it("records each member's tier from the Stripe price", async () => {
+		const e = testEnv();
+		const r = await deliver(e, joinSession("cs_test_tierhero", HERO_MONTHLY));
+		expect(r.body).toMatchObject({ squad: "member_recorded", tier: "hero" });
+		expect(await getSquadMember(e, "cs_test_tierhero")).toMatchObject({ tier: "hero", plan: "monthly", childName: "Zoe" });
+		const welcome = emails.find((m) => (m.to as string[])[0] === "cs_test_tierhero@example.com");
+		expect(welcome?.html).toContain("Squish Squad Hero");
+	});
+
+	it("gives each tier its birthday gift (old Pal members keep the poster)", () => {
+		expect(birthdayGift({ tier: "pal", joinedAt: "2026-11-01T12:00:00.000Z" })).toBe("poster");
+		expect(birthdayGift({ joinedAt: "2026-11-01T12:00:00.000Z" })).toBe("poster");
+		expect(birthdayGift({ tier: "pal", joinedAt: "2026-11-05T12:00:00.000Z" })).toBe("digital");
+		expect(birthdayGift({ tier: "hero", joinedAt: "2026-11-05T12:00:00.000Z" })).toBe("poster");
+		expect(birthdayGift({ tier: "platinum", joinedAt: "2026-11-05T12:00:00.000Z" })).toBe("box");
+	});
+
+	it("unlocks eBooks by tier: Pal 1, Hero 2 more every 6 months, Platinum all", () => {
+		const joinedAt = "2026-11-05T12:00:00.000Z";
+		expect(memberEbooks({ tier: "pal", joinedAt }, NOW)).toHaveLength(1);
+		expect(memberEbooks({ tier: "hero", joinedAt }, NOW)).toHaveLength(3);
+		expect(memberEbooks({ tier: "hero", joinedAt }, new Date("2027-05-06T00:00:00Z"))).toHaveLength(5);
+		expect(memberEbooks({ tier: "platinum", joinedAt }, NOW)).toHaveLength(5);
+	});
+
+	it("works out each tier's refund on books and merch", () => {
+		const small = { booksCents: 1499, shippingCents: 599 };
+		expect(perkAmounts("pal", "books", small)).toMatchObject({ shippingCents: 0, cashbackCents: 0, reason: "ORDER_UNDER_MINIMUM:1499" });
+		expect(perkAmounts("hero", "books", small)).toEqual({ shippingCents: 599, cashbackCents: 149, reason: null });
+		expect(perkAmounts("hero", "merch", { booksCents: 2799, shippingCents: 499 })).toEqual({ shippingCents: 0, cashbackCents: 279, reason: null });
+		expect(perkAmounts("platinum", "merch", { booksCents: 2799, shippingCents: 499 })).toEqual({ shippingCents: 499, cashbackCents: 559, reason: null });
+	});
+
+	it("refunds a Hero's shipping and 10% back on a small book order, once", async () => {
+		const e = testEnv();
+		await recordSquadMember(e, member("cs_test_heroorders", { tier: "hero", email: "hero@example.com" }));
+		subscriptions.set("sub_cs_test_heroorders", "active");
+		order("cs_test_herobook", { email: "hero@example.com", subtotal: 1499 });
+		await deliver(e, "cs_test_herobook");
+		expect(refunds.map((r) => r.body.get("amount"))).toEqual(["748"]);
+		expect(refunds[0].body.get("metadata[squad_tier]")).toBe("hero");
+		expect(emails.find((m) => (m.to as string[])[0] === "hero@example.com")?.html).toContain(
+			"we refunded your $5.99 shipping and $1.49 member cash back to your card.",
+		);
+		await deliver(e, "cs_test_herobook");
+		expect(refunds).toHaveLength(1);
+	});
+
+	it("uses the best active membership on the email", async () => {
+		const e = testEnv();
+		await recordSquadMember(e, member("cs_test_bestpal", { tier: "pal", email: "both@example.com" }));
+		await recordSquadMember(e, member("cs_test_bestplat", { tier: "platinum", email: "both@example.com" }));
+		subscriptions.set("sub_cs_test_bestpal", "active");
+		subscriptions.set("sub_cs_test_bestplat", "active");
+		order("cs_test_bothmerch", { email: "both@example.com", subtotal: 2799, shipping: 499 });
+		const rec = await refundMemberShipping(e, sessions.get("cs_test_bothmerch") as never, { kind: "merch" });
+		expect(rec).toMatchObject({ status: "REFUNDED", tier: "platinum", shippingCents: 499, cashbackCents: 559, amountCents: 1058 });
+	});
+
+	it("emails new Pal members a printable birthday poster instead of mailing one", async () => {
+		const e = testEnv();
+		await recordSquadMember(e, member("cs_test_palkit", { tier: "pal", joinedAt: "2026-11-05T12:00:00.000Z", email: "kit@example.com", plan: "monthly" }));
+		subscriptions.set("sub_cs_test_palkit", "active");
+		await runSquadDaily(e, "sandbox", NOW, { force: true });
+		expect(printful.creates).toBe(0);
+		const kit = emails.find((m) => (m.to as string[])[0] === "kit@example.com");
+		expect(kit?.subject).toBe("A birthday surprise for Maya from Squish Man 🎂");
+		expect(kit?.html).toMatch(/https:\/\/squishman\.com\/api\/squad\/poster-art\/[0-9a-f]{36}\.png/);
+		expect(JSON.parse((await e.VISIBILITY_CACHE.get(posterKey("cs_test_palkit", 2026))) ?? "{}")).toMatchObject({ status: "SENT", gift: "digital" });
+	});
+
+	it("holds the Platinum box for a tee size, then orders poster + name tee + sticker", async () => {
+		const e = testEnv();
+		await recordSquadMember(e, member("cs_test_platbox", { tier: "platinum", joinedAt: "2026-11-05T12:00:00.000Z" }));
+		subscriptions.set("sub_cs_test_platbox", "active");
+		await runSquadDaily(e, "sandbox", NOW, { force: true });
+		expect(printful.creates).toBe(0);
+		expect(JSON.parse((await e.VISIBILITY_CACHE.get(posterKey("cs_test_platbox", 2026))) ?? "{}").detail).toMatch(/^SHIRT_SIZE_NEEDED/);
+
+		// The parent picks a size on the welcome page.
+		const res = await SELF.fetch(`${BASE}/api/squad/shirt-size`, {
+			method: "POST",
+			body: new URLSearchParams({ session_id: "cs_test_platbox", size: "Youth M" }),
+			redirect: "manual",
+		});
+		expect(res.status).toBe(303);
+		expect((await getSquadMember(e, "cs_test_platbox"))?.shirtSize).toBe("Youth M");
+
+		await runSquadDaily(e, "sandbox", NOW, { force: true });
+		expect(printful.creates).toBe(1);
+		const items = (printful.lastCreate as { items: Array<Record<string, unknown>> }).items;
+		expect(items.map((i) => i.variant_id)).toEqual([4463, 9427, 10165]);
+		const teeFiles = items[1].files as Array<Record<string, unknown>>;
+		expect(teeFiles[0]).toMatchObject({ type: "front" });
+		expect(String(teeFiles[0].url)).toMatch(/\/api\/squad\/poster-art\/[0-9a-f]{36}\.png$/);
+		expect(teeFiles[1]).toMatchObject({ type: "back" });
+		expect(emails.some((m) => String(m.subject).includes("birthday box is on its way"))).toBe(true);
+	});
+
+	it("rejects tee sizes for non-Platinum members and unknown sizes", async () => {
+		const e = testEnv();
+		await recordSquadMember(e, member("cs_test_herosize", { tier: "hero" }));
+		for (const [id, size] of [["cs_test_herosize", "Youth M"], ["cs_test_platbox", "XXL"]]) {
+			const res = await SELF.fetch(`${BASE}/api/squad/shirt-size`, {
+				method: "POST",
+				body: new URLSearchParams({ session_id: id, size }),
+				redirect: "manual",
+			});
+			expect(res.status).toBe(400);
+		}
+	});
+
+	it("mails Platinum members a sticker every 3 months, once each", async () => {
+		const e = testEnv();
+		const m = member("cs_test_squishmail", { tier: "platinum", joinedAt: "2026-08-01T12:00:00.000Z", birthMonth: 6 });
+		await recordSquadMember(e, m);
+		subscriptions.set("sub_cs_test_squishmail", "active");
+		expect(await processSquishMail(e, "sandbox", m, new Date("2026-10-20T15:00:00Z"))).toBeNull();
+		const first = await processSquishMail(e, "sandbox", m, NOW);
+		expect(first).toMatchObject({ status: "ORDERED", quarter: 1 });
+		expect((printful.lastCreate as { items: Array<{ variant_id: number }> }).items[0].variant_id).toBe(10165);
+		await processSquishMail(e, "sandbox", m, NOW);
+		expect(printful.creates).toBe(1);
+		expect((await listSquishMail(e)).filter((r) => r.memberSessionId === "cs_test_squishmail")).toHaveLength(1);
+		// Hero members don't get Squish Mail.
+		expect(await processSquishMail(e, "sandbox", member("cs_test_heromail", { tier: "hero", joinedAt: "2026-08-01T12:00:00.000Z" }), NOW)).toBeNull();
+	});
+
+	it("shows tier perks, eBooks and the tee size form on the welcome page", async () => {
+		const e = testEnv();
+		joinSession("cs_test_platwelcome", PLATINUM_YEARLY, "Ivy");
+		const page = await squadWelcomePage(e, "cs_test_platwelcome");
+		expect(page.status).toBe(200);
+		expect(page.html).toContain("Platinum Crown");
+		expect(page.html).toContain('action="/api/squad/shirt-size"');
+		expect(page.html).toContain("The Great Maple Hollow Derby");
+		expect(page.html).toContain("20% back");
+		joinSession("cs_test_herowelcome", HERO_MONTHLY, "Kai");
+		const hero = await squadWelcomePage(e, "cs_test_herowelcome");
+		expect(hero.html).toContain("Squish Squad Hero");
+		expect(hero.html).not.toContain("shirt-size");
+		expect(hero.html).toContain("2 more eBooks every 6 months");
 	});
 });
