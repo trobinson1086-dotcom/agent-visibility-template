@@ -1,5 +1,10 @@
 # Episode 1 plan: existing footage only (no new Flow clips)
 
+> **Update 2 Nov 2026:** the owner said "Add", so the golden-puppy pages are now included and the
+> episode tells the whole book. Rendered by `scripts/render_episode1.py`: 29 scenes, 3:15. The puppy
+> on screen is the golden puppy from the book art throughout. C33/C34 (the brown-and-white puppy) are
+> left out so the puppy doesn't change colour mid-story.
+
 Decision 2 Nov 2026: no new Flow generation for now; Pudy clips with either collar colour are accepted.
 The gaps are filled with the owner's own **Book 1 spread illustrations** ("Squishman Illustration
 Spread" folder, landscape 1426×1103) shown with slow storybook camera moves. Only illustrations that
