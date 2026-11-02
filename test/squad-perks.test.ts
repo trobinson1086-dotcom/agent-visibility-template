@@ -448,6 +448,62 @@ describe("Squish Squad packs", () => {
 		expect(jan?.text).toContain("https://squishman.com/assets/squad-packs/2027-01/wallpaper-forest-friends.jpg");
 	});
 
+	it("adds Hero and Platinum bonus pages to each tier's pack email", async () => {
+		const e = testEnv();
+		const month = "2027-03";
+		await savePack(
+			e,
+			parsePack(month, {
+				...PACK,
+				subject: "March pack",
+				bonus: {
+					hero: [{ title: "Hero reading page", url: "https://x.example/hero.pdf" }],
+					platinum: [{ title: "Platinum craft page", url: "https://x.example/plat.pdf" }],
+				},
+			}),
+		);
+		await recordSquadMember(e, member("cs_test_bpal", { tier: "pal", email: "bpal@example.com", birthMonth: 7 }));
+		await recordSquadMember(e, member("cs_test_bhero", { tier: "hero", email: "bhero@example.com", birthMonth: 7 }));
+		await recordSquadMember(e, member("cs_test_bplat", { tier: "platinum", email: "bplat@example.com", birthMonth: 7 }));
+		for (const id of ["cs_test_bpal", "cs_test_bhero", "cs_test_bplat"]) subscriptions.set(`sub_${id}`, "active");
+		await runSquadDaily(e, "sandbox", new Date("2027-03-01T15:00:00Z"), { force: true });
+		const to = (addr: string) => emails.filter((m) => (m.to as string[])[0] === addr && m.subject === "March pack");
+		expect(to("bpal@example.com")).toHaveLength(1);
+		expect(to("bpal@example.com")[0].html).not.toContain("Bonus");
+		expect(to("bhero@example.com")[0].html).toContain("Hero reading page");
+		expect(to("bhero@example.com")[0].html).not.toContain("Platinum craft page");
+		expect(to("bplat@example.com")[0].html).toContain("Hero reading page");
+		expect(to("bplat@example.com")[0].html).toContain("Platinum craft page");
+		expect(to("bplat@example.com")[0].text).toContain("Platinum Crown Bonus pages:");
+	});
+
+	it("sends bonus pages added after the 1st in one follow-up email", async () => {
+		const e = testEnv();
+		const month = "2027-04";
+		await savePack(e, parsePack(month, { ...PACK, subject: "April pack" }));
+		await recordSquadMember(e, member("cs_test_lpal", { tier: "pal", email: "lpal@example.com", birthMonth: 7 }));
+		await recordSquadMember(e, member("cs_test_lhero", { tier: "hero", email: "lhero@example.com", birthMonth: 7 }));
+		for (const id of ["cs_test_lpal", "cs_test_lhero"]) subscriptions.set(`sub_${id}`, "active");
+		await runSquadDaily(e, "sandbox", new Date("2027-04-01T15:00:00Z"), { force: true });
+		expect(emails.filter((m) => m.subject === "April pack")).toHaveLength(2);
+
+		await savePack(e, parsePack(month, { ...PACK, subject: "April pack", bonus: { hero: [{ title: "Late hero page", url: "https://x.example/late.pdf" }] } }));
+		await runSquadDaily(e, "sandbox", new Date("2027-04-03T15:00:00Z"), { force: true });
+		await runSquadDaily(e, "sandbox", new Date("2027-04-04T15:00:00Z"), { force: true });
+		const followUps = emails.filter((m) => String(m.subject).includes("April Hero bonus pages"));
+		expect(followUps.map((m) => (m.to as string[])[0])).toEqual(["lhero@example.com"]);
+		expect(followUps[0].html).toContain("Late hero page");
+		expect(emails.filter((m) => m.subject === "April pack")).toHaveLength(2);
+	});
+
+	it("validates bonus pages", () => {
+		expect(() => parsePack("2027-05", { ...PACK, bonus: { hero: [{ title: "x", url: "http://insecure" }] } })).toThrow("bonus.hero[0]");
+		expect(parsePack("2027-05", { ...PACK, bonus: { platinum: [{ title: "p", url: "https://x.example/p.pdf" }] } }).bonus).toEqual({
+			platinum: [{ title: "p", url: "https://x.example/p.pdf" }],
+		});
+		expect(parsePack("2027-05", PACK).bonus).toBeUndefined();
+	});
+
 	it("does not send drafts", async () => {
 		const e = testEnv();
 		await recordSquadMember(e, member("cs_test_packdraft", { email: "d@example.com", birthMonth: 7 }));

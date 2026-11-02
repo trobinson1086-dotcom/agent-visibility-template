@@ -521,7 +521,7 @@ app.get("/api/admin/squad/packs/:month", async (c) => {
 
 /**
  * Create or replace a month's pack: {subject, heading, intro, items: [{title,
- * description?, url}], published}. Published packs are emailed to every
+ * description?, url}], bonus?: {hero?: [...], platinum?: [...]}, published}. Published packs are emailed to every
  * active member by the daily job (once each).
  */
 app.put("/api/admin/squad/packs/:month", async (c) => {
@@ -534,14 +534,17 @@ app.put("/api/admin/squad/packs/:month", async (c) => {
 	}
 });
 
-/** Email a pack to one address to check it ({"to": "you@example.com"}). */
+/** Email a pack to one address to check it ({"to": "you@example.com", "tier": "pal" | "hero" | "platinum"}). */
 app.post("/api/admin/squad/packs/:month/test", async (c) => {
 	const pack = isPackMonth(c.req.param("month")) ? await getPack(c.env, c.req.param("month")) : null;
 	if (!pack) return c.json({ error: "Not found" }, 404);
-	const { to } = (await c.req.json().catch(() => ({}))) as { to?: string };
+	const { to, tier } = (await c.req.json().catch(() => ({}))) as { to?: string; tier?: string };
 	if (!to) return c.json({ error: "to is required" }, 400);
+	if (tier !== undefined && tier !== "pal" && tier !== "hero" && tier !== "platinum") {
+		return c.json({ error: "tier must be pal, hero or platinum" }, 400);
+	}
 	try {
-		return c.json(await testSendPack(c.env, pack, to));
+		return c.json(await testSendPack(c.env, pack, to, tier ?? "pal"));
 	} catch (err) {
 		return c.json({ error: (err as Error).message }, 502);
 	}
