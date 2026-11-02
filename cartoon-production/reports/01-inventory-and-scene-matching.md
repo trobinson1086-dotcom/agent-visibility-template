@@ -117,8 +117,7 @@ Books 3–5 may be in the 21 unreviewed large files (for example the six website
 6. **Book interiors.** The published Book 1–5 PDFs are 18–54 MB (over the limit). I used the Book 1 final text, `Squish_Man_Book1(Final).pdf` (Aug), with Peanut → "the little puppy". I also used the published preview pages on squishman.com and the Master Blueprint. For Books 2–5 I need the full text (a docx or text version of each book is enough).
 7. **CapCut.** CapCut for iPad has no importable project format, so delivery is numbered MP4 scenes, separate audio stems, SRT captions and an assembly guide, imported through the Files app.
 
-## Continuity questions for you
-1. **Pudy's collar:** you said pink is current. The Master Blueprint, the website and the theme-song art all show **royal blue**. Which is correct?
-2. **Pudy's pronoun:** you said female; the Master Blueprint uses "he". Which should the scripts use?
-3. **The Book 1 lost puppy:** what is the puppy's name in the published book? Is the brown-and-white design (C33/C34) correct?
-4. **C09** (construction site): should it be removed from this folder?
+## Continuity decisions (answered 2 Nov 2026)
+- Pudy's collar is **pink**, and Pudy is **female**. Every existing Pudy clip (C47, C50–C65, C86, C90) has a blue collar, so those clips are off-model.
+- The Book 1 Lost Puppy is the **brown-and-white design (C33/C34), approved**. C03–C05, C07, C10, C11, C15 and C25–C32 are off-model for Book 1.
+- Still open: the Lost Puppy's name, and what to do with C09. See [`../continuity.md`](../continuity.md) and the Flow shot list in [`02-book1-flow-shot-list.md`](02-book1-flow-shot-list.md).

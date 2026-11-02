@@ -6,6 +6,8 @@ Videos are not stored in git; they are delivered through the Claude app and Goog
 
 - `reports/01-inventory-and-scene-matching.md`: footage inventory, five-book scene matching, missing
   scenes, duplicates, pilot timeline and limitations.
+- `continuity.md`: owner-approved character rules (pink collar, female Pudy, approved Lost Puppy).
+- `reports/02-book1-flow-shot-list.md`: ready-to-paste Flow prompts for the 22 missing Book 1 shots.
 - `reports/clip-catalog.csv`: every unique Flow clip (C01–C91) with its book, contents, flags,
   Drive file name and ID, and identical copies.
 - `scripts/decode.sh`: turns Drive-connector downloads into `raw/<driveId>.mp4`.
