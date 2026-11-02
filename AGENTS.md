@@ -94,6 +94,21 @@ subscription is `active`/`trialing`; each is idempotent via KV markers.
   (files in `public/assets/squad-packs/YYYY-MM/`); `PUT /api/admin/squad/packs/YYYY-MM` stores one that overrides it;
   once `published`, the daily job emails it once to each active member.
 
+### Monthly pack rules (owner's standing instructions)
+
+- **Exactly 7 printable pages per month**, in one US Letter PDF
+  (`public/assets/squad-packs/YYYY-MM/squish-squad-pack-<month>-<year>.pdf`).
+- **Use only the owner's own illustrations and pages from the Squish Man
+  Google Drive folders** (e.g. "Squish Coloring books", "Squish Bonus
+  Activities pages", "Squishman Learning Books 1-5", "Squish Man Book Series",
+  "Squishman Illustration Spread", "Squishman stickers"). Don't use stock or
+  generated art; when a page needs layout (title, maze, writing lines), build
+  it around Drive illustrations.
+- Theme each pack to its month, and pick pages that weren't in an earlier
+  pack. Email header and wallpapers also come from Drive illustrations.
+- Packs are due in source and merged by about the 28th of the month before
+  (the daily job sends them on the 1st).
+
 ## Email (Resend)
 
 `fulfillment/email.ts` sends from squishman.com through Resend (secret
