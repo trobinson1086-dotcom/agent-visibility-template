@@ -127,6 +127,12 @@ subscription is `active`/`trialing`; each is idempotent via KV markers.
   pack. Email header and wallpapers also come from Drive illustrations.
 - Packs are due in source and merged by about the 28th of the month before
   (the daily job sends them on the 1st).
+- **Tier bonus pages**: a pack's `bonus.hero` pages go to Hero and Platinum
+  members, `bonus.platinum` pages to Platinum only (in the same email). Bonus
+  PDFs come from the Drive folders "Squishman subscription membership tier 2
+  (Hero)" and "… tier 3 (Platinum)" (3 pages each). Bonus pages added after
+  the 1st go out in one follow-up email (`squad:pack-bonus-sent:*`). Test any
+  tier's email with `POST /api/admin/squad/packs/YYYY-MM/test` `{"to", "tier"}`.
 
 ## Email (Resend)
 

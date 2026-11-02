@@ -273,13 +273,39 @@ export function posterEmail(
 	};
 }
 
+export interface PackItem {
+	title: string;
+	description?: string;
+	url: string;
+}
+
+export type PackTier = "pal" | "hero" | "platinum";
+
+/** The bonus sections a tier gets from a pack (empty for Pal or when there are none). */
+export function packBonus(pack: SquadPack, tier: PackTier): Array<{ label: string; items: PackItem[] }> {
+	const out: Array<{ label: string; items: PackItem[] }> = [];
+	if ((tier === "hero" || tier === "platinum") && pack.bonus?.hero?.length) {
+		out.push({ label: "🦸 Hero Bonus", items: pack.bonus.hero });
+	}
+	if (tier === "platinum" && pack.bonus?.platinum?.length) {
+		out.push({ label: "👑 Platinum Crown Bonus", items: pack.bonus.platinum });
+	}
+	return out;
+}
+
 export interface SquadPack {
 	/** "YYYY-MM". */
 	month: string;
 	subject: string;
 	heading: string;
 	intro: string;
-	items: Array<{ title: string; description?: string; url: string }>;
+	/** The pack every member gets (the 7-page Pal pack and extras). */
+	items: PackItem[];
+	/**
+	 * Tier bonus pages: Hero members also get `hero`; Platinum Crown members get
+	 * `hero` and `platinum`. Added after the 1st, they go out in a follow-up email.
+	 */
+	bonus?: { hero?: PackItem[]; platinum?: PackItem[] };
 	/** Optional picture at the top of the email. */
 	heroImage?: string;
 	/** Only published packs are sent to members (drafts can be test-sent). */
@@ -287,17 +313,44 @@ export interface SquadPack {
 	updatedAt?: string;
 }
 
-/** The monthly Squish Squad Pack email. */
-export function packEmail(env: Env, pack: SquadPack, childName: string): Pick<Email, "subject" | "html" | "text"> {
-	const name = childName || "Squish Squad member";
+function packRows(env: Env, items: PackItem[]): string {
 	// Site paths ("/assets/…") become full squishman.com links.
 	const abs = (u: string) => (u.startsWith("/") ? `${baseUrl(env)}${u}` : u);
-	const items = pack.items
+	return items
 		.map(
 			(i) =>
 				`<tr><td style="padding:10px 0;border-top:1px solid #eef2fa"><b>${esc(i.title)}</b>${i.description ? `<br><span style="font-size:14px;color:#4b5a7c">${esc(i.description)}</span>` : ""}<br>${button(abs(i.url), /\.pdf$/i.test(i.url) ? "Open & print" : "Open", true)}</td></tr>`,
 		)
 		.join("");
+}
+
+function packLines(env: Env, items: PackItem[]): string[] {
+	const abs = (u: string) => (u.startsWith("/") ? `${baseUrl(env)}${u}` : u);
+	return items.map((i) => `- ${i.title}${i.description ? ` (${i.description})` : ""}: ${abs(i.url)}`);
+}
+
+const PACK_FOOTER = `You get this email because your family is a Squish Squad member. To stop pack emails, reply "unsubscribe".`;
+
+function bonusHtml(env: Env, sections: Array<{ label: string; items: PackItem[] }>): string {
+	return sections
+		.map(
+			(b) =>
+				`<div style="margin-top:18px;background:#fff8d6;border-radius:14px;padding:12px 14px"><div style="font-size:16px;font-weight:900;color:#07347d">${esc(b.label)} pages</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${packRows(env, b.items)}</table></div>`,
+		)
+		.join("");
+}
+
+/** The monthly Squish Squad Pack email, with the member's tier bonus pages. */
+export function packEmail(
+	env: Env,
+	pack: SquadPack,
+	childName: string,
+	tier: PackTier = "pal",
+): Pick<Email, "subject" | "html" | "text"> {
+	const name = childName || "Squish Squad member";
+	const abs = (u: string) => (u.startsWith("/") ? `${baseUrl(env)}${u}` : u);
+	const bonus = packBonus(pack, tier);
 	const hero = pack.heroImage
 		? `<p style="text-align:center;margin:0 0 12px"><img src="${esc(abs(pack.heroImage))}" alt="Squish Man and Pudy in Maple Hollow" width="280" style="max-width:100%;height:auto;border-radius:14px"></p>`
 		: "";
@@ -307,17 +360,48 @@ export function packEmail(env: Env, pack: SquadPack, childName: string): Pick<Em
 		`${hero}<div style="font-size:12px;font-weight:900;letter-spacing:1.5px;color:#0758bd">SQUISH SQUAD PACK</div>
 <h1 style="font-size:24px;color:#07347d;margin:4px 0 12px">${esc(pack.heading)}</h1>
 <p>Hi ${esc(name)}! ${esc(pack.intro)}</p>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${items}</table>`,
-		`You get this email because your family is a Squish Squad member. To stop pack emails, reply "unsubscribe".<br>`,
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${packRows(env, pack.items)}</table>${bonusHtml(env, bonus)}`,
+		`${PACK_FOOTER}<br>`,
 	);
 	const text = [
 		pack.heading,
 		"",
 		`Hi ${name}! ${pack.intro}`,
 		"",
-		...pack.items.map((i) => `- ${i.title}${i.description ? ` (${i.description})` : ""}: ${abs(i.url)}`),
+		...packLines(env, pack.items),
+		...bonus.flatMap((b) => ["", `${b.label.replace(/^\S+ /, "")} pages:`, ...packLines(env, b.items)]),
 		"",
-		`You get this email because your family is a Squish Squad member. To stop pack emails, reply "unsubscribe".`,
+		PACK_FOOTER,
 	].join("\n");
 	return { subject: pack.subject, html, text };
+}
+
+/** Follow-up when a month's tier bonus pages arrive after its pack was sent. */
+export function packBonusEmail(
+	env: Env,
+	pack: SquadPack,
+	childName: string,
+	tier: PackTier,
+): Pick<Email, "subject" | "html" | "text"> {
+	const name = childName || "Squish Squad member";
+	const bonus = packBonus(pack, tier);
+	const what = tier === "platinum" ? "Platinum Crown" : "Hero";
+	const monthName = new Date(`${pack.month}-15T00:00:00Z`).toLocaleString("en-US", { month: "long", timeZone: "UTC" });
+	const html = layout(
+		env,
+		`Your ${what} bonus pages`,
+		`<div style="font-size:12px;font-weight:900;letter-spacing:1.5px;color:#0758bd">SQUISH SQUAD PACK · ${esc(monthName.toUpperCase())} BONUS</div>
+<h1 style="font-size:24px;color:#07347d;margin:4px 0 12px">Your ${what} bonus pages are here!</h1>
+<p>Hi ${esc(name)}! Here are this month's extra pages, just for ${what} members.</p>${bonusHtml(env, bonus)}`,
+		`${PACK_FOOTER}<br>`,
+	);
+	const text = [
+		`Your ${what} bonus pages are here!`,
+		"",
+		`Hi ${name}! Here are this month's extra pages, just for ${what} members.`,
+		...bonus.flatMap((b) => ["", `${b.label.replace(/^\S+ /, "")} pages:`, ...packLines(env, b.items)]),
+		"",
+		PACK_FOOTER,
+	].join("\n");
+	return { subject: `Your ${monthName} ${what} bonus pages are here 🎁`, html, text };
 }

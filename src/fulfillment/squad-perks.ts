@@ -20,7 +20,17 @@
  * Perks only go to members whose Stripe subscription is active or trialing.
  */
 import type { Env } from "../lib/types";
-import { baseUrl, digitalBirthdayEmail, type SquadPack, packEmail, posterEmail, sendOnce } from "./email";
+import {
+	baseUrl,
+	digitalBirthdayEmail,
+	type PackItem,
+	packBonus,
+	packBonusEmail,
+	packEmail,
+	posterEmail,
+	sendOnce,
+	type SquadPack,
+} from "./email";
 import { BACK_CROWN_FILE, STICKER_FILES } from "./merch";
 import { BUILT_IN_PACKS } from "./squad-packs";
 import { createOrder, externalId, getOrder, PrintfulError, type PrintfulOrderItem } from "./printful";
@@ -68,6 +78,7 @@ const POSTER_PREFIX = "squad:poster:";
 const ART_PREFIX = "squad:poster-art:";
 const PACK_PREFIX = "squad:pack:";
 const PACK_SENT_PREFIX = "squad:pack-sent:";
+const BONUS_SENT_PREFIX = "squad:pack-bonus-sent:";
 const DAILY_PREFIX = "squad:daily:";
 
 const log = (event: string, data: Record<string, unknown>) =>
@@ -631,22 +642,30 @@ export function parsePack(month: string, body: unknown): SquadPack {
 		if (typeof v !== "string" || !v.trim()) throw new Error(`${k} is required`);
 		return v.trim().slice(0, max);
 	};
-	const rawItems = Array.isArray(b.items) ? b.items : [];
-	if (rawItems.length === 0 || rawItems.length > 20) throw new Error("items must list 1-20 pages");
-	const items = rawItems.map((raw, i) => {
-		const it = (raw ?? {}) as Record<string, unknown>;
-		const title = typeof it.title === "string" ? it.title.trim().slice(0, 120) : "";
-		const url = typeof it.url === "string" ? it.url.trim() : "";
-		if (!title || !/^https:\/\/\S+$/.test(url)) throw new Error(`items[${i}] needs a title and an https url`);
-		const description = typeof it.description === "string" && it.description.trim() ? it.description.trim().slice(0, 300) : undefined;
-		return { title, url, ...(description ? { description } : {}) };
-	});
+	const parseItems = (raw: unknown, where: string, min: number): PackItem[] => {
+		const list = Array.isArray(raw) ? raw : [];
+		if (list.length < min || list.length > 20) throw new Error(`${where} must list ${min}-20 pages`);
+		return list.map((r, i) => {
+			const it = (r ?? {}) as Record<string, unknown>;
+			const title = typeof it.title === "string" ? it.title.trim().slice(0, 120) : "";
+			const url = typeof it.url === "string" ? it.url.trim() : "";
+			if (!title || !/^https:\/\/\S+$/.test(url)) throw new Error(`${where}[${i}] needs a title and an https url`);
+			const description = typeof it.description === "string" && it.description.trim() ? it.description.trim().slice(0, 300) : undefined;
+			return { title, url, ...(description ? { description } : {}) };
+		});
+	};
+	const items = parseItems(b.items, "items", 1);
+	const rawBonus = (b.bonus ?? {}) as Record<string, unknown>;
+	const hero = rawBonus.hero === undefined ? [] : parseItems(rawBonus.hero, "bonus.hero", 0);
+	const platinum = rawBonus.platinum === undefined ? [] : parseItems(rawBonus.platinum, "bonus.platinum", 0);
+	const bonus = hero.length || platinum.length ? { ...(hero.length ? { hero } : {}), ...(platinum.length ? { platinum } : {}) } : undefined;
 	return {
 		month,
 		subject: str("subject", 150),
 		heading: str("heading", 150),
 		intro: str("intro", 1000),
 		items,
+		...(bonus ? { bonus } : {}),
 		published: b.published === true,
 		updatedAt: new Date().toISOString(),
 	};
@@ -656,7 +675,11 @@ export async function savePack(env: Env, pack: SquadPack): Promise<void> {
 	await putJson(env, PACK_PREFIX + pack.month, pack);
 }
 
-/** Send this month's published pack to one member (at most once). */
+/**
+ * Send this month's published pack to one member (at most once), with their
+ * tier's bonus pages. Bonus pages added after the pack went out are sent in a
+ * follow-up email, also at most once.
+ */
 async function sendPack(
 	env: Env,
 	mode: FulfillmentMode,
@@ -665,20 +688,35 @@ async function sendPack(
 	subs: Map<string, string>,
 ): Promise<"sent" | "skipped" | "failed"> {
 	if (!member.email || !memberInScope(mode, member.livemode)) return "skipped";
+	const tier = tierOf(member);
+	const hasBonus = packBonus(pack, tier).length > 0;
 	const sentKey = `${PACK_SENT_PREFIX}${pack.month}:${member.sessionId}`;
-	if (await env.VISIBILITY_CACHE.get(sentKey)) return "skipped";
+	const bonusKey = `${BONUS_SENT_PREFIX}${pack.month}:${member.sessionId}`;
+	const packSent = !!(await env.VISIBILITY_CACHE.get(sentKey));
+	if (packSent && (!hasBonus || (await env.VISIBILITY_CACHE.get(bonusKey)))) return "skipped";
 	try {
 		const status = await subscriptionStatus(env, member, subs);
 		if (!ACTIVE.has(status)) return "skipped";
-		const r = await sendOnce(env, `pack:${pack.month}:${member.sessionId}`, {
+		const common = {
 			from: env.SQUAD_EMAIL_FROM,
 			to: member.email,
-			...packEmail(env, pack, member.childName),
 			headers: { "List-Unsubscribe": "<mailto:orders@squishman.com?subject=unsubscribe%20squad%20pack>" },
-			tags: [{ name: "type", value: "squad_pack" }, { name: "month", value: pack.month.replace("-", "_") }],
-		});
+		};
+		const r = packSent
+			? await sendOnce(env, `pack-bonus:${pack.month}:${member.sessionId}`, {
+					...common,
+					...packBonusEmail(env, pack, member.childName, tier),
+					tags: [{ name: "type", value: "squad_pack_bonus" }, { name: "month", value: pack.month.replace("-", "_") }],
+				})
+			: await sendOnce(env, `pack:${pack.month}:${member.sessionId}`, {
+					...common,
+					...packEmail(env, pack, member.childName, tier),
+					tags: [{ name: "type", value: "squad_pack" }, { name: "month", value: pack.month.replace("-", "_") }],
+				});
 		if (r.status === "skipped") return "skipped";
-		await env.VISIBILITY_CACHE.put(sentKey, new Date().toISOString());
+		const at = new Date().toISOString();
+		if (!packSent) await env.VISIBILITY_CACHE.put(sentKey, at);
+		if (hasBonus) await env.VISIBILITY_CACHE.put(bonusKey, at);
 		return "sent";
 	} catch (err) {
 		log("pack_failed", { member: member.sessionId, month: pack.month, error: errorDetail(err).slice(0, 120) });
@@ -686,12 +724,12 @@ async function sendPack(
 	}
 }
 
-/** Test-send a pack (published or not) to one address. */
-export async function testSendPack(env: Env, pack: SquadPack, to: string) {
-	return sendOnce(env, `pack-test:${pack.month}:${to}:${Date.now()}`, {
+/** Test-send a pack (published or not) to one address, as a given tier would get it. */
+export async function testSendPack(env: Env, pack: SquadPack, to: string, tier: SquadTier = "pal") {
+	return sendOnce(env, `pack-test:${pack.month}:${tier}:${to}:${Date.now()}`, {
 		from: env.SQUAD_EMAIL_FROM,
 		to,
-		...packEmail(env, pack, "Squish Squad member"),
+		...packEmail(env, pack, "Squish Squad member", tier),
 		tags: [{ name: "type", value: "squad_pack_test" }],
 	});
 }

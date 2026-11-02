@@ -6,6 +6,10 @@
  * Owner's rule for every month from December 2026 on (see AGENTS.md): exactly
  * 7 printable pages, made only from illustrations and pages in the Squish Man
  * Google Drive folders.
+ *
+ * Tier bonus pages go in a pack's `bonus`: `bonus.hero` (Hero and Platinum
+ * members) and `bonus.platinum` (Platinum only), 3 pages each, from the
+ * tier 2 / tier 3 Drive folders.
  */
 import type { SquadPack } from "./email";
 
