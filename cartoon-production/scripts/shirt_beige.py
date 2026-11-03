@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Recolor a model's (already cleaned) white T-shirt beige, keeping folds and shading,
+"""Recolor (env SHIRT_COLOR=RRGGBB, default beige) a model's (already cleaned) white T-shirt beige, keeping folds and shading,
 then put a design on it.
 
 Shirt mask: GrabCut seeded with a box around the shirt, then limited to near-white,
@@ -15,7 +15,9 @@ src, design, out = sys.argv[1], sys.argv[2], sys.argv[3]
 bx, by, bw, bh = map(int, sys.argv[4].split(","))
 dw, dcx, dtop = int(sys.argv[5]), int(sys.argv[6]), int(sys.argv[7])
 mask_cache = sys.argv[8] if len(sys.argv) > 8 else None
-BEIGE = np.array([166, 196, 222], np.float32) / 255  # BGR of a soft natural/beige tee (#DEC4A6)
+import os
+_hex = os.environ.get("SHIRT_COLOR", "DEC4A6")  # shirt colour as RGB hex; default soft natural/beige
+BEIGE = np.array([int(_hex[4:6], 16), int(_hex[2:4], 16), int(_hex[0:2], 16)], np.float32) / 255  # BGR
 
 im8 = cv2.imread(src)
 im = im8.astype(np.float32) / 255
