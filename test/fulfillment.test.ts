@@ -1022,7 +1022,7 @@ describe("merch catalog", () => {
 		const hoodie = merchProduct("HOODIE")!;
 		const longSleeve = merchProduct("LONGSLEEVE")!;
 		for (const p of [tee, hoodie, longSleeve]) {
-			expect(p.colors.map((c) => c.name)).toEqual(["Black", "White", "Royal Blue", "Pink", "Grey", "Red"]);
+			expect(p.colors.map((c) => c.name)).toEqual(["Royal Blue", "Pink", "Red", "Grey", "White", "Black"]);
 			for (const c of p.colors) {
 				const sizes = c.name === "Pink" && p === longSleeve ? ["S", "M", "L", "XL", "2XL"] : p.sizes;
 				expect(Object.keys(c.variants)).toEqual(sizes);
