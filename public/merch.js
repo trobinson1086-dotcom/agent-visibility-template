@@ -325,6 +325,9 @@ function show(i){
 function open(p,from){
  const start=p.active||0,ordered=p.colors.slice(start).concat(p.colors.slice(0,start));
  slides=(p.lead?[{img:p.lead,label:`${p.name} — on a model (white)`}]:[]).concat(ordered.map(c=>({img:c[2],label:p.sheet?`${p.name} — full collection`:`${p.name} — ${c[0]}`}))).concat((p.extra||[]).map(x=>({img:x,label:`${p.name} — detail views`})));
+ // Girls' tee: per design, the full beach photo and an artwork close-up.
+ const gs=p.imgBase==='girlstee'&&p.colors[0][2].name.replace('shop-girlstee-white-','');
+ if(gs)slides=slides.concat([{img:img(`shop-girlstee-beach-${gs}`,900,1344,0,0,`A smiling girl on the beach in the white ${p.name} with the ${DESIGN_TITLE[design(p).key]} design`),label:`${p.name} — on the beach`},{img:img(`shop-girlstee-art-${gs}`,1400,700,0,0,`Close-up of the ${DESIGN_TITLE[design(p).key]} artwork`),label:`${p.name} — the artwork`}]);
  opener=from;gTitle.textContent=p.name;show(0);
  if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','');
  dlg.querySelector('.mg-close').focus();
