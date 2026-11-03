@@ -290,6 +290,10 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 				}
 				const name = (f.fileId && names.get(f.fileId)) || `${p.key.toLowerCase()}_${f.type}`;
 				if (name in printFiles) continue;
+				if (f.fileId === null && f.url) {
+					printFiles[name] = "url";
+					continue;
+				}
 				if (f.fileId === null) {
 					printFiles[name] = "missing";
 					continue;

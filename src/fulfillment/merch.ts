@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE" | "SWEATSHIRT" | "ORNAMENT";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE" | "SWEATSHIRT" | "ORNAMENT" | "GIRLSTEE";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -27,6 +27,8 @@ export interface MerchFile {
 	type: string;
 	/** Printful file-library id; null until the artwork is uploaded. */
 	fileId: number | null;
+	/** Public URL of the print file, which Printful downloads (used instead of fileId). */
+	url?: string;
 	position?: PrintfulPosition;
 	/** Per-size position, for products whose print area changes with size. */
 	positionBySize?: Record<string, PrintfulPosition>;
@@ -46,6 +48,21 @@ export interface MerchColor {
 }
 
 export type DesignKey =
+	// Girls' tee scene designs (GIRLSTEE).
+	| "GIRLS_BEACH"
+	| "GIRLS_MAGIC"
+	| "GIRLS_MAGIC_KITTY"
+	| "GIRLS_LITTLE_MAGIC"
+	| "GIRLS_XMAS_WISHES"
+	| "GIRLS_XMAS_COOKIES"
+	| "GIRLS_XMAS_HELPERS"
+	| "GIRLS_BEACH_POCKET"
+	| "GIRLS_MAGIC_POCKET"
+	| "GIRLS_MAGIC_KITTY_POCKET"
+	| "GIRLS_LITTLE_MAGIC_POCKET"
+	| "GIRLS_XMAS_WISHES_POCKET"
+	| "GIRLS_XMAS_COOKIES_POCKET"
+	| "GIRLS_XMAS_HELPERS_POCKET"
 	| "FULL"
 	| "PUDY"
 	| "LOGO"
@@ -247,12 +264,12 @@ export const MERCH: MerchProduct[] = [
 		shipping: { firstCents: 599, additionalCents: 249 },
 		sizes: SIZES,
 		colors: [
-			{ name: "Black", hex: "#111111", variants: { S: 4016, M: 4017, L: 4018, XL: 4019, "2XL": 4020, "3XL": 5295 } },
-			{ name: "White", hex: "#ffffff", variants: { S: 4011, M: 4012, L: 4013, XL: 4014, "2XL": 4015, "3XL": 5294 } },
 			{ name: "Royal Blue", hex: "#1d4fa8", variants: { S: 4171, M: 4172, L: 4173, XL: 4174, "2XL": 4175, "3XL": 5307 } },
 			{ name: "Pink", hex: "#f4b6c7", variants: { S: 4136, M: 4137, L: 4138, XL: 4139, "2XL": 4140, "3XL": 5303 } },
-			{ name: "Grey", hex: "#c9c9c9", variants: { S: 6948, M: 6949, L: 6950, XL: 6951, "2XL": 6952, "3XL": 6953 } },
 			{ name: "Red", hex: "#c8102e", variants: { S: 4141, M: 4142, L: 4143, XL: 4144, "2XL": 4145, "3XL": 5304 } },
+			{ name: "Grey", hex: "#c9c9c9", variants: { S: 6948, M: 6949, L: 6950, XL: 6951, "2XL": 6952, "3XL": 6953 } },
+			{ name: "White", hex: "#ffffff", variants: { S: 4011, M: 4012, L: 4013, XL: 4014, "2XL": 4015, "3XL": 5294 } },
+			{ name: "Black", hex: "#111111", variants: { S: 4016, M: 4017, L: 4018, XL: 4019, "2XL": 4020, "3XL": 5295 } },
 		],
 		productionEnabled: true,
 	},
@@ -271,12 +288,12 @@ export const MERCH: MerchProduct[] = [
 		shipping: { firstCents: 999, additionalCents: 299 },
 		sizes: SIZES,
 		colors: [
-			{ name: "Black", hex: "#111111", variants: { S: 5530, M: 5531, L: 5532, XL: 5533, "2XL": 5534, "3XL": 5535 } },
-			{ name: "White", hex: "#ffffff", variants: { S: 5522, M: 5523, L: 5524, XL: 5525, "2XL": 5526, "3XL": 5527 } },
 			{ name: "Royal Blue", hex: "#1d4fa8", variants: { S: 16850, M: 16851, L: 16852, XL: 16853, "2XL": 16854, "3XL": 16855 } },
 			{ name: "Pink", hex: "#f4c6d4", variants: { S: 10849, M: 10850, L: 10851, XL: 10852, "2XL": 10853, "3XL": 10854 } },
-			{ name: "Grey", hex: "#c9c9c9", variants: { S: 5610, M: 5611, L: 5612, XL: 5613, "2XL": 5614, "3XL": 5615 } },
 			{ name: "Red", hex: "#c8102e", variants: { S: 5538, M: 5539, L: 5540, XL: 5541, "2XL": 5542, "3XL": 5543 } },
+			{ name: "Grey", hex: "#c9c9c9", variants: { S: 5610, M: 5611, L: 5612, XL: 5613, "2XL": 5614, "3XL": 5615 } },
+			{ name: "White", hex: "#ffffff", variants: { S: 5522, M: 5523, L: 5524, XL: 5525, "2XL": 5526, "3XL": 5527 } },
+			{ name: "Black", hex: "#111111", variants: { S: 5530, M: 5531, L: 5532, XL: 5533, "2XL": 5534, "3XL": 5535 } },
 		],
 		productionEnabled: true,
 	},
@@ -295,13 +312,13 @@ export const MERCH: MerchProduct[] = [
 		shipping: { firstCents: 599, additionalCents: 249 },
 		sizes: SIZES,
 		colors: [
-			{ name: "Black", hex: "#111111", variants: { S: 3456, M: 3457, L: 3458, XL: 3459, "2XL": 3460, "3XL": 3461 } },
-			{ name: "White", hex: "#ffffff", variants: { S: 3448, M: 3449, L: 3450, XL: 3451, "2XL": 3452, "3XL": 3453 } },
 			{ name: "Royal Blue", hex: "#1d4fa8", variants: { S: 3576, M: 3577, L: 3578, XL: 3579, "2XL": 3580, "3XL": 3581 } },
 			// Gildan's Light Pink stops at 2XL.
 			{ name: "Pink", hex: "#f4c6d4", variants: { S: 3512, M: 3513, L: 3514, XL: 3515, "2XL": 3516 } },
-			{ name: "Grey", hex: "#c9c9c9", variants: { S: 3600, M: 3601, L: 3602, XL: 3603, "2XL": 3604, "3XL": 3605 } },
 			{ name: "Red", hex: "#c8102e", variants: { S: 3568, M: 3569, L: 3570, XL: 3571, "2XL": 3572, "3XL": 3573 } },
+			{ name: "Grey", hex: "#c9c9c9", variants: { S: 3600, M: 3601, L: 3602, XL: 3603, "2XL": 3604, "3XL": 3605 } },
+			{ name: "White", hex: "#ffffff", variants: { S: 3448, M: 3449, L: 3450, XL: 3451, "2XL": 3452, "3XL": 3453 } },
+			{ name: "Black", hex: "#111111", variants: { S: 3456, M: 3457, L: 3458, XL: 3459, "2XL": 3460, "3XL": 3461 } },
 		],
 		productionEnabled: true,
 	},
@@ -845,12 +862,12 @@ MERCH.push({
 	sizes: ["Youth S", "Youth M", "Youth L", "Youth XL"],
 	// Lighter, brighter colors than the grown-up tee.
 	colors: [
-		{ name: "White", hex: "#ffffff", variants: { "Youth S": 9426, "Youth M": 9427, "Youth L": 9428, "Youth XL": 9429 } },
-		{ name: "Pink", hex: "#ffcccf", variants: { "Youth S": 10616, "Youth M": 10617, "Youth L": 10618, "Youth XL": 10619 } },
 		{ name: "Sky Blue", hex: "#6495ff", variants: { "Youth S": 10620, "Youth M": 10621, "Youth L": 10622, "Youth XL": 10623 } },
+		{ name: "Pink", hex: "#ffcccf", variants: { "Youth S": 10616, "Youth M": 10617, "Youth L": 10618, "Youth XL": 10619 } },
 		{ name: "Sunshine Yellow", hex: "#e6a133", variants: { "Youth S": 17612, "Youth M": 17613, "Youth L": 17614, "Youth XL": 17615 } },
 		{ name: "Kelly Green", hex: "#0e7b4e", variants: { "Youth S": 10628, "Youth M": 10629, "Youth L": 10630, "Youth XL": 10631 } },
 		{ name: "Berry", hex: "#c02773", variants: { "Youth S": 11209, "Youth M": 11210, "Youth L": 11211, "Youth XL": 11212 } },
+		{ name: "White", hex: "#ffffff", variants: { "Youth S": 9426, "Youth M": 9427, "Youth L": 9428, "Youth XL": 9429 } },
 	],
 	productionEnabled: true,
 });
@@ -873,9 +890,9 @@ MERCH.push({
 	shipping: { firstCents: 499, additionalCents: 199 },
 	sizes: ["Youth S", "Youth M", "Youth L"],
 	colors: [
-		{ name: "White", hex: "#ffffff", variants: { "Youth S": 12868, "Youth M": 12869, "Youth L": 12870 } },
-		{ name: "Heather Grey", hex: "#b5b5b7", variants: { "Youth S": 12853, "Youth M": 12854, "Youth L": 12855 } },
 		{ name: "Red", hex: "#d20e2a", variants: { "Youth S": 12865, "Youth M": 12866, "Youth L": 12867 } },
+		{ name: "Heather Grey", hex: "#b5b5b7", variants: { "Youth S": 12853, "Youth M": 12854, "Youth L": 12855 } },
+		{ name: "White", hex: "#ffffff", variants: { "Youth S": 12868, "Youth M": 12869, "Youth L": 12870 } },
 	],
 	productionEnabled: true,
 });
@@ -939,15 +956,15 @@ MERCH.push({
 	shipping: { firstCents: 849, additionalCents: 259 },
 	sizes: Object.keys(KIDS_HOODIE_SIZES),
 	colors: [
-		{ name: "White", hex: "#ffffff", variants: KIDS_HOODIE_SIZES },
+		{ name: "Royal Blue", hex: "#1d4fa8", variants: KIDS_HOODIE_SIZES },
 		{ name: "Pink", hex: "#ffcccf", variants: KIDS_HOODIE_SIZES },
 		{ name: "Sky Blue", hex: "#6495ff", variants: KIDS_HOODIE_SIZES },
 		{ name: "Sunshine Yellow", hex: "#e6a133", variants: KIDS_HOODIE_SIZES },
 		{ name: "Kelly Green", hex: "#0e7b4e", variants: KIDS_HOODIE_SIZES },
 		{ name: "Berry", hex: "#c02773", variants: KIDS_HOODIE_SIZES },
-		{ name: "Royal Blue", hex: "#1d4fa8", variants: KIDS_HOODIE_SIZES },
 		{ name: "Lavender", hex: "#b9a3e3", variants: KIDS_HOODIE_SIZES },
 		{ name: "Mint Green", hex: "#9fe3c9", variants: KIDS_HOODIE_SIZES },
+		{ name: "White", hex: "#ffffff", variants: KIDS_HOODIE_SIZES },
 	],
 	productionEnabled: true,
 });
@@ -1322,11 +1339,11 @@ MERCH.push({
 	shipping: { firstCents: 499, additionalCents: 199 },
 	sizes: ["3–6 months", "6–12 months", "12–18 months"],
 	colors: [
-		{ name: "White", hex: "#ffffff", variants: { "3–6 months": 9438, "6–12 months": 9439, "12–18 months": 9440 } },
+		{ name: "Heather Columbia Blue", hex: "#6495ff", variants: { "3–6 months": 9454, "6–12 months": 9455, "12–18 months": 9456 } },
 		{ name: "Pink", hex: "#ffd6df", variants: { "3–6 months": 9442, "6–12 months": 9443, "12–18 months": 9444 } },
 		{ name: "Yellow", hex: "#ffea75", variants: { "3–6 months": 10329, "6–12 months": 10330, "12–18 months": 10331 } },
-		{ name: "Heather Columbia Blue", hex: "#6495ff", variants: { "3–6 months": 9454, "6–12 months": 9455, "12–18 months": 9456 } },
 		{ name: "Athletic Heather", hex: "#cbcbcb", variants: { "3–6 months": 10333, "6–12 months": 10334, "12–18 months": 10335 } },
+		{ name: "White", hex: "#ffffff", variants: { "3–6 months": 9438, "6–12 months": 9439, "12–18 months": 9440 } },
 	],
 	productionEnabled: true,
 });
@@ -1398,10 +1415,10 @@ MERCH.push({
 	shipping: { firstCents: 499, additionalCents: 199 },
 	sizes: ["Youth XS", "Youth S", "Youth M", "Youth L", "Youth XL"],
 	colors: [
-		{ name: "White", hex: "#ffffff", variants: { "Youth XS": 16834, "Youth S": 16835, "Youth M": 16836, "Youth L": 16837, "Youth XL": 16838 } },
-		{ name: "Sport Grey", hex: "#cacacd", variants: { "Youth XS": 16829, "Youth S": 16830, "Youth M": 16831, "Youth L": 16832, "Youth XL": 16833 } },
 		{ name: "Royal", hex: "#1d50a4", variants: { "Youth XS": 16824, "Youth S": 16825, "Youth M": 16826, "Youth L": 16827, "Youth XL": 16828 } },
 		{ name: "Red", hex: "#da0a1a", variants: { "Youth XS": 16819, "Youth S": 16820, "Youth M": 16821, "Youth L": 16822, "Youth XL": 16823 } },
+		{ name: "Sport Grey", hex: "#cacacd", variants: { "Youth XS": 16829, "Youth S": 16830, "Youth M": 16831, "Youth L": 16832, "Youth XL": 16833 } },
+		{ name: "White", hex: "#ffffff", variants: { "Youth XS": 16834, "Youth S": 16835, "Youth M": 16836, "Youth L": 16837, "Youth XL": 16838 } },
 		{ name: "Black", hex: "#0b0b0b", variants: { "Youth XS": 16787, "Youth S": 16788, "Youth M": 16789, "Youth L": 16790, "Youth XL": 16791 } },
 	],
 	productionEnabled: true,
@@ -1426,10 +1443,10 @@ MERCH.push({
 	shipping: { firstCents: 499, additionalCents: 199 },
 	sizes: TODDLER_SIZES,
 	colors: [
-		{ name: "White", hex: "#ffffff", variants: toddlerSizes([12630, 12631, 12632, 12633]) },
-		{ name: "Hot Pink", hex: "#fe607a", variants: toddlerSizes([12618, 12619, 12620, 12621]) },
 		{ name: "Light Blue", hex: "#d4ebff", variants: toddlerSizes([12622, 12623, 12624, 12625]) },
+		{ name: "Hot Pink", hex: "#fe607a", variants: toddlerSizes([12618, 12619, 12620, 12621]) },
 		{ name: "Heather", hex: "#c2bfbd", variants: toddlerSizes([12614, 12615, 12616, 12617]) },
+		{ name: "White", hex: "#ffffff", variants: toddlerSizes([12630, 12631, 12632, 12633]) },
 		{ name: "Black", hex: "#141414", variants: toddlerSizes([12610, 12611, 12612, 12613]) },
 	],
 	productionEnabled: true,
@@ -1453,12 +1470,12 @@ MERCH.push({
 	shipping: { firstCents: 999, additionalCents: 299 },
 	sizes: SIZES,
 	colors: [
-		{ name: "Black", hex: "#0b0b0b", variants: { S: 5434, M: 5435, L: 5436, XL: 5437, "2XL": 5438, "3XL": 5439 } },
-		{ name: "White", hex: "#ffffff", variants: { S: 5426, M: 5427, L: 5428, XL: 5429, "2XL": 5430, "3XL": 5431 } },
 		{ name: "Royal Blue", hex: "#1d50a4", variants: { S: 16870, M: 16871, L: 16872, XL: 16873, "2XL": 16874, "3XL": 16875 } },
 		{ name: "Light Pink", hex: "#f3d4e3", variants: { S: 7868, M: 7869, L: 7870, XL: 7871, "2XL": 7872, "3XL": 7873 } },
-		{ name: "Sport Grey", hex: "#ccccce", variants: { S: 5514, M: 5515, L: 5516, XL: 5517, "2XL": 5518, "3XL": 5519 } },
 		{ name: "Red", hex: "#da0a1a", variants: { S: 5442, M: 5443, L: 5444, XL: 5445, "2XL": 5446, "3XL": 5447 } },
+		{ name: "Sport Grey", hex: "#ccccce", variants: { S: 5514, M: 5515, L: 5516, XL: 5517, "2XL": 5518, "3XL": 5519 } },
+		{ name: "White", hex: "#ffffff", variants: { S: 5426, M: 5427, L: 5428, XL: 5429, "2XL": 5430, "3XL": 5431 } },
+		{ name: "Black", hex: "#0b0b0b", variants: { S: 5434, M: 5435, L: 5436, XL: 5437, "2XL": 5438, "3XL": 5439 } },
 	],
 	productionEnabled: true,
 });
@@ -1489,6 +1506,68 @@ MERCH.push({
 	shipping: { firstCents: 599, additionalCents: 99 },
 	sizes: ["One size"],
 	colors: [{ name: "Royal Blue", hex: "#1d4fa8", variants: { "One size": 23133 } }],
+	productionEnabled: true,
+});
+
+// Girls' tees: the owner's square girl-themed scene designs (public/assets/merch/print/girls/),
+// printed on white in every girls' size, toddler 2T–5/6T (Rabbit Skins 3321, Printful 489)
+// and youth S–XL (Bella + Canvas 3001Y). Printful downloads the art from squishman.com,
+// so no file-library upload is needed. Kept chest-sized (owner, 3 Nov 2026): about 6.3 in
+// wide on youth sizes and 4.5 in on toddler sizes, centered.
+const GIRLS_ART = "https://squishman.com/assets/merch/print/girls/";
+const GIRLS_DESIGNS: Array<[DesignKey, string, string, number]> = [
+	["GIRLS_BEACH", "Sunshine, Smiles & Puppy Pals! (beach day)", "girls-beach-day", 1254],
+	["GIRLS_MAGIC", "Believe in Magical Adventures!", "girls-magical-adventures", 1254],
+	["GIRLS_MAGIC_KITTY", "Believe in Magical Adventures! (with kitty)", "girls-magical-adventures-kitty", 1254],
+	["GIRLS_LITTLE_MAGIC", "Every Girl Deserves a Little Magic!", "girls-little-magic", 1325],
+	["GIRLS_XMAS_WISHES", "Magical Christmas Wishes!", "girls-christmas-wishes", 1254],
+	["GIRLS_XMAS_COOKIES", "Cookies for Santa", "girls-cookies-for-santa", 1254],
+	["GIRLS_XMAS_HELPERS", "Santa's Little Helpers!", "girls-santas-helpers", 1254],
+];
+const GIRLS_YOUTH = ["Youth S", "Youth M", "Youth L", "Youth XL"];
+const girlsPosition = (heightAtYouthWidth: number): Record<string, PrintfulPosition> => {
+	const yw = 940, yh = Math.round((heightAtYouthWidth * yw) / 1254);
+	const youth = { ...YOUTH_AREA, width: yw, height: yh, top: 150, left: (YOUTH_AREA.area_width - yw) / 2 };
+	const tw = 676, th = Math.round((heightAtYouthWidth * tw) / 1254);
+	const toddler = { ...BABY_AREA, width: tw, height: th, top: 90, left: (BABY_AREA.area_width - tw) / 2 };
+	return Object.fromEntries([...TODDLER_SIZES.map((s) => [s, toddler]), ...GIRLS_YOUTH.map((s) => [s, youth])]);
+};
+// The same art small on the wearer's left chest, where a pocket would sit: 3 in wide on
+// youth sizes (about 2.4 in left of centre) and 2 in on toddler sizes.
+const girlsPocketPosition = (heightAtYouthWidth: number): Record<string, PrintfulPosition> => {
+	const yw = 450, yh = Math.round((heightAtYouthWidth * yw) / 1254);
+	const youth = { ...YOUTH_AREA, width: yw, height: yh, top: 150, left: 885 };
+	const tw = 300, th = Math.round((heightAtYouthWidth * tw) / 1254);
+	const toddler = { ...BABY_AREA, width: tw, height: th, top: 90, left: 615 };
+	return Object.fromEntries([...TODDLER_SIZES.map((s) => [s, toddler]), ...GIRLS_YOUTH.map((s) => [s, youth])]);
+};
+MERCH.push({
+	key: "GIRLSTEE",
+	name: "Squish Squad Girls' T-Shirt",
+	designs: [
+		...GIRLS_DESIGNS.map(([key, label, file, h]) => ({
+			key,
+			label,
+			priceCents: 2399,
+			files: [{ type: "front", fileId: null, url: `${GIRLS_ART}${file}.png`, positionBySize: girlsPosition(h) }],
+		})),
+		...GIRLS_DESIGNS.map(([key, label, file, h]) => ({
+			key: `${key}_POCKET` as DesignKey,
+			label: `${label}, small on the left chest (pocket)`,
+			priceCents: 2399,
+			files: [{ type: "front", fileId: null, url: `${GIRLS_ART}${file}.png`, positionBySize: girlsPocketPosition(h) }],
+		})),
+	],
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: [...TODDLER_SIZES, ...GIRLS_YOUTH],
+	colors: [
+		{
+			name: "White",
+			hex: "#ffffff",
+			variants: { ...toddlerSizes([12630, 12631, 12632, 12633]), "Youth S": 9426, "Youth M": 9427, "Youth L": 9428, "Youth XL": 9429 },
+		},
+	],
 	productionEnabled: true,
 });
 
@@ -1573,3 +1652,4 @@ export function shippingCents(product: MerchProduct, quantity: number): number {
 }
 
 export const MAX_MERCH_QUANTITY = 10;
+
