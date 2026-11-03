@@ -1130,7 +1130,7 @@ describe("merch checkout", () => {
 			["TODDLERTEE", 2499, 2199, 2199, 2199, 2499],
 			["SWEATSHIRT", 3999, 3699, 3699, 3699, 3999, 3699, 3999],
 			["ORNAMENT", 1699],
-			["GIRLSTEE", 2399, 2399, 2399, 2399, 2399, 2399, 2399],
+			["GIRLSTEE", ...Array(14).fill(2399)],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1460,6 +1460,7 @@ describe("merch orders → Printful", () => {
 		expect(girls.sizes).toEqual(["2T", "3T", "4T", "5/6T", "Youth S", "Youth M", "Youth L", "Youth XL"]);
 		expect(girls.designs.map((d) => d.key)).toEqual([
 			"GIRLS_BEACH", "GIRLS_MAGIC", "GIRLS_MAGIC_KITTY", "GIRLS_LITTLE_MAGIC", "GIRLS_XMAS_WISHES", "GIRLS_XMAS_COOKIES", "GIRLS_XMAS_HELPERS",
+			"GIRLS_BEACH_POCKET", "GIRLS_MAGIC_POCKET", "GIRLS_MAGIC_KITTY_POCKET", "GIRLS_LITTLE_MAGIC_POCKET", "GIRLS_XMAS_WISHES_POCKET", "GIRLS_XMAS_COOKIES_POCKET", "GIRLS_XMAS_HELPERS_POCKET",
 		]);
 		for (const c of girls.colors) expect(Object.keys(c.variants)).toEqual(girls.sizes);
 		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
@@ -1493,6 +1494,19 @@ describe("merch orders → Printful", () => {
 			position: { area_width: 1500, area_height: 1800, width: 940, height: 993, top: 150, left: 280 },
 		});
 		expect(item.files[0]).not.toHaveProperty("id");
+
+		// Pocket designs: the same art, small on the wearer's left chest.
+		merchSession("cs_test_girlspocket", "GIRLSTEE|White|Youth M|GIRLS_MAGIC_POCKET");
+		await deliver(sandboxEnv(), paidEvent("cs_test_girlspocket"));
+		expect((printful.lastCreate as { items: Array<{ files: Array<Record<string, unknown>> }> }).items[0].files[0]).toMatchObject({
+			url: "https://squishman.com/assets/merch/print/girls/girls-magical-adventures.png",
+			position: { area_width: 1500, area_height: 1800, width: 450, height: 450, top: 150, left: 885 },
+		});
+		merchSession("cs_test_girlspockettoddler", "GIRLSTEE|White|2T|GIRLS_MAGIC_POCKET");
+		await deliver(sandboxEnv(), paidEvent("cs_test_girlspockettoddler"));
+		expect((printful.lastCreate as { items: Array<{ files: Array<Record<string, unknown>> }> }).items[0].files[0]).toMatchObject({
+			position: { area_width: 1050, area_height: 1200, width: 300, height: 300, top: 90, left: 615 },
+		});
 	});
 
 	it("sells water bottles in white or black with the art on the front", async () => {

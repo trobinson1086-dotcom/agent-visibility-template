@@ -53,7 +53,9 @@ clean = im * (1 - fm) + np.clip(est + grain, 0, 1) * fm
 art = cv2.imread(design).astype(np.float32) / 255
 art = cv2.resize(art, (WIDTH, int(art.shape[0] * WIDTH / art.shape[1])), interpolation=cv2.INTER_AREA)
 ah, aw = art.shape[:2]
-x0, y0 = 565 - aw // 2, 690
+CX = int(sys.argv[5]) if len(sys.argv) > 5 else 565   # 565 = shirt centre; ~690 = wearer's left chest (pocket)
+TOP = int(sys.argv[6]) if len(sys.argv) > 6 else 690
+x0, y0 = CX - aw // 2, TOP
 roi = clean[y0:y0 + ah, x0:x0 + aw]
 tone = roi / np.clip(cv2.GaussianBlur(roi, (0, 0), 40).mean(axis=(0, 1)), 0.5, 1)
 printed = cv2.GaussianBlur(np.clip(art * np.clip(tone, 0.6, 1.08), 0, 1), (0, 0), 0.6)

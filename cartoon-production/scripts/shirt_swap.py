@@ -58,7 +58,8 @@ target_w = TARGET_W
 scale = target_w / art.shape[1]
 art = cv2.resize(art, (target_w, int(art.shape[0] * scale)), interpolation=cv2.INTER_AREA).astype(np.float32) / 255
 ah, aw = art.shape[:2]
-cx, top = 646, int(sys.argv[5]) if len(sys.argv) > 5 else 600  # chest centre / top of print on this photo
+top = int(sys.argv[5]) if len(sys.argv) > 5 else 600  # top of print on this photo
+cx = int(sys.argv[6]) if len(sys.argv) > 6 else 646  # 646 = chest centre; ~750 = wearer's left chest (pocket)
 x0, y0 = cx - aw // 2, top
 rgb, a = art[..., :3], art[..., 3:4]
 on_white = rgb * a + (1 - a)            # art as printed on a white shirt

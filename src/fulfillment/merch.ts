@@ -56,6 +56,13 @@ export type DesignKey =
 	| "GIRLS_XMAS_WISHES"
 	| "GIRLS_XMAS_COOKIES"
 	| "GIRLS_XMAS_HELPERS"
+	| "GIRLS_BEACH_POCKET"
+	| "GIRLS_MAGIC_POCKET"
+	| "GIRLS_MAGIC_KITTY_POCKET"
+	| "GIRLS_LITTLE_MAGIC_POCKET"
+	| "GIRLS_XMAS_WISHES_POCKET"
+	| "GIRLS_XMAS_COOKIES_POCKET"
+	| "GIRLS_XMAS_HELPERS_POCKET"
 	| "FULL"
 	| "PUDY"
 	| "LOGO"
@@ -1525,15 +1532,32 @@ const girlsPosition = (heightAtYouthWidth: number): Record<string, PrintfulPosit
 	const toddler = { ...BABY_AREA, width: tw, height: th, top: 90, left: (BABY_AREA.area_width - tw) / 2 };
 	return Object.fromEntries([...TODDLER_SIZES.map((s) => [s, toddler]), ...GIRLS_YOUTH.map((s) => [s, youth])]);
 };
+// The same art small on the wearer's left chest, where a pocket would sit: 3 in wide on
+// youth sizes (about 2.4 in left of centre) and 2 in on toddler sizes.
+const girlsPocketPosition = (heightAtYouthWidth: number): Record<string, PrintfulPosition> => {
+	const yw = 450, yh = Math.round((heightAtYouthWidth * yw) / 1254);
+	const youth = { ...YOUTH_AREA, width: yw, height: yh, top: 150, left: 885 };
+	const tw = 300, th = Math.round((heightAtYouthWidth * tw) / 1254);
+	const toddler = { ...BABY_AREA, width: tw, height: th, top: 90, left: 615 };
+	return Object.fromEntries([...TODDLER_SIZES.map((s) => [s, toddler]), ...GIRLS_YOUTH.map((s) => [s, youth])]);
+};
 MERCH.push({
 	key: "GIRLSTEE",
 	name: "Squish Squad Girls' T-Shirt",
-	designs: GIRLS_DESIGNS.map(([key, label, file, h]) => ({
-		key,
-		label,
-		priceCents: 2399,
-		files: [{ type: "front", fileId: null, url: `${GIRLS_ART}${file}.png`, positionBySize: girlsPosition(h) }],
-	})),
+	designs: [
+		...GIRLS_DESIGNS.map(([key, label, file, h]) => ({
+			key,
+			label,
+			priceCents: 2399,
+			files: [{ type: "front", fileId: null, url: `${GIRLS_ART}${file}.png`, positionBySize: girlsPosition(h) }],
+		})),
+		...GIRLS_DESIGNS.map(([key, label, file, h]) => ({
+			key: `${key}_POCKET` as DesignKey,
+			label: `${label}, small on the left chest (pocket)`,
+			priceCents: 2399,
+			files: [{ type: "front", fileId: null, url: `${GIRLS_ART}${file}.png`, positionBySize: girlsPocketPosition(h) }],
+		})),
+	],
 	sizeUpchargeCents: {},
 	shipping: { firstCents: 499, additionalCents: 199 },
 	sizes: [...TODDLER_SIZES, ...GIRLS_YOUTH],
