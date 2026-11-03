@@ -103,8 +103,8 @@ const SHOP={
   desc:'A soft cotton one-piece for the littlest Squish Squad fans, in the same five designs as the kids’ tee. Envelope neckline and three snaps at the bottom for easy changes.'},
  'Squish Squad Kids’ Sweatshirts':{key:'KIDSSWEATSHIRT',img:'kidssweatshirt',name:'Squish Squad Kids’ Sweatshirt',facts:'Youth XS–XL · soft cotton-blend fleece',
   desc:'A cozy crewneck sweatshirt in the same five designs as the kids’ tee, on soft Gildan fleece with ribbed cuffs and waistband. Perfect for chilly mornings and fall adventures.'},
- 'Squish Squad Girls’ T-Shirts':{key:'GIRLSTEE',img:'girlstee',name:'Squish Squad Girls’ T-Shirt',facts:'Toddler 2T–5/6T and Youth S–XL · white cotton tee',
-  desc:'Seven sparkly scenes made for girls, each as a big front print or small on the left chest like a pocket logo: a Squish Squad beach day, magical unicorn adventures, “Every Girl Deserves a Little Magic!” and three Christmas designs, printed in full color on a soft white tee in every girls’ size from 2T to Youth XL. Beige, light pink, light blue and lavender are coming soon.'},
+ 'Squish Squad Girls’ T-Shirts':{key:'GIRLSTEE',img:'girlstee',name:'Squish Squad Girls’ T-Shirt',facts:'Toddler 2T–5/6T and Youth S–XL · soft cotton tee',
+  desc:'Seven sparkly scenes made for girls, each as a big front print or small on the left chest like a pocket logo: a Squish Squad beach day, magical unicorn adventures, “Every Girl Deserves a Little Magic!” and three Christmas designs, printed in full color on a soft white tee in every girls’ size from 2T to Youth XL. Also in beige and light pink (Youth S–XL) and light blue (2T–5/6T).'},
  'Squish Squad Toddler T-Shirts':{key:'TODDLERTEE',img:'toddlertee',name:'Squish Squad Toddler T-Shirt',facts:'Toddler 2T–5/6T · soft cotton jersey',
   desc:'The Squish Squad tee sized for toddlers, in the same five designs as the kids’ tee and bright, playful colors. Soft cotton jersey with a comfy crew neck.'},
  'Squish Squad Sweatshirts':{key:'SWEATSHIRT',img:'sweatshirt',name:'Squish Squad Sweatshirt',facts:'Unisex S–3XL · soft cotton-blend fleece',
@@ -330,8 +330,6 @@ function open(p,from){
  // Girls' tee: per design, the full beach photo and an artwork close-up.
  const gs=p.imgBase==='girlstee'&&p.colors[0][2].name.replace('shop-girlstee-white-','');
  if(gs)slides=slides.concat([{img:img(`shop-girlstee-beach-${gs}`,900,1344,0,0,`A smiling girl on the beach in the white ${p.name} with the ${DESIGN_TITLE[design(p).key]} design`),label:`${p.name} — on the beach`},{img:img(`shop-girlstee-art-${gs}`,1400,700,0,0,`Close-up of the ${DESIGN_TITLE[design(p).key]} artwork`),label:`${p.name} — the artwork`}]);
- // More light colours (photos only until they can be ordered).
- if(gs&&!gs.endsWith('-pocket'))slides=slides.concat([['beige','Beige'],['pink','Light Pink'],['blue','Light Blue'],['lavender','Lavender']].map(([c,l])=>({img:img(`shop-girlstee-beachcolor-${c}-${gs}`,900,1344,0,0,`A smiling girl on the beach in a ${l.toLowerCase()} ${p.name} with the ${DESIGN_TITLE[design(p).key]} design`),label:`${p.name} — ${l} (coming soon)`})));
  opener=from;gTitle.textContent=p.name;show(0);
  if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','');
  dlg.querySelector('.mg-close').focus();

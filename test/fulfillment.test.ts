@@ -1462,7 +1462,12 @@ describe("merch orders → Printful", () => {
 			"GIRLS_BEACH", "GIRLS_MAGIC", "GIRLS_MAGIC_KITTY", "GIRLS_LITTLE_MAGIC", "GIRLS_XMAS_WISHES", "GIRLS_XMAS_COOKIES", "GIRLS_XMAS_HELPERS",
 			"GIRLS_BEACH_POCKET", "GIRLS_MAGIC_POCKET", "GIRLS_MAGIC_KITTY_POCKET", "GIRLS_LITTLE_MAGIC_POCKET", "GIRLS_XMAS_WISHES_POCKET", "GIRLS_XMAS_COOKIES_POCKET", "GIRLS_XMAS_HELPERS_POCKET",
 		]);
-		for (const c of girls.colors) expect(Object.keys(c.variants)).toEqual(girls.sizes);
+		expect(Object.fromEntries(girls.colors.map((c) => [c.name, Object.keys(c.variants)]))).toEqual({
+			White: girls.sizes,
+			Beige: ["Youth S", "Youth M", "Youth L", "Youth XL"],
+			"Light Pink": ["Youth S", "Youth M", "Youth L", "Youth XL"],
+			"Light Blue": ["2T", "3T", "4T", "5/6T"],
+		});
 		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
 		const r = await createMerchCheckout(
 			sandboxEnv({ MERCH_CHECKOUT: "on" }),
@@ -1502,6 +1507,9 @@ describe("merch orders → Printful", () => {
 			url: "https://squishman.com/assets/merch/print/girls/girls-magical-adventures.png",
 			position: { area_width: 1500, area_height: 1800, width: 450, height: 450, top: 150, left: 885 },
 		});
+		merchSession("cs_test_girlsbeige", "GIRLSTEE|Beige|Youth S|GIRLS_BEACH");
+		await deliver(sandboxEnv(), paidEvent("cs_test_girlsbeige"));
+		expect((printful.lastCreate as { items: Array<{ variant_id: number }> }).items[0].variant_id).toBe(17604);
 		merchSession("cs_test_girlspockettoddler", "GIRLSTEE|White|2T|GIRLS_MAGIC_POCKET");
 		await deliver(sandboxEnv(), paidEvent("cs_test_girlspockettoddler"));
 		expect((printful.lastCreate as { items: Array<{ files: Array<Record<string, unknown>> }> }).items[0].files[0]).toMatchObject({
