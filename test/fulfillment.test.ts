@@ -1058,7 +1058,7 @@ describe("merch catalog", () => {
 		expect(MERCH.every((p) => p.productionEnabled)).toBe(true);
 		// Color pillows print the color into the art, so their colors share one blank.
 		// The girls' tee deliberately reuses the white toddler and kids' tee blanks.
-		const ids = MERCH.filter((p) => !["GIRLSTEE", "COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING", "NOTEBOOK", "LEGGINGS"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		const ids = MERCH.filter((p) => !["GIRLSTEE", "GIRLSLONGSLEEVE", "COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING", "NOTEBOOK", "LEGGINGS"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 });
@@ -1131,6 +1131,7 @@ describe("merch checkout", () => {
 			["SWEATSHIRT", 3999, 3699, 3699, 3699, 3999, 3699, 3999],
 			["ORNAMENT", 1699],
 			["GIRLSTEE", ...Array(14).fill(2399)],
+			["GIRLSLONGSLEEVE", ...Array(14).fill(2599)],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1514,6 +1515,26 @@ describe("merch orders → Printful", () => {
 		await deliver(sandboxEnv(), paidEvent("cs_test_girlspockettoddler"));
 		expect((printful.lastCreate as { items: Array<{ files: Array<Record<string, unknown>> }> }).items[0].files[0]).toMatchObject({
 			position: { area_width: 1050, area_height: 1200, width: 300, height: 300, top: 90, left: 615 },
+		});
+	});
+
+	it("sells the girls' long sleeve in youth S-L, white or athletic heather, with the girls' designs", async () => {
+		const ls = merchProduct("GIRLSLONGSLEEVE")!;
+		expect(ls.sizes).toEqual(["Youth S", "Youth M", "Youth L"]);
+		expect(ls.colors.map((c) => c.name)).toEqual(["White", "Athletic Heather"]);
+		expect(ls.designs.map((d) => d.key)).toEqual(merchProduct("GIRLSTEE")!.designs.map((d) => d.key));
+		merchSession("cs_test_girlsls", "GIRLSLONGSLEEVE|Athletic Heather|Youth M|GIRLS_XMAS_WISHES_POCKET");
+		await deliver(sandboxEnv(), paidEvent("cs_test_girlsls"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 12854,
+			retail_price: "25.99",
+			files: [
+				{
+					type: "front",
+					url: "https://squishman.com/assets/merch/print/girls/girls-christmas-wishes.png",
+					position: { area_width: 1500, area_height: 1800, width: 450, height: 450, top: 150, left: 885 },
+				},
+			],
 		});
 	});
 

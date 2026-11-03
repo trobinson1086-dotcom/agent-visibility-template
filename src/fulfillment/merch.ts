@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE" | "SWEATSHIRT" | "ORNAMENT" | "GIRLSTEE";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE" | "SWEATSHIRT" | "ORNAMENT" | "GIRLSTEE" | "GIRLSLONGSLEEVE";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1572,6 +1572,23 @@ MERCH.push({
 		{ name: "Beige", hex: "#e5d9c9", variants: { "Youth S": 17604, "Youth M": 17605, "Youth L": 17606, "Youth XL": 17607 } }, // Heather Dust
 		{ name: "Light Pink", hex: "#ffcccf", variants: { "Youth S": 10616, "Youth M": 10617, "Youth L": 10618, "Youth XL": 10619 } },
 		{ name: "Light Blue", hex: "#d4ebff", variants: toddlerSizes([12622, 12623, 12624, 12625]) },
+	],
+	productionEnabled: true,
+});
+
+// Girls' long sleeves: the same 14 girls' designs and youth placements on the only kids' long
+// sleeve Printful makes (product 511, Bella + Canvas 3501Y, Youth S-L). Its only light colours
+// are White and Athletic Heather (checked 3 Nov 2026). Front-only price matches the kids' long sleeve.
+MERCH.push({
+	key: "GIRLSLONGSLEEVE",
+	name: "Squish Squad Girls' Long Sleeve",
+	designs: MERCH.find((p) => p.key === "GIRLSTEE")!.designs.map((d) => ({ ...d, priceCents: 2599 })),
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: ["Youth S", "Youth M", "Youth L"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "Youth S": 12868, "Youth M": 12869, "Youth L": 12870 } },
+		{ name: "Athletic Heather", hex: "#b5b5b7", variants: { "Youth S": 12853, "Youth M": 12854, "Youth L": 12855 } },
 	],
 	productionEnabled: true,
 });
