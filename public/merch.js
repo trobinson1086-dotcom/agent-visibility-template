@@ -41,6 +41,7 @@ const categories=[
  {id:'merch-apparel',photos:[{img:'lifestyle-family-tees-posters',alt:'A dad and two kids in matching Squish Man and Pudy tees reading a Squish Man book together, with white, pink and blue Maple Hollow posters on the wall'},{img:'lifestyle-kids-girl-tee',alt:'A smiling girl in the white Squish Squad Kids’ T-Shirt with Squish Man and Pudy and The Amazing Adventures of Squish Man banner on the front'}],title:'Apparel',blurb:'Squish Man and Pudy, ready to wear.',items:[
   {name:'Squish Squad T-Shirt',desc:'Squish Man in his gold crown and royal-blue cape poses with best friend Pudy on the front, framed by stars, paw prints and The Amazing Adventures of Squish Man banner. The back keeps it simple with a gold crown, the SQUISHMAN wordmark and a paw print.',colors:[['White','#ffffff',tee.white],['Pink','#f59ac4',tee.pink],['Royal Blue','#1747d8',tee.blue]]},
   {name:'Squish Squad Kids’ T-Shirts',hidden:true,desc:'Kids’ tees.',colors:[]},
+  {name:'Squish Squad Girls’ T-Shirts',hidden:true,desc:'Girls’ tees.',colors:[]},
   {name:'Squish Squad Hoodie',desc:'The same bold, full-color Squish Man and Pudy artwork on a cozy pullover hoodie with a front pocket, plus the crown, wordmark and paw print across the back.',colors:[['White','#ffffff',hoodie.white],['Pink','#f59ac4',hoodie.pink],['Royal Blue','#1747d8',hoodie.royal]]},
   {name:'Squish Squad Kids’ Hoodies',hidden:true,desc:'Kids’ hoodies.',colors:[]},
   {name:'Squish Squad Sweatshirts',hidden:true,desc:'Sweatshirts.',colors:[]},
@@ -102,6 +103,8 @@ const SHOP={
   desc:'A soft cotton one-piece for the littlest Squish Squad fans, in the same five designs as the kids’ tee. Envelope neckline and three snaps at the bottom for easy changes.'},
  'Squish Squad Kids’ Sweatshirts':{key:'KIDSSWEATSHIRT',img:'kidssweatshirt',name:'Squish Squad Kids’ Sweatshirt',facts:'Youth XS–XL · soft cotton-blend fleece',
   desc:'A cozy crewneck sweatshirt in the same five designs as the kids’ tee, on soft Gildan fleece with ribbed cuffs and waistband. Perfect for chilly mornings and fall adventures.'},
+ 'Squish Squad Girls’ T-Shirts':{key:'GIRLSTEE',img:'girlstee',name:'Squish Squad Girls’ T-Shirt',facts:'Toddler 2T–5/6T and Youth S–XL · white cotton tee',
+  desc:'Seven sparkly scenes made for girls: a Squish Squad beach day, magical unicorn adventures, “Every Girl Deserves a Little Magic!” and three Christmas designs, printed in full color on a soft white tee in every girls’ size from 2T to Youth XL.'},
  'Squish Squad Toddler T-Shirts':{key:'TODDLERTEE',img:'toddlertee',name:'Squish Squad Toddler T-Shirt',facts:'Toddler 2T–5/6T · soft cotton jersey',
   desc:'The Squish Squad tee sized for toddlers, in the same five designs as the kids’ tee and bright, playful colors. Soft cotton jersey with a comfy crew neck.'},
  'Squish Squad Sweatshirts':{key:'SWEATSHIRT',img:'sweatshirt',name:'Squish Squad Sweatshirt',facts:'Unisex S–3XL · soft cotton-blend fleece',
@@ -164,7 +167,8 @@ const DESIGN_TITLE={FULL:'Squish Man & Pudy + Crown',PUDY:'Squish Man & Pudy',LO
  MH_PALS:'Maple Hollow Pals',MH_HIGHFIVE:'Maple Hollow High Five',MH_WAVE:'Maple Hollow Wave',MH_SQUARE:'Maple Hollow Town Square',
  SM_VALUES:'Squish Man Values',SM_ROYAL:'Royal Squish Man',MH_SIGN:'Maple Hollow Sign',BEST_FRIENDS:'Best Friends',
  PZ_WELCOME:'Welcome to Maple Hollow',PZ_ROYAL_HERO:'The Little Royal Hero',PZ_PAW_PRINTS:'Follow the Paw Prints',PZ_GARDEN_GATE:'The Secret Garden Gate',PZ_GOODNIGHT:'Goodnight, Squish Man',PZ_MOONLIGHT:'Moonlight Over Maple Hollow',
- HAT_CROWN:'Crown',HAT_PAW:'Paw Print',SOCK_PATTERN:'Stars & Paw Prints'};
+ HAT_CROWN:'Crown',HAT_PAW:'Paw Print',SOCK_PATTERN:'Stars & Paw Prints',
+ GIRLS_BEACH:'Sunshine, Smiles & Puppy Pals!',GIRLS_MAGIC:'Believe in Magical Adventures!',GIRLS_MAGIC_KITTY:'Magical Adventures + Kitty',GIRLS_LITTLE_MAGIC:'Every Girl Deserves a Little Magic!',GIRLS_XMAS_WISHES:'Magical Christmas Wishes!',GIRLS_XMAS_COOKIES:'Cookies for Santa',GIRLS_XMAS_HELPERS:"Santa's Little Helpers!"};
 // Designs that print on both sides (front + back, or both sides of the mug).
 const TWO_SIDED=new Set(['FULL','MAPLECROWN','SQUADCROWN']);
 const DESIGN_ART={PUDY:'Squish Man and Pudy',LOGO:'the crown logo',MAPLE:'the Squish Man Maple Hollow logo',SQUAD:'the Squish Squad shield logo',
@@ -173,9 +177,10 @@ const DESIGN_ART={PUDY:'Squish Man and Pudy',LOGO:'the crown logo',MAPLE:'the Sq
  SM_ROYAL:'Squish Man in his crown and royal-blue cape',MH_SIGN:'Squish Man and Pudy above a Maple Hollow sign',BEST_FRIENDS:'Squish Man and Pudy cuddled up as best friends',
  PZ_WELCOME:'Squish Man strolling down a sunny Maple Hollow street',PZ_ROYAL_HERO:'Squish Man in his crown and cape, running toward you',PZ_PAW_PRINTS:'Squish Man following paw prints along a garden path',
  PZ_GARDEN_GATE:'Squish Man peeking through an old garden gate',PZ_GOODNIGHT:'Squish Man curled up in his royal-blue bed',PZ_MOONLIGHT:'Squish Man asleep in a cottage window under a full moon',
- HAT_CROWN:'the gold crown',HAT_PAW:'a blue paw print',SOCK_PATTERN:'gold stars and paw prints all over'};
+ HAT_CROWN:'the gold crown',HAT_PAW:'a blue paw print',SOCK_PATTERN:'gold stars and paw prints all over',
+ GIRLS_BEACH:'Squish Man and Pudy building a sandcastle on Squish Squad Beach Day',GIRLS_MAGIC:'Squish Man and Pudy with a unicorn in a flower meadow by a castle',GIRLS_MAGIC_KITTY:'Squish Man, Pudy, a unicorn and a kitten in a flower meadow by a castle',GIRLS_LITTLE_MAGIC:'Squish Man and Pudy in a heart of flowers and butterflies on turquoise',GIRLS_XMAS_WISHES:'Squish Man and Pudy sledding in the Maple Hollow snow',GIRLS_XMAS_COOKIES:'Squish Man and Pudy with cookies for Santa by the Christmas tree',GIRLS_XMAS_HELPERS:'Squish Man and Pudy delivering presents from the Maple Hollow Toy Shop'};
 function shopColors(p){
- const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',SQUAD:'-squad',SQUADCROWN:'-squadcrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square',SM_VALUES:'-values',SM_ROYAL:'-royal',MH_SIGN:'-sign',BEST_FRIENDS:'-bestfriends',PZ_WELCOME:'-welcome',PZ_ROYAL_HERO:'-royalhero',PZ_PAW_PRINTS:'-pawprints',PZ_GARDEN_GATE:'-gardengate',PZ_GOODNIGHT:'-goodnight',PZ_MOONLIGHT:'-moonlight',HAT_CROWN:'-crown',HAT_PAW:'-paw',SOCK_PATTERN:'-pattern'}[k];
+ const k=design(p).key,suffix={FULL:'',PUDY:'-pudy',LOGO:'-logo',MAPLE:'-maple',MAPLECROWN:'-maplecrown',SQUAD:'-squad',SQUADCROWN:'-squadcrown',MH_PALS:'-pals',MH_HIGHFIVE:'-highfive',MH_WAVE:'-wave',MH_SQUARE:'-square',SM_VALUES:'-values',SM_ROYAL:'-royal',MH_SIGN:'-sign',BEST_FRIENDS:'-bestfriends',PZ_WELCOME:'-welcome',PZ_ROYAL_HERO:'-royalhero',PZ_PAW_PRINTS:'-pawprints',PZ_GARDEN_GATE:'-gardengate',PZ_GOODNIGHT:'-goodnight',PZ_MOONLIGHT:'-moonlight',HAT_CROWN:'-crown',HAT_PAW:'-paw',SOCK_PATTERN:'-pattern',GIRLS_BEACH:'-beachday',GIRLS_MAGIC:'-magical',GIRLS_MAGIC_KITTY:'-magicalkitty',GIRLS_LITTLE_MAGIC:'-littlemagic',GIRLS_XMAS_WISHES:'-xmaswishes',GIRLS_XMAS_COOKIES:'-xmascookies',GIRLS_XMAS_HELPERS:'-xmashelpers'}[k];
  const alt=c=>k==='FULL'?`${p.name} in ${c}: front and back, as printed by our print partner`
   :k==='MAPLECROWN'?`${p.name} in ${c}: the Maple Hollow logo on the front and the crown logo on the back`
   :k==='SQUADCROWN'?`${p.name} in ${c}: the Squish Squad logo on the front and the crown logo on the back`

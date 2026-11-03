@@ -5,12 +5,14 @@
 2. Rebuild plain fabric there from the surrounding white shirt (normalized blur keeps the shading).
 3. Multiply the banner onto the fabric so it takes on the folds and lighting, then soften slightly.
 
-Usage: python3 -I shirt_swap.py <photo> <banner_png> <out_prefix>
+Usage: python3 -I shirt_swap.py <photo> <art_png> <out_prefix> [width_px]
+(a mug-wrap file uses its left half; other art is placed whole, e.g. square scene designs)
 """
 import sys
 import numpy as np, cv2
 
 photo, banner_png, out = sys.argv[1], sys.argv[2], sys.argv[3]
+TARGET_W = int(sys.argv[4]) if len(sys.argv) > 4 else 420
 im = cv2.imread(photo).astype(np.float32) / 255  # BGR
 H, W, _ = im.shape
 hsv = cv2.cvtColor((im * 255).astype(np.uint8), cv2.COLOR_BGR2HSV).astype(np.float32)
@@ -46,10 +48,13 @@ cv2.imwrite(f"{out}_clean.png", (clean * 255).astype(np.uint8))
 
 # 3. banner (left half of the mug wrap = the shirt front art)
 art = cv2.imread(banner_png, cv2.IMREAD_UNCHANGED)
-art = art[:, : art.shape[1] // 2]
+if art.shape[2] == 3:
+    art = np.dstack([art, np.full(art.shape[:2], 255, np.uint8)])
+if "mug-wrap" in banner_png:
+    art = art[:, : art.shape[1] // 2]
 ys, xs = np.where(art[..., 3] > 8)
 art = art[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
-target_w = 420
+target_w = TARGET_W
 scale = target_w / art.shape[1]
 art = cv2.resize(art, (target_w, int(art.shape[0] * scale)), interpolation=cv2.INTER_AREA).astype(np.float32) / 255
 ah, aw = art.shape[:2]

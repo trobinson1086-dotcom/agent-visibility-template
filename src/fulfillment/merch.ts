@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE" | "SWEATSHIRT" | "ORNAMENT";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE" | "SWEATSHIRT" | "ORNAMENT" | "GIRLSTEE";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -27,6 +27,8 @@ export interface MerchFile {
 	type: string;
 	/** Printful file-library id; null until the artwork is uploaded. */
 	fileId: number | null;
+	/** Public URL of the print file, which Printful downloads (used instead of fileId). */
+	url?: string;
 	position?: PrintfulPosition;
 	/** Per-size position, for products whose print area changes with size. */
 	positionBySize?: Record<string, PrintfulPosition>;
@@ -46,6 +48,14 @@ export interface MerchColor {
 }
 
 export type DesignKey =
+	// Girls' tee scene designs (GIRLSTEE).
+	| "GIRLS_BEACH"
+	| "GIRLS_MAGIC"
+	| "GIRLS_MAGIC_KITTY"
+	| "GIRLS_LITTLE_MAGIC"
+	| "GIRLS_XMAS_WISHES"
+	| "GIRLS_XMAS_COOKIES"
+	| "GIRLS_XMAS_HELPERS"
 	| "FULL"
 	| "PUDY"
 	| "LOGO"
@@ -1492,6 +1502,50 @@ MERCH.push({
 	productionEnabled: true,
 });
 
+// Girls' tees: the owner's square girl-themed scene designs (public/assets/merch/print/girls/),
+// printed on white in every girls' size, toddler 2T–5/6T (Rabbit Skins 3321, Printful 489)
+// and youth S–XL (Bella + Canvas 3001Y). Printful downloads the art from squishman.com,
+// so no file-library upload is needed. 1254 px art prints about 8.4 in wide on youth sizes
+// (150 DPI) and 6 in on toddler sizes.
+const GIRLS_ART = "https://squishman.com/assets/merch/print/girls/";
+const GIRLS_DESIGNS: Array<[DesignKey, string, string, number]> = [
+	["GIRLS_BEACH", "Sunshine, Smiles & Puppy Pals! (beach day)", "girls-beach-day", 1254],
+	["GIRLS_MAGIC", "Believe in Magical Adventures!", "girls-magical-adventures", 1254],
+	["GIRLS_MAGIC_KITTY", "Believe in Magical Adventures! (with kitty)", "girls-magical-adventures-kitty", 1254],
+	["GIRLS_LITTLE_MAGIC", "Every Girl Deserves a Little Magic!", "girls-little-magic", 1325],
+	["GIRLS_XMAS_WISHES", "Magical Christmas Wishes!", "girls-christmas-wishes", 1254],
+	["GIRLS_XMAS_COOKIES", "Cookies for Santa", "girls-cookies-for-santa", 1254],
+	["GIRLS_XMAS_HELPERS", "Santa's Little Helpers!", "girls-santas-helpers", 1254],
+];
+const GIRLS_YOUTH = ["Youth S", "Youth M", "Youth L", "Youth XL"];
+const girlsPosition = (heightAtYouthWidth: number): Record<string, PrintfulPosition> => {
+	const youth = { ...YOUTH_AREA, width: 1254, height: heightAtYouthWidth, top: 100, left: 123 };
+	const tw = 900, th = Math.round((heightAtYouthWidth * tw) / 1254);
+	const toddler = { ...BABY_AREA, width: tw, height: th, top: 60, left: 75 };
+	return Object.fromEntries([...TODDLER_SIZES.map((s) => [s, toddler]), ...GIRLS_YOUTH.map((s) => [s, youth])]);
+};
+MERCH.push({
+	key: "GIRLSTEE",
+	name: "Squish Squad Girls' T-Shirt",
+	designs: GIRLS_DESIGNS.map(([key, label, file, h]) => ({
+		key,
+		label,
+		priceCents: 2399,
+		files: [{ type: "front", fileId: null, url: `${GIRLS_ART}${file}.png`, positionBySize: girlsPosition(h) }],
+	})),
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: [...TODDLER_SIZES, ...GIRLS_YOUTH],
+	colors: [
+		{
+			name: "White",
+			hex: "#ffffff",
+			variants: { ...toddlerSizes([12630, 12631, 12632, 12633]), "Youth S": 9426, "Youth M": 9427, "Youth L": 9428, "Youth XL": 9429 },
+		},
+	],
+	productionEnabled: true,
+});
+
 const BY_KEY = new Map(MERCH.map((p) => [p.key, p]));
 
 export function merchProduct(key: string): MerchProduct | undefined {
@@ -1573,3 +1627,4 @@ export function shippingCents(product: MerchProduct, quantity: number): number {
 }
 
 export const MAX_MERCH_QUANTITY = 10;
+

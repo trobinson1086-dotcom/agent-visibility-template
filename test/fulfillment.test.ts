@@ -898,7 +898,7 @@ describe("configuration health check", () => {
 		// Print files are looked up within a per-request budget; the rest are reported as not checked.
 		const files = (result as { printful: { printFiles: Record<string, string> } }).printful.printFiles;
 		expect(files).toMatchObject({ frontBanner: "ok", backCrown: "ok", mugWrapFull: "ok" });
-		expect(new Set(Object.values(files))).toEqual(new Set(["ok", "not checked"]));
+		expect(new Set(Object.values(files))).toEqual(new Set(["ok", "not checked", "url"]));
 		expect(Object.values(files).filter((v) => v === "ok").length).toBeLessThanOrEqual(30);
 		expect(printful.fileLookups).toBeLessThanOrEqual(30);
 		expect(result).toEqual({
@@ -1057,7 +1057,8 @@ describe("merch catalog", () => {
 		}
 		expect(MERCH.every((p) => p.productionEnabled)).toBe(true);
 		// Color pillows print the color into the art, so their colors share one blank.
-		const ids = MERCH.filter((p) => !["COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING", "NOTEBOOK", "LEGGINGS"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		// The girls' tee deliberately reuses the white toddler and kids' tee blanks.
+		const ids = MERCH.filter((p) => !["GIRLSTEE", "COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING", "NOTEBOOK", "LEGGINGS"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 });
@@ -1129,6 +1130,7 @@ describe("merch checkout", () => {
 			["TODDLERTEE", 2499, 2199, 2199, 2199, 2499],
 			["SWEATSHIRT", 3999, 3699, 3699, 3699, 3999, 3699, 3999],
 			["ORNAMENT", 1699],
+			["GIRLSTEE", 2399, 2399, 2399, 2399, 2399, 2399, 2399],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1451,6 +1453,46 @@ describe("merch orders → Printful", () => {
 				},
 			],
 		});
+	});
+
+	it("sells the girls' tee in every girls' size, printing the art from its squishman.com URL", async () => {
+		const girls = merchProduct("GIRLSTEE")!;
+		expect(girls.sizes).toEqual(["2T", "3T", "4T", "5/6T", "Youth S", "Youth M", "Youth L", "Youth XL"]);
+		expect(girls.designs.map((d) => d.key)).toEqual([
+			"GIRLS_BEACH", "GIRLS_MAGIC", "GIRLS_MAGIC_KITTY", "GIRLS_LITTLE_MAGIC", "GIRLS_XMAS_WISHES", "GIRLS_XMAS_COOKIES", "GIRLS_XMAS_HELPERS",
+		]);
+		for (const c of girls.colors) expect(Object.keys(c.variants)).toEqual(girls.sizes);
+		const { createMerchCheckout } = await import("../src/fulfillment/merch-service");
+		const r = await createMerchCheckout(
+			sandboxEnv({ MERCH_CHECKOUT: "on" }),
+			{ product: "GIRLSTEE", design: "GIRLS_XMAS_HELPERS", color: "White", size: "4T", quantity: 1 },
+			"https://squishman.com",
+		);
+		expect(r.status).toBe(200);
+		expect(stripeCreates[0].get("line_items[0][price_data][unit_amount]")).toBe("2399");
+		expect(stripeCreates[0].get("metadata[merch_sku]")).toBe("GIRLSTEE|White|4T|GIRLS_XMAS_HELPERS");
+
+		merchSession("cs_test_girlstoddler", "GIRLSTEE|White|4T|GIRLS_BEACH");
+		await deliver(sandboxEnv(), paidEvent("cs_test_girlstoddler"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 12632,
+			files: [
+				{
+					type: "front",
+					url: "https://squishman.com/assets/merch/print/girls/girls-beach-day.png",
+					position: { area_width: 1050, area_height: 1200, width: 900, height: 900, top: 60, left: 75 },
+				},
+			],
+		});
+		merchSession("cs_test_girlsyouth", "GIRLSTEE|White|Youth L|GIRLS_LITTLE_MAGIC");
+		await deliver(sandboxEnv(), paidEvent("cs_test_girlsyouth"));
+		const item = (printful.lastCreate as { items: Array<{ variant_id: number; files: Array<Record<string, unknown>> }> }).items[0];
+		expect(item.variant_id).toBe(9428);
+		expect(item.files[0]).toMatchObject({
+			url: "https://squishman.com/assets/merch/print/girls/girls-little-magic.png",
+			position: { area_width: 1500, area_height: 1800, width: 1254, height: 1325, top: 100, left: 123 },
+		});
+		expect(item.files[0]).not.toHaveProperty("id");
 	});
 
 	it("sells water bottles in white or black with the art on the front", async () => {
