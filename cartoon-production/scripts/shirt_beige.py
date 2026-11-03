@@ -42,8 +42,11 @@ if shirt is None:
         lo, hi = map(int, sys.argv[9].split(","))
         xx_ok[:, :lo] = False; xx_ok[:, hi:] = False
     if len(sys.argv) > 10:  # optional polygon to exclude (e.g. wall behind a slanted shoulder)
-        poly = np.array([list(map(int, p.split(","))) for p in sys.argv[10].split(";")], np.int32)
-        block = np.zeros((H, W), np.uint8); cv2.fillPoly(block, [poly], 1); xx_ok &= block == 0
+        block = np.zeros((H, W), np.uint8)
+        for part in sys.argv[10].split("|"):  # several polygons separated by "|"
+            poly = np.array([list(map(int, p.split(","))) for p in part.split(";")], np.int32)
+            cv2.fillPoly(block, [poly], 1)
+        xx_ok &= block == 0
     shirt = fg & whiteish & xx_ok
     shirt = cv2.morphologyEx(shirt.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
     shirt = cv2.morphologyEx(shirt, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8)) > 0

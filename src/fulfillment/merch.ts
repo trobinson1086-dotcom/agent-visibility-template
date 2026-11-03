@@ -11,7 +11,7 @@
  * Merch" Drive folder; positions match the approved mockups.
  */
 
-export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE" | "SWEATSHIRT" | "ORNAMENT" | "GIRLSTEE" | "GIRLSLONGSLEEVE";
+export type MerchKey = "TEE" | "HOODIE" | "LONGSLEEVE" | "TOTE" | "MUG" | "STICKER" | "POSTER" | "PUZZLE" | "BOTTLE" | "PILLOW" | "COLORPILLOW" | "LUMBAR" | "HAT" | "DADHAT" | "KIDSTEE" | "KIDSHOODIE" | "KIDSLONGSLEEVE" | "BLANKET" | "SOCKS" | "BACKPACK" | "DRAWSTRING" | "NOTEBOOK" | "LEGGINGS" | "BABY" | "BEANIE" | "KIDSSWEATSHIRT" | "TODDLERTEE" | "SWEATSHIRT" | "ORNAMENT" | "GIRLSTEE" | "GIRLSLONGSLEEVE" | "GIRLSSWEATSHIRT";
 
 export interface PrintfulPosition {
 	area_width: number;
@@ -1525,12 +1525,13 @@ const GIRLS_DESIGNS: Array<[DesignKey, string, string, number]> = [
 	["GIRLS_XMAS_HELPERS", "Santa's Little Helpers!", "girls-santas-helpers", 1254],
 ];
 const GIRLS_YOUTH = ["Youth S", "Youth M", "Youth L", "Youth XL"];
+const GIRLS_YOUTH_PLACED = ["Youth XS", ...GIRLS_YOUTH];
 const girlsPosition = (heightAtYouthWidth: number): Record<string, PrintfulPosition> => {
 	const yw = 940, yh = Math.round((heightAtYouthWidth * yw) / 1254);
 	const youth = { ...YOUTH_AREA, width: yw, height: yh, top: 150, left: (YOUTH_AREA.area_width - yw) / 2 };
 	const tw = 676, th = Math.round((heightAtYouthWidth * tw) / 1254);
 	const toddler = { ...BABY_AREA, width: tw, height: th, top: 90, left: (BABY_AREA.area_width - tw) / 2 };
-	return Object.fromEntries([...TODDLER_SIZES.map((s) => [s, toddler]), ...GIRLS_YOUTH.map((s) => [s, youth])]);
+	return Object.fromEntries([...TODDLER_SIZES.map((s) => [s, toddler]), ...GIRLS_YOUTH_PLACED.map((s) => [s, youth])]);
 };
 // The same art small on the wearer's left chest, where a pocket would sit: 3 in wide on
 // youth sizes (about 2.4 in left of centre) and 2 in on toddler sizes.
@@ -1539,7 +1540,7 @@ const girlsPocketPosition = (heightAtYouthWidth: number): Record<string, Printfu
 	const youth = { ...YOUTH_AREA, width: yw, height: yh, top: 150, left: 885 };
 	const tw = 300, th = Math.round((heightAtYouthWidth * tw) / 1254);
 	const toddler = { ...BABY_AREA, width: tw, height: th, top: 90, left: 615 };
-	return Object.fromEntries([...TODDLER_SIZES.map((s) => [s, toddler]), ...GIRLS_YOUTH.map((s) => [s, youth])]);
+	return Object.fromEntries([...TODDLER_SIZES.map((s) => [s, toddler]), ...GIRLS_YOUTH_PLACED.map((s) => [s, youth])]);
 };
 MERCH.push({
 	key: "GIRLSTEE",
@@ -1589,6 +1590,24 @@ MERCH.push({
 	colors: [
 		{ name: "White", hex: "#ffffff", variants: { "Youth S": 12868, "Youth M": 12869, "Youth L": 12870 } },
 		{ name: "Athletic Heather", hex: "#b5b5b7", variants: { "Youth S": 12853, "Youth M": 12854, "Youth L": 12855 } },
+	],
+	productionEnabled: true,
+});
+
+// Girls' sweatshirts: the 14 girls' designs and youth placements on the kids' sweatshirt blank
+// (Printful 677, Gildan 18000B, Youth XS-XL) in its light colours, White and Sport Grey
+// (checked 3 Nov 2026). Front-only price matches the kids' sweatshirt. The toddler blank
+// (Printful 968, 2T-7, light pink / natural / heather) waits for its print-area size.
+MERCH.push({
+	key: "GIRLSSWEATSHIRT",
+	name: "Squish Squad Girls' Sweatshirt",
+	designs: MERCH.find((p) => p.key === "GIRLSTEE")!.designs.map((d) => ({ ...d, priceCents: 3199 })),
+	sizeUpchargeCents: {},
+	shipping: { firstCents: 499, additionalCents: 199 },
+	sizes: ["Youth XS", "Youth S", "Youth M", "Youth L", "Youth XL"],
+	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "Youth XS": 16834, "Youth S": 16835, "Youth M": 16836, "Youth L": 16837, "Youth XL": 16838 } },
+		{ name: "Sport Grey", hex: "#cacacd", variants: { "Youth XS": 16829, "Youth S": 16830, "Youth M": 16831, "Youth L": 16832, "Youth XL": 16833 } },
 	],
 	productionEnabled: true,
 });
