@@ -95,12 +95,22 @@ def N(name, at): return ("file", f"{NARR}/{name}.mp3", 0, None, at, "voice")
 def A(code, a, b, at): return ("file", codes[code], a, b, at, "voice")
 def X(name, at, vol=1.0): return ("file", f"{OUT}/tmp/sfx_{name}.wav", 0, None, at, f"sfx:{vol}")
 
+def intro16(n, code, ss, dur, lines):
+    """Native 16:9 theme video (Theme With Logo) with the episode title over it."""
+    p = f"{OUT}/tmp/{n}.txt"; open(p, "w").write(lines)
+    vf = (f"[0:v]scale={W}:{H},setsar=1,fps={FPS},drawtext=fontfile={FONT}:textfile={p}:fontsize=66:fontcolor=white:"
+          f"borderw=6:bordercolor=0x14246b:line_spacing=16:text_align=center:x=(w-text_w)/2:y=h-text_h-90:"
+          f"alpha='if(lt(t,2.0),0,min(1,(t-2.0)/0.5))',fade=in:st=0:d=0.5,fade=out:st={dur-0.6}:d=0.6[v]")
+    af = f"[0:a]asetpts=N/SR/TB,loudnorm=I=-17:TP=-2,aresample=48000,afade=in:d=0.3,afade=out:st={dur-1.2}:d=1.2[a]"
+    run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-ss", str(ss), "-t", str(dur), "-i", codes[code],
+         "-filter_complex", vf + ";" + af, "-map", "[v]", "-map", "[a]", "-t", str(dur), *ENC, f"{OUT}/scenes/{n}.mp4"])
+
 SC = []
 def add(n, d, caps, extra=()): SC.append((n, d, caps, list(extra)))
 
 c = [(0.5, 3.8, "“Squish Man? Is that you?”")]
 clip("01_hook", "C16", 0, 4, c, own=-30); add("01_hook", 4, c, [A("C24", 2.8, 5.5, 0.6)])
-card("02_title", 8, "Episode 1\nThe Missing Puppy Parade", "C01", 0, 0.0, logo_y=140); add("02_title", 8, [])
+intro16("02_title", "TL", 0, 10, "Episode 1\nThe Missing Puppy Parade"); add("02_title", 10, [])
 c = [(0.4, 8.6, "In a cozy little town where the flowers grew tall, there lived the smallest, fluffiest hero of them all.")]
 still("03_town", f"{SP}/Spread_01_Meet_Squish_Man.png", 9, c); add("03_town", 9, c, [N("03_town", 0.5)])
 c = [(0.4, 9.6, "His name was Squish Man. His fur was snow-white and soft as a cloud, and his heart was even bigger than his bark!")]
@@ -144,6 +154,10 @@ c = [(0.4, 6.6, "That night, Squish Man smiled. He hadn't been the biggest dog i
 still("23_bed", f"{SP}/Spread_22_Bedtime.png", 7, c); add("23_bed", 7, c)
 c = [(0.4, 5.6, "You don't have to be big to do something big!")]
 still("24_lesson", f"{SP}/Spread_24_Adventure_Awaits.png", 6, c); add("24_lesson", 6, c, [X("chime", 0.3, 0.7)])
+c = [(0.3, 7.7, "Discover Squish Man and the Missing Puppy Parade. He's the tiny hero with a very big heart.")]
+clip("24b_outro_book", "C40", 0, 8, c); add("24b_outro_book", 8, c)
+c = [(0.3, 7.7, "Ready for your next adventure? Ask a grown-up to visit SquishMan.com. We'll see you in Maple Hollow!")]
+clip("24c_outro_site", "C41", 0, 8, c); add("24c_outro_site", 8, c)
 card("25_end", 9, "Want more Squish Man adventures?\nAsk a grown-up to visit SquishMan.com!", None, 0, 38.0, logo_y=110,
      bg_img=f"{SP}/Spread_24_Adventure_Awaits.png")
 add("25_end", 9, [(0.0, 9.0, "Want more Squish Man adventures? Ask a grown-up to visit SquishMan.com!")])
@@ -177,7 +191,7 @@ for i in range(1, len(bed_src)):
     steps.append(f"{prev}[{i}:a]acrossfade=d=1.5{lab}"); prev = lab
 bedloop = f"{OUT}/tmp/bedloop.wav"
 run(["ffmpeg", "-nostdin", "-v", "error", "-y", *bargs, "-filter_complex", ";".join(steps), "-ar", "48000", "-ac", "2", bedloop])
-t_open = SC[0][1] + SC[1][1]; t_end = total - SC[-1][1]
+t_open = SC[0][1] + SC[1][1]; t_end = total - SC[-1][1] - 16
 bed = f"{OUT}/Audio_E01_music_bed.wav"
 run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-stream_loop", "-1", "-i", bedloop, "-t", str(total), "-filter_complex",
      f"[0:a]loudnorm=I=-30:TP=-9,aresample=48000,volume='if(lt(t,{t_open})+gt(t,{t_end}),0,1)':eval=frame[a]", "-map", "[a]", bed])

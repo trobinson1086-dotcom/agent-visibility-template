@@ -93,13 +93,23 @@ def card(n, dur, lines, bg_code, bg_ss, theme_ss, logo_y=130):
          "-loop", "1", "-t", str(dur), "-i", LOGO, "-i", THEME,
          "-filter_complex", vf + ";" + af, "-map", "[v]", "-map", "[a]", "-t", str(dur), *ENC, f"{OUT}/scenes/{n}.mp4"])
 
+def intro16(n, code, ss, dur, lines):
+    """Native 16:9 theme video (Theme With Logo) with the episode title over it."""
+    p = f"{OUT}/tmp/{n}.txt"; open(p, "w").write(lines)
+    vf = (f"[0:v]scale={W}:{H},setsar=1,fps={FPS},drawtext=fontfile={FONT}:textfile={p}:fontsize=66:fontcolor=white:"
+          f"borderw=6:bordercolor=0x14246b:line_spacing=16:text_align=center:x=(w-text_w)/2:y=h-text_h-90:"
+          f"alpha='if(lt(t,2.0),0,min(1,(t-2.0)/0.5))',fade=in:st=0:d=0.5,fade=out:st={dur-0.6}:d=0.6[v]")
+    af = f"[0:a]asetpts=N/SR/TB,loudnorm=I=-17:TP=-2,aresample=48000,afade=in:d=0.3,afade=out:st={dur-1.2}:d=1.2[a]"
+    run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-ss", str(ss), "-t", str(dur), "-i", codes[code],
+         "-filter_complex", vf + ";" + af, "-map", "[v]", "-map", "[a]", "-t", str(dur), *ENC, f"{OUT}/scenes/{n}.mp4"])
+
 SC = []
 def add(n, d, caps): SC.append((n, d, caps))
 def C(n, code, caps, ss=0, dur=8, **kw): clip(n, code, ss, dur, caps, **kw); add(n, dur, caps)
 
 # Book 2 order (book spread in brackets). Captions = what is actually said in each clip.
 C("01_hook", "C48", [(0.3, 7.7, "“Always believe in your dreams. They might just come true.”")])
-card("02_title", 8, "Episode 2\nSquish Man's Big Dream Adventure", "C46", 0, 0.0, logo_y=140); add("02_title", 8, [])
+intro16("02_title", "TL", 0, 10, "Episode 2\nSquish Man's Big Dream Adventure"); add("02_title", 10, [])
 C("03_window", "C46", [(0.3, 7.7, "Squish Man knew that a brighter tomorrow starts with a dream. He gazed at the stars, ready for a big adventure.")])   # [1]
 C("04_pudy", "C52", [(0.3, 7.7, "Squish Man had big dreams. Pudy reminded him to have courage.")])
 c = [(0.3, 7.7, "But Squish Man knew he needed courage. The courage to keep on dreaming.")]
@@ -126,6 +136,7 @@ C("23_heart", "C85", [(0.3, 7.7, "The heart gives a special gift of love… and 
 C("24_home", "C61", [(0.3, 7.7, "Even when the road is long, a true friend gives you the strength to keep going.")])  # [23-24]
 c = [(0.3, 3.3, "Little paws can chase BIG dreams!"), (3.5, 7.7, "What's one BIG dream you have? Say it out loud!")]
 freeze("25_challenge", "C49", 6.0, 8, c, chime_at=3.4); add("25_challenge", 8, c)
+C("25b_outro", "C45", [(0.3, 7.7, "And the fun goes beyond stories! At SquishMan.com, discover coloring and learning adventures and book previews.")])
 card("26_end", 9, "Want more Squish Man adventures?\nAsk a grown-up to visit SquishMan.com!", "C91", 0, 38.0, logo_y=110)
 add("26_end", 9, [(0.0, 9.0, "Want more Squish Man adventures? Ask a grown-up to visit SquishMan.com!")])
 

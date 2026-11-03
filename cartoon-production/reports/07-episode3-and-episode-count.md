@@ -23,3 +23,23 @@ town search (website scenes 01–05, reference-sheet frames trimmed) → "Can yo
 → "Squish, look! The paw prints lead this way! … Let's find those puppies!" (W06) → trail (C18, C21)
 → "You never gave up on me. Thank you, Squish Man." (C33) → lesson "When friends help together, no
 one gets left behind!" → outro (C43, C42 book promos) → SquishMan.com end card.
+
+## Update: Episode 4 + series intro/outro (3 Nov 2026)
+All four episodes now open with the same intro (the Theme-With-Logo video plus the episode title) and
+close with Squish Man book/club promo clips, then the SquishMan.com end card.
+
+| Ep | Length | Outro clips |
+|---|---|---|
+| 1 The Missing Puppy Parade | 3:25 | C40 (Book 1 cover), C41 ("Ask a grown-up to visit SquishMan.com") |
+| 2 Squish Man's Big Dream Adventure | 3:37 | C45 (coloring & learning adventures) |
+| 3 Squish Man and Pudy to the Rescue | 2:29 | C43, C42 |
+| 4 Squish Man and the Courage Star | 3:08 | C37 (cut at 5.0 s, before "Collect the whole adventure today!"), C44 |
+
+Episode 4 (`scripts/render_episode4.py`) uses the remaining Book 2 clips: C65, C53, C51, C56, C54*,
+C58, C88, C70, C73, C72, C89, C78, C81, C83, C59, C60, C50, C63, C57* (*video-player bar cropped).
+Kids' moments: "Let's make a wish on the star! Close your eyes… one, two, three!" and "Little paws can
+chase BIG dreams!".
+
+**Excluded:** C35 (book covers misspell Maple Hollow as "Boople Hollow" / "Squise Hollow", plus
+"SHOP NOW"); C36 and C38 (misspellings); C39 (garbled audio); C55 (line cut off mid-sentence);
+C62 (near-duplicate of C63).
