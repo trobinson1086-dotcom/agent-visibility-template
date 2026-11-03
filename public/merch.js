@@ -42,6 +42,7 @@ const categories=[
   {name:'Squish Squad T-Shirt',desc:'Squish Man in his gold crown and royal-blue cape poses with best friend Pudy on the front, framed by stars, paw prints and The Amazing Adventures of Squish Man banner. The back keeps it simple with a gold crown, the SQUISHMAN wordmark and a paw print.',colors:[['White','#ffffff',tee.white],['Pink','#f59ac4',tee.pink],['Royal Blue','#1747d8',tee.blue]]},
   {name:'Squish Squad Kids’ T-Shirts',hidden:true,desc:'Kids’ tees.',colors:[]},
   {name:'Squish Squad Girls’ T-Shirts',hidden:true,desc:'Girls’ tees.',colors:[]},
+  {name:'Squish Squad Girls’ Long Sleeves',hidden:true,desc:'Girls’ long sleeves.',colors:[]},
   {name:'Squish Squad Hoodie',desc:'The same bold, full-color Squish Man and Pudy artwork on a cozy pullover hoodie with a front pocket, plus the crown, wordmark and paw print across the back.',colors:[['White','#ffffff',hoodie.white],['Pink','#f59ac4',hoodie.pink],['Royal Blue','#1747d8',hoodie.royal]]},
   {name:'Squish Squad Kids’ Hoodies',hidden:true,desc:'Kids’ hoodies.',colors:[]},
   {name:'Squish Squad Sweatshirts',hidden:true,desc:'Sweatshirts.',colors:[]},
@@ -103,6 +104,8 @@ const SHOP={
   desc:'A soft cotton one-piece for the littlest Squish Squad fans, in the same five designs as the kids’ tee. Envelope neckline and three snaps at the bottom for easy changes.'},
  'Squish Squad Kids’ Sweatshirts':{key:'KIDSSWEATSHIRT',img:'kidssweatshirt',name:'Squish Squad Kids’ Sweatshirt',facts:'Youth XS–XL · soft cotton-blend fleece',
   desc:'A cozy crewneck sweatshirt in the same five designs as the kids’ tee, on soft Gildan fleece with ribbed cuffs and waistband. Perfect for chilly mornings and fall adventures.'},
+ 'Squish Squad Girls’ Long Sleeves':{key:'GIRLSLONGSLEEVE',img:'girlslongsleeve',name:'Squish Squad Girls’ Long Sleeve',facts:'Youth S–L · soft cotton long-sleeve tee',
+  desc:'The same seven girls’ designs on a soft long-sleeve tee, as a big front print or small on the left chest like a pocket logo, in white or athletic heather grey.'},
  'Squish Squad Girls’ T-Shirts':{key:'GIRLSTEE',img:'girlstee',name:'Squish Squad Girls’ T-Shirt',facts:'Toddler 2T–5/6T and Youth S–XL · soft cotton tee',
   desc:'Seven sparkly scenes made for girls, each as a big front print or small on the left chest like a pocket logo: a Squish Squad beach day, magical unicorn adventures, “Every Girl Deserves a Little Magic!” and three Christmas designs, printed in full color on a soft white tee in every girls’ size from 2T to Youth XL. Also in beige and light pink (Youth S–XL) and light blue (2T–5/6T).'},
  'Squish Squad Toddler T-Shirts':{key:'TODDLERTEE',img:'toddlertee',name:'Squish Squad Toddler T-Shirt',facts:'Toddler 2T–5/6T · soft cotton jersey',
@@ -327,6 +330,8 @@ function show(i){
 function open(p,from){
  const start=p.active||0,ordered=p.colors.slice(start).concat(p.colors.slice(0,start));
  slides=(p.lead?[{img:p.lead,label:`${p.name} — on a model (white)`}]:[]).concat(ordered.map(c=>({img:c[2],label:p.sheet?`${p.name} — full collection`:`${p.name} — ${c[0]}`}))).concat((p.extra||[]).map(x=>({img:x,label:`${p.name} — detail views`})));
+ // Girls' long sleeve: her full-length photo in the chosen colour and design.
+ if(p.imgBase==='girlslongsleeve'){const c=p.colors[p.active||0][2].name.replace('shop-girlslongsleeve-','');slides.splice(1,0,{img:img(`shop-girlslongsleeve-full-${c}`,900,1350,0,0,`A smiling girl on the beach in the ${p.name} with the ${DESIGN_TITLE[design(p).key]} design`),label:`${p.name} — full length`})}
  // Girls' tee: per design, the full beach photo and an artwork close-up.
  const gs=p.imgBase==='girlstee'&&p.colors[0][2].name.replace('shop-girlstee-white-','');
  if(gs)slides=slides.concat([{img:img(`shop-girlstee-beach-${gs}`,900,1344,0,0,`A smiling girl on the beach in the white ${p.name} with the ${DESIGN_TITLE[design(p).key]} design`),label:`${p.name} — on the beach`},{img:img(`shop-girlstee-art-${gs}`,1400,700,0,0,`Close-up of the ${DESIGN_TITLE[design(p).key]} artwork`),label:`${p.name} — the artwork`}]);

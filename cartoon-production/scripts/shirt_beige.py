@@ -34,6 +34,9 @@ if shirt is None:
     fg = (gc == cv2.GC_FGD) | (gc == cv2.GC_PR_FGD)
     hsv = cv2.cvtColor(im8, cv2.COLOR_BGR2HSV).astype(np.float32)
     whiteish = (hsv[..., 1] / 255 < 0.16) & (hsv[..., 2] / 255 > 0.5)
+    if os.environ.get("BLUE_SHADOWS"):  # bluish/lilac fabric shadows below this y (e.g. around the hands)
+        yb = np.mgrid[0:H, 0:W][0] > int(os.environ["BLUE_SHADOWS"])
+        whiteish |= yb & (hsv[..., 0] >= 95) & (hsv[..., 0] <= 150) & (hsv[..., 1] / 255 < 0.32) & (hsv[..., 2] / 255 > 0.55)
     xx_ok = np.ones((H, W), bool)
     if len(sys.argv) > 9:  # optional x range of the shirt, e.g. "195,1060", to keep a white wall out
         lo, hi = map(int, sys.argv[9].split(","))
@@ -59,6 +62,10 @@ if shirt is None:
     if n > 1:
         big = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
         shirt = lab == big
+    if os.environ.get("EXTRA_BOX"):  # also recolour white fabric showing through hair in this box
+        ex0, ey0, ex1, ey1 = map(int, os.environ["EXTRA_BOX"].split(","))
+        eb = np.zeros((H, W), bool); eb[ey0:ey1, ex0:ex1] = True
+        shirt |= eb & (hsv[..., 1] / 255 < 0.17) & (hsv[..., 2] / 255 > 0.66)
     if mask_cache:
         cv2.imwrite(mask_cache, shirt.astype(np.uint8) * 255)
 
