@@ -1480,7 +1480,7 @@ describe("merch orders → Printful", () => {
 				{
 					type: "front",
 					url: "https://squishman.com/assets/merch/print/girls/girls-beach-day.png",
-					position: { area_width: 1050, area_height: 1200, width: 900, height: 900, top: 60, left: 75 },
+					position: { area_width: 1050, area_height: 1200, width: 676, height: 676, top: 90, left: 187 },
 				},
 			],
 		});
@@ -1490,7 +1490,7 @@ describe("merch orders → Printful", () => {
 		expect(item.variant_id).toBe(9428);
 		expect(item.files[0]).toMatchObject({
 			url: "https://squishman.com/assets/merch/print/girls/girls-little-magic.png",
-			position: { area_width: 1500, area_height: 1800, width: 1254, height: 1325, top: 100, left: 123 },
+			position: { area_width: 1500, area_height: 1800, width: 940, height: 993, top: 150, left: 280 },
 		});
 		expect(item.files[0]).not.toHaveProperty("id");
 	});

@@ -23,7 +23,7 @@ yy, xx = np.mgrid[0:H, 0:W]
 region = (xx >= 410) & (xx <= 885) & (yy >= 540) & (yy <= 1185)
 hue = hsv[..., 0]
 skin = (hue >= 4) & (hue <= 25) & (sat > 0.22) & (sat < 0.75) & (val > 0.40)
-hand = cv2.dilate((skin & (xx < 560) & (yy > 900)).astype(np.uint8), np.ones((9, 9), np.uint8)) > 0
+hand = cv2.dilate((skin & (xx < 538) & (yy > 925)).astype(np.uint8), np.ones((9, 9), np.uint8)) > 0
 ink = region & ~hand & ((sat > 0.10) | (val < 0.80))
 mask = cv2.dilate(ink.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15)))
 mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (31, 31))) > 0
@@ -58,7 +58,7 @@ target_w = TARGET_W
 scale = target_w / art.shape[1]
 art = cv2.resize(art, (target_w, int(art.shape[0] * scale)), interpolation=cv2.INTER_AREA).astype(np.float32) / 255
 ah, aw = art.shape[:2]
-cx, top = 646, 600                     # chest centre / top of print on this photo
+cx, top = 646, int(sys.argv[5]) if len(sys.argv) > 5 else 600  # chest centre / top of print on this photo
 x0, y0 = cx - aw // 2, top
 rgb, a = art[..., :3], art[..., 3:4]
 on_white = rgb * a + (1 - a)            # art as printed on a white shirt

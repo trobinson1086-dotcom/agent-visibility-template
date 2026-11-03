@@ -1505,8 +1505,8 @@ MERCH.push({
 // Girls' tees: the owner's square girl-themed scene designs (public/assets/merch/print/girls/),
 // printed on white in every girls' size, toddler 2T–5/6T (Rabbit Skins 3321, Printful 489)
 // and youth S–XL (Bella + Canvas 3001Y). Printful downloads the art from squishman.com,
-// so no file-library upload is needed. 1254 px art prints about 8.4 in wide on youth sizes
-// (150 DPI) and 6 in on toddler sizes.
+// so no file-library upload is needed. Kept chest-sized (owner, 3 Nov 2026): about 6.3 in
+// wide on youth sizes and 4.5 in on toddler sizes, centered.
 const GIRLS_ART = "https://squishman.com/assets/merch/print/girls/";
 const GIRLS_DESIGNS: Array<[DesignKey, string, string, number]> = [
 	["GIRLS_BEACH", "Sunshine, Smiles & Puppy Pals! (beach day)", "girls-beach-day", 1254],
@@ -1519,9 +1519,10 @@ const GIRLS_DESIGNS: Array<[DesignKey, string, string, number]> = [
 ];
 const GIRLS_YOUTH = ["Youth S", "Youth M", "Youth L", "Youth XL"];
 const girlsPosition = (heightAtYouthWidth: number): Record<string, PrintfulPosition> => {
-	const youth = { ...YOUTH_AREA, width: 1254, height: heightAtYouthWidth, top: 100, left: 123 };
-	const tw = 900, th = Math.round((heightAtYouthWidth * tw) / 1254);
-	const toddler = { ...BABY_AREA, width: tw, height: th, top: 60, left: 75 };
+	const yw = 940, yh = Math.round((heightAtYouthWidth * yw) / 1254);
+	const youth = { ...YOUTH_AREA, width: yw, height: yh, top: 150, left: (YOUTH_AREA.area_width - yw) / 2 };
+	const tw = 676, th = Math.round((heightAtYouthWidth * tw) / 1254);
+	const toddler = { ...BABY_AREA, width: tw, height: th, top: 90, left: (BABY_AREA.area_width - tw) / 2 };
 	return Object.fromEntries([...TODDLER_SIZES.map((s) => [s, toddler]), ...GIRLS_YOUTH.map((s) => [s, youth])]);
 };
 MERCH.push({
