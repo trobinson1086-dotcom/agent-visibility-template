@@ -38,7 +38,7 @@ const bundles=img('squish-man-gift-bundles',1400,558,720,287,'Squish Man gift se
 // plush and gift sets need other suppliers; the rest are unconfirmed in Printful.
 const one=(label,i)=>[[label,'',i]];
 const categories=[
- {id:'merch-apparel',photos:[{img:'lifestyle-family-tees-posters',alt:'A dad and two kids in matching Squish Man and Pudy tees reading a Squish Man book together, with white, pink and blue Maple Hollow posters on the wall'}],title:'Apparel',blurb:'Squish Man and Pudy, ready to wear.',items:[
+ {id:'merch-apparel',photos:[{img:'lifestyle-family-tees-posters',alt:'A dad and two kids in matching Squish Man and Pudy tees reading a Squish Man book together, with white, pink and blue Maple Hollow posters on the wall'},{img:'lifestyle-kids-girl-tee',alt:'A smiling girl in the white Squish Squad Kids’ T-Shirt with Squish Man and Pudy and The Amazing Adventures of Squish Man banner on the front'}],title:'Apparel',blurb:'Squish Man and Pudy, ready to wear.',items:[
   {name:'Squish Squad T-Shirt',desc:'Squish Man in his gold crown and royal-blue cape poses with best friend Pudy on the front, framed by stars, paw prints and The Amazing Adventures of Squish Man banner. The back keeps it simple with a gold crown, the SQUISHMAN wordmark and a paw print.',colors:[['White','#ffffff',tee.white],['Pink','#f59ac4',tee.pink],['Royal Blue','#1747d8',tee.blue]]},
   {name:'Squish Squad Kids’ T-Shirts',hidden:true,desc:'Kids’ tees.',colors:[]},
   {name:'Squish Squad Hoodie',desc:'The same bold, full-color Squish Man and Pudy artwork on a cozy pullover hoodie with a front pocket, plus the crown, wordmark and paw print across the back.',colors:[['White','#ffffff',hoodie.white],['Pink','#f59ac4',hoodie.pink],['Royal Blue','#1747d8',hoodie.royal]]},
@@ -107,6 +107,7 @@ const SHOP={
  'Squish Squad Sweatshirts':{key:'SWEATSHIRT',img:'sweatshirt',name:'Squish Squad Sweatshirt',facts:'Unisex S–3XL · soft cotton-blend fleece',
   desc:'A cozy crewneck sweatshirt for grown-ups in the same five designs as the Squish Squad tee. Soft Gildan fleece with ribbed cuffs and waistband, and a match for the kids’ sweatshirt.'},
  'Squish Squad Kids’ T-Shirts':{key:'KIDSTEE',img:'kidstee',name:'Squish Squad Kids’ T-Shirt',facts:'Youth S–XL · soft cotton tee',
+  lead:img('lifestyle-kids-girl-tee',1536,1024,0,0,'A smiling girl in the white Squish Squad Kids’ T-Shirt with Squish Man and Pudy and The Amazing Adventures of Squish Man banner on the front'),
   desc:'The Squish Squad tee in kids’ sizes: the same five designs as the grown-up shirt in bright, kid-friendly colors, on a soft Bella + Canvas youth tee.'},
  'Squish Squad Hoodie':{key:'HOODIE',img:'hoodie',facts:'Unisex S–3XL · cotton-blend fleece'},
  'Squish Squad Long Sleeve':{key:'LONGSLEEVE',img:'longsleeve',facts:'Unisex S–3XL (pink to 2XL) · cotton'},
@@ -242,7 +243,7 @@ fetch('/api/merch',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{
  }));
  products.forEach((p,n)=>{
   const s=SHOP[p.name],m=s&&data.products.find(x=>x.key===s.key);if(!m)return;
-  Object.assign(p,{shop:m,sheet:false,shown:s.shown||null,active:0,design:0,imgBase:s.img,facts:s.facts,name:s.name||p.name,desc:s.desc||p.desc});
+  Object.assign(p,{shop:m,sheet:false,shown:s.shown||null,active:0,design:0,imgBase:s.img,facts:s.facts,name:s.name||p.name,desc:s.desc||p.desc,lead:s.lead||null});
   p.colors=shopColors(p);
   const el=document.getElementById('merch-item-'+n);if(el)el.outerHTML=cardHtml(p,n);
  });
@@ -318,7 +319,7 @@ function show(i){
 }
 function open(p,from){
  const start=p.active||0,ordered=p.colors.slice(start).concat(p.colors.slice(0,start));
- slides=ordered.map(c=>({img:c[2],label:p.sheet?`${p.name} — full collection`:`${p.name} — ${c[0]}`})).concat((p.extra||[]).map(x=>({img:x,label:`${p.name} — detail views`})));
+ slides=(p.lead?[{img:p.lead,label:`${p.name} — on a model (white)`}]:[]).concat(ordered.map(c=>({img:c[2],label:p.sheet?`${p.name} — full collection`:`${p.name} — ${c[0]}`}))).concat((p.extra||[]).map(x=>({img:x,label:`${p.name} — detail views`})));
  opener=from;gTitle.textContent=p.name;show(0);
  if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','');
  dlg.querySelector('.mg-close').focus();
