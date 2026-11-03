@@ -1567,6 +1567,11 @@ MERCH.push({
 			hex: "#ffffff",
 			variants: { ...toddlerSizes([12630, 12631, 12632, 12633]), "Youth S": 9426, "Youth M": 9427, "Youth L": 9428, "Youth XL": 9429 },
 		},
+		// Light colours only where Printful makes them (checked 3 Nov 2026): the toddler tee has no
+		// beige or light pink (only Hot Pink), and the youth tee's blue is a darker Heather Columbia Blue.
+		{ name: "Beige", hex: "#e5d9c9", variants: { "Youth S": 17604, "Youth M": 17605, "Youth L": 17606, "Youth XL": 17607 } }, // Heather Dust
+		{ name: "Light Pink", hex: "#ffcccf", variants: { "Youth S": 10616, "Youth M": 10617, "Youth L": 10618, "Youth XL": 10619 } },
+		{ name: "Light Blue", hex: "#d4ebff", variants: toddlerSizes([12622, 12623, 12624, 12625]) },
 	],
 	productionEnabled: true,
 });
