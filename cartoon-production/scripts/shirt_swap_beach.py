@@ -49,6 +49,7 @@ fabric = (sat < 0.16) & (val > 0.6)  # only plain shirt fabric may be softened, 
 grown &= ~hair & (mask | fabric) & (xx >= 255) & (xx <= 860) & (yy >= 560) & (yy <= 1240)
 fm = np.maximum(mask.astype(np.float32), cv2.GaussianBlur(grown.astype(np.float32), (0, 0), 7))[..., None]
 clean = im * (1 - fm) + np.clip(est + grain, 0, 1) * fm
+cv2.imwrite(out.replace(".png", "_clean.png"), (np.clip(clean, 0, 1) * 255).astype(np.uint8))
 
 art = cv2.imread(design).astype(np.float32) / 255
 art = cv2.resize(art, (WIDTH, int(art.shape[0] * WIDTH / art.shape[1])), interpolation=cv2.INTER_AREA)
