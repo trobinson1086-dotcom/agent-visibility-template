@@ -1058,7 +1058,7 @@ describe("merch catalog", () => {
 		expect(MERCH.every((p) => p.productionEnabled)).toBe(true);
 		// Color pillows print the color into the art, so their colors share one blank.
 		// The girls' tee deliberately reuses the white toddler and kids' tee blanks.
-		const ids = MERCH.filter((p) => !["GIRLSTEE", "GIRLSLONGSLEEVE", "COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING", "NOTEBOOK", "LEGGINGS"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
+		const ids = MERCH.filter((p) => !["GIRLSTEE", "GIRLSLONGSLEEVE", "GIRLSSWEATSHIRT", "COLORPILLOW", "KIDSHOODIE", "BLANKET", "SOCKS", "BACKPACK", "DRAWSTRING", "NOTEBOOK", "LEGGINGS"].includes(p.key)).flatMap((p) => p.colors.flatMap((c) => Object.values(c.variants)));
 		expect(new Set(ids).size).toBe(ids.length);
 	});
 });
@@ -1132,6 +1132,7 @@ describe("merch checkout", () => {
 			["ORNAMENT", 1699],
 			["GIRLSTEE", ...Array(14).fill(2399)],
 			["GIRLSLONGSLEEVE", ...Array(14).fill(2599)],
+			["GIRLSSWEATSHIRT", ...Array(14).fill(3199)],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1533,6 +1534,25 @@ describe("merch orders → Printful", () => {
 					type: "front",
 					url: "https://squishman.com/assets/merch/print/girls/girls-christmas-wishes.png",
 					position: { area_width: 1500, area_height: 1800, width: 450, height: 450, top: 150, left: 885 },
+				},
+			],
+		});
+	});
+
+	it("sells the girls' sweatshirt in youth XS-XL, white or sport grey, with the girls' designs", async () => {
+		const sw = merchProduct("GIRLSSWEATSHIRT")!;
+		expect(sw.sizes).toEqual(["Youth XS", "Youth S", "Youth M", "Youth L", "Youth XL"]);
+		expect(sw.colors.map((c) => c.name)).toEqual(["White", "Sport Grey"]);
+		merchSession("cs_test_girlssweat", "GIRLSSWEATSHIRT|Sport Grey|Youth XS|GIRLS_BEACH");
+		await deliver(sandboxEnv(), paidEvent("cs_test_girlssweat"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 16829,
+			retail_price: "31.99",
+			files: [
+				{
+					type: "front",
+					url: "https://squishman.com/assets/merch/print/girls/girls-beach-day.png",
+					position: { area_width: 1500, area_height: 1800, width: 940, height: 940, top: 150, left: 280 },
 				},
 			],
 		});
