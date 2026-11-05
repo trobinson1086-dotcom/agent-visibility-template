@@ -205,6 +205,18 @@ def card(n, dur, lines, *args, **kw):
     vcard(n, "K27", dur, text, THEME, 38.0, size=56, fade_in_at=0.3)
 # ======== end of vertical overrides ========
 
+def voice_over(n, items):
+    """Mix narration lines [(mp3, start_s)] into an already-rendered scene's audio (video copied)."""
+    f = f"{OUT}/scenes/{n}.mp4"; tmp = f"{OUT}/tmp/{n}_vo.mp4"; ins = ["-i", f]; parts = []
+    for k, (p, at) in enumerate(items):
+        ins += ["-i", p]; ms = int(at * 1000)
+        parts.append(f"[{k+1}:a]aresample=48000,aformat=channel_layouts=stereo,loudnorm=I=-16:TP=-2,adelay={ms}|{ms}[n{k}]")
+    fc = ";".join(parts) + ";[0:a]" + "".join(f"[n{k}]" for k in range(len(items))) + f"amix=inputs={len(items)+1}:normalize=0:duration=first[a]"
+    run(["ffmpeg", "-nostdin", "-v", "error", "-y", *ins, "-filter_complex", fc, "-map", "0:v", "-map", "[a]",
+         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", tmp])
+    os.replace(tmp, f)
+NARR = f"{S}/narr"
+
 SC = []
 def add(n, d, caps): SC.append((n, d, caps))
 def C(n, code, caps, ss=0, dur=8, **kw): clip(n, code, ss, dur, caps, **kw); add(n, dur, caps)
@@ -222,8 +234,9 @@ C("08_star2", "C87", [(0.3, 7.7, "“Never give up on your big dreams. Shoot for
 C("09_fly", "C66", [(0.3, 7.7, "“Adventure looks better together! Up, up, and away!”")])  # [6]
 C("10_bridge", "C67", [(0.3, 7.7, "“Every big adventure starts with a single step. Your dreams are closer than you think.”")])  # [7]
 C("11_scared", "C90", [(0.3, 7.7, "Squish Man was a little bit scared, but the giant smiling star was getting closer.")])  # [8]
-c = [(0.3, 2.8, "Squish Man is scared. Can you help him be brave?"), (3.0, 5.8, "Take a big, deep breath with him… in… and out!")]
-freeze("12_breathe", "C68", 3.0, 6, c, chime_at=0.2); add("12_breathe", 6, c)
+c = [(0.3, 4.3, "Squish Man is scared. Can you help him be brave?"), (4.6, 10.2, "Take a big, deep breath with him… in… and out!")]
+freeze("12_breathe", "C68", 3.0, 10.5, c, chime_at=0.2); add("12_breathe", 10.5, c)
+voice_over("12_breathe", [(f"{NARR}/e2_12_breathe_a.mp3", 0.3), (f"{NARR}/e2_12_breathe_b.mp3", 4.6)])
 C("13_step", "C69", [(0.3, 7.7, "Squish Man was frozen with fear. He looked at Dreamstar and took a deep breath. Then he took one brave step forward.")])
 C("14_across", "C71", [(0.3, 7.7, "Squish Man walked confidently along the Rainbow Bridge. The clouds began to part, revealing a magical golden glow.")])  # [9]
 C("15_journey", "C74", [(0.3, 7.7, "And so, Squish Man began his journey, following the star toward his biggest dream.")])
@@ -238,6 +251,7 @@ C("23_heart", "C85", [(0.3, 7.7, "The heart gives a special gift of love… and 
 C("24_home", "C61", [(0.3, 7.7, "Even when the road is long, a true friend gives you the strength to keep going.")])  # [23-24]
 c = [(0.3, 3.3, "Little paws can chase BIG dreams!"), (3.5, 7.7, "What's one BIG dream you have? Say it out loud!")]
 freeze("25_challenge", "C49", 6.0, 8, c, chime_at=3.4); add("25_challenge", 8, c)
+voice_over("25_challenge", [(f"{NARR}/e2_25_challenge_a.mp3", 0.3), (f"{NARR}/e2_25_challenge_b.mp3", 3.6)])
 C("25b_outro", "C45", [(0.3, 7.7, "And the fun goes beyond stories! At SquishMan.com, discover coloring and learning adventures and book previews.")])
 card("26_end", 9, "Want more Squish Man adventures?\nAsk a grown-up to visit SquishMan.com!", "C91", 0, 38.0, logo_y=110)
 add("26_end", 9, [(0.0, 9.0, "Want more Squish Man adventures? Ask a grown-up to visit SquishMan.com!")])

@@ -223,16 +223,18 @@ c = [(0.3, 9.5, "The two friends waited excitedly. Soon, the Puppy Parade would 
 clip("06_friends", "LV", 72.7, 9.9, c); add("06_friends", 9.9, c)
 c = [(4.9, 7.6, "“We stick together, okay?”")]
 clip("07_together", "C05", 0, 8, c); add("07_together", 8, c)
-clip("08_wander", "C10", 0, 8, [], own=None); add("08_wander", 8, [])
+c = [(0.4, 7.6, "While everyone watched the parade, Pudy spotted a butterfly… and wandered away.")]
+clip("08_wander", "C10", 0, 8, c, own=None); add("08_wander", 8, c, [N("e1_08_wander", 0.4)])
 c = [(0.4, 5.6, "DING! DING! DING! The parade was about to start… but where was Pudy?")]
 still("09_bell", f"{SP}/Spread_06_The_Bell_Rings.png", 6, c, crop="720:404:690:40", push=0.04)
-add("09_bell", 6, c, [X("bell", 0.4, 0.5)])
+add("09_bell", 6, c, [X("bell", 0.4, 0.35), N("e1_09_bell", 0.3)])
 c = [(0.2, 6.9, "Squish Man knew one thing for sure. His friend needed help. He began searching.")]
 clip("10_search", "LV", 95.0, 7.1, c); add("10_search", 7.1, c)
 c = [(0.3, 4.4, "Can you spot the clue?"), (4.6, 7.4, "Paw prints! Great job!")]
 still("11_clue", None, 7.8, c, freeze_clip=("C12", 0.4), push=0.05)
 add("11_clue", 7.8, c, [N("11a_clue", 0.3), X("chime", 4.4, 0.8), N("11b_clue", 4.7)])
-clip("12_sniff", "C16", 4, 4, [], own=-28); add("12_sniff", 4, [])
+c = [(0.3, 3.8, "Sniff, sniff! Squish Man found a scent.")]
+clip("12_sniff", "C16", 4, 4, c, own=-28); add("12_sniff", 4, c, [N("e1_12_sniff", 0.3)])
 c = [(0.6, 7.0, "“Follow the paw prints,” Squish Man told himself. “One careful step at a time.”")]
 clip("13_track", "C17", 0, 8, c, own=-30); add("13_track", 8, c, [N("12_track", 0.6)])
 clip("14_trail", "C22", 2, 6, [], own=-28); add("14_trail", 6, [(1.8, 6.0, "Old Mrs. Whiskers the cat was sunning herself on the fence.")], [N("14_whiskers", 1.8)])
@@ -253,9 +255,10 @@ clip("21_safe", "C30", 0, 8, c); add("21_safe", 8, c)
 c = [(0.8, 7.6, "“Thank you for helping find me.” / “Anytime, Pudy. Stay close to your best friend.”")]
 clip("22_bestfriend", "C31", 0, 8, c); add("22_bestfriend", 8, c)
 c = [(0.4, 6.6, "That night, Squish Man smiled. He hadn't been the biggest dog in Maple Hollow… but he had the biggest heart.")]
-still("23_bed", f"{SP}/Spread_22_Bedtime.png", 7, c); add("23_bed", 7, c)
+c = [(0.4, 9.2, "That night, Squish Man smiled. He wasn't the biggest dog in Maple Hollow… but he had the biggest heart.")]
+still("23_bed", f"{SP}/Spread_22_Bedtime.png", 9.5, c); add("23_bed", 9.5, c, [N("e1_23_bed", 0.4)])
 c = [(0.4, 5.6, "You don't have to be big to do something big!")]
-still("24_lesson", f"{SP}/Spread_24_Adventure_Awaits.png", 6, c); add("24_lesson", 6, c, [X("chime", 0.3, 0.7)])
+still("24_lesson", f"{SP}/Spread_24_Adventure_Awaits.png", 6, c); add("24_lesson", 6, c, [X("chime", 0.3, 0.6), N("e1_24_lesson", 0.7)])
 c = [(0.3, 7.7, "Discover Squish Man and the Missing Puppy Parade. He's the tiny hero with a very big heart.")]
 clip("24b_outro_book", "C40", 0, 8, c); add("24b_outro_book", 8, c)
 c = [(0.3, 7.7, "Ready for your next adventure? Ask a grown-up to visit SquishMan.com. We'll see you in Maple Hollow!")]

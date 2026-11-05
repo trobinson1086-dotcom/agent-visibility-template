@@ -225,11 +225,14 @@ clip("01_hook", "C06", 0, 8, c); add("01_hook", 8, c)
 intro16("02_intro", "TL", 0, 10, "Episode 3\nSquish Man and Pudy to the Rescue"); add("02_intro", 10, [])
 c = [(5.0, 7.7, "“We stick together, okay?”")]
 clip("03_parade", "C03", 0, 8, c); add("03_parade", 8, c)
-clip("04_worried", "C15", 0, 8, [], own=-28); add("04_worried", 8, [])
+c = [(0.4, 7.4, "Squish Man looked around. Someone had dropped a little blue leash. The puppy must be close!")]
+clip("04_worried", "C15", 0, 8, c, own=-28); add("04_worried", 8, c, [N("e3_04_worried", 0.4)])
 c = [(0.6, 3.0, "“Pudy, that little puppy seems lost.”"), (4.0, 7.7, "“We have to help.”")]
 clip("05_help", "C07", 0, 8, c); add("05_help", 8, c)
-clip("06_square", "W1", 4.6, 5.4, [], own=-28); add("06_square", 5.4, [])
-clip("07_street", "W2", 3.7, 6.3, [], own=-28); add("07_street", 6.3, [])
+c = [(0.3, 5.0, "They searched the town square, past the splashing fountain.")]
+clip("06_square", "W1", 4.6, 5.4, c, own=-28); add("06_square", 5.4, c, [N("e3_06_square", 0.3)])
+c = [(0.3, 5.9, "Down the street they went, looking high and low.")]
+clip("07_street", "W2", 3.7, 6.3, c, own=-28); add("07_street", 6.3, c, [N("e3_07_street", 0.3)])
 clip("08_prints", "W3", 4.6, 5.4, [], own=None); add("08_prints", 5.4, [])
 c = [(0.3, 3.0, "Can you find the paw prints?"), (3.2, 5.7, "Point to them! Great job!")]
 still("09_find", None, 6, c, freeze_clip=("W3", 6.0), push=0.05); add("09_find", 6, c, [X("chime", 3.1, 0.8)])
