@@ -207,6 +207,16 @@ def card(n, dur, lines, *args, **kw):
     vcard(n, "K27", dur, text, THEME, 38.0, size=56, fade_in_at=0.3)
 # ======== end of vertical overrides ========
 
+# The website cartoon clips (W1-W6) open on a dissolve out of the character reference sheet ("image bible").
+# Their start points above are moved past it (measured: sheet gone at W1 4.4 s, W2 3.6, W3 4.5, W4 4.4, W6 1.9).
+# W6 has dialogue from 1.8 s, so its audio still starts at 1.2 s while the picture holds the first clean frame
+# (2.0 s) for 0.8 s, then plays in sync.
+_w6f = f"{OUT}/tmp/W6_nosheet.mp4"
+run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-ss", "2.0", "-i", codes["W6"], "-ss", "1.2", "-i", codes["W6"],
+     "-filter_complex", "[0:v]tpad=start_mode=clone:start_duration=0.8[v]", "-map", "[v]", "-map", "1:a",
+     "-c:v", "libx264", "-crf", "14", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "256k", _w6f])
+codes["W6F"] = _w6f
+
 SC = []
 def add(n, d, caps, extra=()): SC.append((n, d, caps, list(extra)))
 
@@ -218,16 +228,16 @@ clip("03_parade", "C03", 0, 8, c); add("03_parade", 8, c)
 clip("04_worried", "C15", 0, 8, [], own=-28); add("04_worried", 8, [])
 c = [(0.6, 3.0, "“Pudy, that little puppy seems lost.”"), (4.0, 7.7, "“We have to help.”")]
 clip("05_help", "C07", 0, 8, c); add("05_help", 8, c)
-clip("06_square", "W1", 3.3, 6.7, [], own=-28); add("06_square", 6.7, [])
-clip("07_street", "W2", 2.6, 7.4, [], own=-28); add("07_street", 7.4, [])
-clip("08_prints", "W3", 3.5, 6.5, [], own=None); add("08_prints", 6.5, [])
+clip("06_square", "W1", 4.6, 5.4, [], own=-28); add("06_square", 5.4, [])
+clip("07_street", "W2", 3.7, 6.3, [], own=-28); add("07_street", 6.3, [])
+clip("08_prints", "W3", 4.6, 5.4, [], own=None); add("08_prints", 5.4, [])
 c = [(0.3, 3.0, "Can you find the paw prints?"), (3.2, 5.7, "Point to them! Great job!")]
 still("09_find", None, 6, c, freeze_clip=("W3", 6.0), push=0.05); add("09_find", 6, c, [X("chime", 3.1, 0.8)])
-clip("10_fence", "W4", 3.5, 6.5, [], own=-28); add("10_fence", 6.5, [])
+clip("10_fence", "W4", 4.5, 5.5, [], own=-28); add("10_fence", 5.5, [])
 clip("11_gate", "W5", 2.6, 7.4, [], own=-28); add("11_gate", 7.4, [])
 c = [(0.6, 3.2, "“Squish, look! The paw prints lead this way!”"), (3.3, 5.6, "“Come on, we're getting closer!”"),
      (5.7, 8.7, "“I'm right with you, Squish Man! Let's find those puppies!”")]
-clip("12_closer", "W6", 1.2, 8.8, c); add("12_closer", 8.8, c)
+clip("12_closer", "W6F", 0, 8.8, c); add("12_closer", 8.8, c)
 clip("13_trail", "C18", 0, 7, [], own=-28); add("13_trail", 7, [])
 clip("14_trail2", "C21", 2, 6, [], own=-28); add("14_trail2", 6, [])
 c = [(3.0, 4.6, "“You never gave up on me.”"), (5.9, 7.9, "“Thank you, Squish Man.”")]
