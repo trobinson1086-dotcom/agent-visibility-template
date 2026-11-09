@@ -156,7 +156,11 @@ for k, ((_, src, a, b, at, kind), t0) in enumerate(items):
     args += ["-i", src]
     lvl = "loudnorm=I=-16:TP=-2," if kind == "voice" else f"volume={kind.split(':')[1]},"
     ms = int((t0 + at) * 1000)
-    parts.append(f"[{k}:a]aresample=48000,aformat=channel_layouts=stereo,{lvl}afade=in:d=0.04,adelay={ms}|{ms}[i{k}]")
+    # lead each sound with real silence: adelay after loudnorm loses its offset (ffmpeg 6.1), which shifted every
+    # sound earlier by the first sound's delay
+    parts.append(f"[{k}:a]aresample=48000,aformat=channel_layouts=stereo,{lvl}aresample=48000,"
+                 f"aformat=sample_rates=48000:channel_layouts=stereo,afade=in:d=0.04[x{k}];"
+                 f"anullsrc=r=48000:cl=stereo:d={max(ms, 1) / 1000:.3f}[s{k}];[s{k}][x{k}]concat=n=2:v=0:a=1[i{k}]")
 voice = f"{OUT}/Audio_E04_extra_voices_fx.wav"
 run(["ffmpeg", "-nostdin", "-v", "error", "-y", *args, "-filter_complex",
      ";".join(parts) + ";" + "".join(f"[i{k}]" for k in range(len(items))) +
