@@ -49,6 +49,7 @@ export interface MerchColor {
 
 export type DesignKey =
 	// Girls' tee scene designs (GIRLSTEE).
+	| "GIRLS_THANKFUL"
 	| "GIRLS_BEACH"
 	| "GIRLS_MAGIC"
 	| "GIRLS_MAGIC_KITTY"
@@ -56,6 +57,7 @@ export type DesignKey =
 	| "GIRLS_XMAS_WISHES"
 	| "GIRLS_XMAS_COOKIES"
 	| "GIRLS_XMAS_HELPERS"
+	| "GIRLS_THANKFUL_POCKET"
 	| "GIRLS_BEACH_POCKET"
 	| "GIRLS_MAGIC_POCKET"
 	| "GIRLS_MAGIC_KITTY_POCKET"
@@ -1515,14 +1517,16 @@ MERCH.push({
 // so no file-library upload is needed. Kept chest-sized (owner, 3 Nov 2026): about 6.3 in
 // wide on youth sizes and 4.5 in on toddler sizes, centered.
 const GIRLS_ART = "https://squishman.com/assets/merch/print/girls/";
+// Holiday designs first (owner, 10 Nov 2026): they are the previews the shop shows.
 const GIRLS_DESIGNS: Array<[DesignKey, string, string, number]> = [
-	["GIRLS_BEACH", "Sunshine, Smiles & Puppy Pals! (beach day)", "girls-beach-day", 1254],
-	["GIRLS_MAGIC", "Believe in Magical Adventures!", "girls-magical-adventures", 1254],
-	["GIRLS_MAGIC_KITTY", "Believe in Magical Adventures! (with kitty)", "girls-magical-adventures-kitty", 1254],
-	["GIRLS_LITTLE_MAGIC", "Every Girl Deserves a Little Magic!", "girls-little-magic", 1325],
+	["GIRLS_THANKFUL", "Thankful Hearts Make Happy Paws!", "girls-thankful-hearts", 1254],
 	["GIRLS_XMAS_WISHES", "Magical Christmas Wishes!", "girls-christmas-wishes", 1254],
 	["GIRLS_XMAS_COOKIES", "Cookies for Santa", "girls-cookies-for-santa", 1254],
 	["GIRLS_XMAS_HELPERS", "Santa's Little Helpers!", "girls-santas-helpers", 1254],
+	["GIRLS_LITTLE_MAGIC", "Every Girl Deserves a Little Magic!", "girls-little-magic", 1325],
+	["GIRLS_BEACH", "Sunshine, Smiles & Puppy Pals! (beach day)", "girls-beach-day", 1254],
+	["GIRLS_MAGIC", "Believe in Magical Adventures!", "girls-magical-adventures", 1254],
+	["GIRLS_MAGIC_KITTY", "Believe in Magical Adventures! (with kitty)", "girls-magical-adventures-kitty", 1254],
 ];
 const GIRLS_YOUTH = ["Youth S", "Youth M", "Youth L", "Youth XL"];
 const GIRLS_YOUTH_PLACED = ["Youth XS", ...GIRLS_YOUTH];
@@ -1611,6 +1615,23 @@ MERCH.push({
 	],
 	productionEnabled: true,
 });
+
+// Kids' (boys') tee, long sleeve and sweatshirt: the four holiday scenes, centred and chest-sized
+// like the girls' shirts, listed first so they are the previews (owner, 10 Nov 2026).
+// "Every Girl Deserves a Little Magic!" stays on the girls' shirts only.
+const KIDS_HOLIDAY: DesignKey[] = ["GIRLS_THANKFUL", "GIRLS_XMAS_WISHES", "GIRLS_XMAS_COOKIES", "GIRLS_XMAS_HELPERS"];
+for (const key of ["KIDSTEE", "KIDSLONGSLEEVE", "KIDSSWEATSHIRT"] as MerchKey[]) {
+	const product = MERCH.find((p) => p.key === key)!;
+	const frontOnly = Math.min(...product.designs.map((d) => d.priceCents));
+	product.designs.unshift(
+		...GIRLS_DESIGNS.filter(([k]) => KIDS_HOLIDAY.includes(k)).map(([k, label, file, h]) => ({
+			key: k,
+			label,
+			priceCents: frontOnly,
+			files: [{ type: "front" as const, fileId: null, url: `${GIRLS_ART}${file}.png`, positionBySize: girlsPosition(h) }],
+		})),
+	);
+}
 
 const BY_KEY = new Map(MERCH.map((p) => [p.key, p]));
 

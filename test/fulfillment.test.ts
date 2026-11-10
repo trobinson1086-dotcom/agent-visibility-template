@@ -1115,8 +1115,8 @@ describe("merch checkout", () => {
 			["LUMBAR", 3499, 3499, 3499, 3499, 3499, 3499],
 			["HAT", 3099, 3099, 3099, 3099, 3099],
 			["DADHAT", 2499, 2499, 2499, 2499, 2499],
-			["KIDSTEE", 2699, 2399, 2399, 2399, 2699, 2399, 2699],
-			["KIDSLONGSLEEVE", 2899, 2599, 2599, 2599, 2899, 2599, 2899],
+			["KIDSTEE", 2399, 2399, 2399, 2399, 2699, 2399, 2399, 2399, 2699, 2399, 2699],
+			["KIDSLONGSLEEVE", 2599, 2599, 2599, 2599, 2899, 2599, 2599, 2599, 2899, 2599, 2899],
 			["KIDSHOODIE", 4999, 4999, 4999, 4999, 4999],
 			["BLANKET", 4999, 4999, 4999, 4999, 4999, 4999],
 			["SOCKS", 1699, 1699, 1699],
@@ -1126,13 +1126,13 @@ describe("merch checkout", () => {
 			["LEGGINGS", 2999],
 			["BABY", 2699, 2399, 2399, 2399, 2699],
 			["BEANIE", 2499, 2499, 2499],
-			["KIDSSWEATSHIRT", 3499, 3199, 3199, 3199, 3499, 3199, 3499],
+			["KIDSSWEATSHIRT", 3199, 3199, 3199, 3199, 3499, 3199, 3199, 3199, 3499, 3199, 3499],
 			["TODDLERTEE", 2499, 2199, 2199, 2199, 2499],
 			["SWEATSHIRT", 3999, 3699, 3699, 3699, 3999, 3699, 3999],
 			["ORNAMENT", 1699],
-			["GIRLSTEE", ...Array(14).fill(2399)],
-			["GIRLSLONGSLEEVE", ...Array(14).fill(2599)],
-			["GIRLSSWEATSHIRT", ...Array(14).fill(3199)],
+			["GIRLSTEE", ...Array(16).fill(2399)],
+			["GIRLSLONGSLEEVE", ...Array(16).fill(2599)],
+			["GIRLSSWEATSHIRT", ...Array(16).fill(3199)],
 		]);
 		expect(json.products[0].designs.map((d) => d.label)).toEqual([
 			"Squish Man & Pudy front, crown logo back",
@@ -1461,8 +1461,8 @@ describe("merch orders → Printful", () => {
 		const girls = merchProduct("GIRLSTEE")!;
 		expect(girls.sizes).toEqual(["2T", "3T", "4T", "5/6T", "Youth S", "Youth M", "Youth L", "Youth XL"]);
 		expect(girls.designs.map((d) => d.key)).toEqual([
-			"GIRLS_BEACH", "GIRLS_MAGIC", "GIRLS_MAGIC_KITTY", "GIRLS_LITTLE_MAGIC", "GIRLS_XMAS_WISHES", "GIRLS_XMAS_COOKIES", "GIRLS_XMAS_HELPERS",
-			"GIRLS_BEACH_POCKET", "GIRLS_MAGIC_POCKET", "GIRLS_MAGIC_KITTY_POCKET", "GIRLS_LITTLE_MAGIC_POCKET", "GIRLS_XMAS_WISHES_POCKET", "GIRLS_XMAS_COOKIES_POCKET", "GIRLS_XMAS_HELPERS_POCKET",
+			"GIRLS_THANKFUL", "GIRLS_XMAS_WISHES", "GIRLS_XMAS_COOKIES", "GIRLS_XMAS_HELPERS", "GIRLS_LITTLE_MAGIC", "GIRLS_BEACH", "GIRLS_MAGIC", "GIRLS_MAGIC_KITTY",
+			"GIRLS_THANKFUL_POCKET", "GIRLS_XMAS_WISHES_POCKET", "GIRLS_XMAS_COOKIES_POCKET", "GIRLS_XMAS_HELPERS_POCKET", "GIRLS_LITTLE_MAGIC_POCKET", "GIRLS_BEACH_POCKET", "GIRLS_MAGIC_POCKET", "GIRLS_MAGIC_KITTY_POCKET",
 		]);
 		expect(Object.fromEntries(girls.colors.map((c) => [c.name, Object.keys(c.variants)]))).toEqual({
 			White: girls.sizes,
@@ -1552,6 +1552,26 @@ describe("merch orders → Printful", () => {
 				{
 					type: "front",
 					url: "https://squishman.com/assets/merch/print/girls/girls-beach-day.png",
+					position: { area_width: 1500, area_height: 1800, width: 940, height: 940, top: 150, left: 280 },
+				},
+			],
+		});
+	});
+
+	it("sells the holiday designs first on the kids' tee, long sleeve and sweatshirt", async () => {
+		for (const key of ["KIDSTEE", "KIDSLONGSLEEVE", "KIDSSWEATSHIRT"]) {
+			expect(merchProduct(key)!.designs.slice(0, 4).map((d) => d.key)).toEqual(["GIRLS_THANKFUL", "GIRLS_XMAS_WISHES", "GIRLS_XMAS_COOKIES", "GIRLS_XMAS_HELPERS"]);
+		}
+		expect(merchProduct("GIRLSTEE")!.designs[0].key).toBe("GIRLS_THANKFUL");
+		merchSession("cs_test_boysthankful", "KIDSSWEATSHIRT|Royal|Youth XS|GIRLS_THANKFUL");
+		await deliver(sandboxEnv(), paidEvent("cs_test_boysthankful"));
+		expect((printful.lastCreate as { items: Array<Record<string, unknown>> }).items[0]).toMatchObject({
+			variant_id: 16824,
+			retail_price: "31.99",
+			files: [
+				{
+					type: "front",
+					url: "https://squishman.com/assets/merch/print/girls/girls-thankful-hearts.png",
 					position: { area_width: 1500, area_height: 1800, width: 940, height: 940, top: 150, left: 280 },
 				},
 			],
