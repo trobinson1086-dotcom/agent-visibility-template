@@ -865,11 +865,11 @@ MERCH.push({
 	// Lighter, brighter colors than the grown-up tee.
 	colors: [
 		{ name: "Sky Blue", hex: "#6495ff", variants: { "Youth S": 10620, "Youth M": 10621, "Youth L": 10622, "Youth XL": 10623 } },
+		{ name: "White", hex: "#ffffff", variants: { "Youth S": 9426, "Youth M": 9427, "Youth L": 9428, "Youth XL": 9429 } },
 		{ name: "Pink", hex: "#ffcccf", variants: { "Youth S": 10616, "Youth M": 10617, "Youth L": 10618, "Youth XL": 10619 } },
 		{ name: "Sunshine Yellow", hex: "#e6a133", variants: { "Youth S": 17612, "Youth M": 17613, "Youth L": 17614, "Youth XL": 17615 } },
 		{ name: "Kelly Green", hex: "#0e7b4e", variants: { "Youth S": 10628, "Youth M": 10629, "Youth L": 10630, "Youth XL": 10631 } },
 		{ name: "Berry", hex: "#c02773", variants: { "Youth S": 11209, "Youth M": 11210, "Youth L": 11211, "Youth XL": 11212 } },
-		{ name: "White", hex: "#ffffff", variants: { "Youth S": 9426, "Youth M": 9427, "Youth L": 9428, "Youth XL": 9429 } },
 	],
 	productionEnabled: true,
 });
@@ -892,9 +892,9 @@ MERCH.push({
 	shipping: { firstCents: 499, additionalCents: 199 },
 	sizes: ["Youth S", "Youth M", "Youth L"],
 	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "Youth S": 12868, "Youth M": 12869, "Youth L": 12870 } },
 		{ name: "Red", hex: "#d20e2a", variants: { "Youth S": 12865, "Youth M": 12866, "Youth L": 12867 } },
 		{ name: "Heather Grey", hex: "#b5b5b7", variants: { "Youth S": 12853, "Youth M": 12854, "Youth L": 12855 } },
-		{ name: "White", hex: "#ffffff", variants: { "Youth S": 12868, "Youth M": 12869, "Youth L": 12870 } },
 	],
 	productionEnabled: true,
 });
@@ -1417,10 +1417,10 @@ MERCH.push({
 	shipping: { firstCents: 499, additionalCents: 199 },
 	sizes: ["Youth XS", "Youth S", "Youth M", "Youth L", "Youth XL"],
 	colors: [
+		{ name: "White", hex: "#ffffff", variants: { "Youth XS": 16834, "Youth S": 16835, "Youth M": 16836, "Youth L": 16837, "Youth XL": 16838 } },
 		{ name: "Royal", hex: "#1d50a4", variants: { "Youth XS": 16824, "Youth S": 16825, "Youth M": 16826, "Youth L": 16827, "Youth XL": 16828 } },
 		{ name: "Red", hex: "#da0a1a", variants: { "Youth XS": 16819, "Youth S": 16820, "Youth M": 16821, "Youth L": 16822, "Youth XL": 16823 } },
 		{ name: "Sport Grey", hex: "#cacacd", variants: { "Youth XS": 16829, "Youth S": 16830, "Youth M": 16831, "Youth L": 16832, "Youth XL": 16833 } },
-		{ name: "White", hex: "#ffffff", variants: { "Youth XS": 16834, "Youth S": 16835, "Youth M": 16836, "Youth L": 16837, "Youth XL": 16838 } },
 		{ name: "Black", hex: "#0b0b0b", variants: { "Youth XS": 16787, "Youth S": 16788, "Youth M": 16789, "Youth L": 16790, "Youth XL": 16791 } },
 	],
 	productionEnabled: true,
