@@ -23,6 +23,6 @@ Five merch Shorts and one holiday Short from the episode's merch section (7:29â€
 render with `SHORTS_SPEC=<scratch>/scripts/merch.json SHORTS_OUT=<folder> python3 -I render_shorts.py <scratch>`.
 On-screen product names list only products sold in the shop (`src/fulfillment/merch.ts`).
 
-Subtitles (owner, 11 Nov 2026): smaller (60 px), short phrases of one or two lines, lower middle above
+Subtitles (owner, 11 Nov 2026): smaller (60 px), one short line at a time, bottom edge at 80% of the height (over the legs, clear of faces and chests) above
 YouTube's controls; every Short ends with a question-style call to action
 ("What happens next? Watch Episode 1 on YouTube!").

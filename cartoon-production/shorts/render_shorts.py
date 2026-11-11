@@ -60,7 +60,7 @@ def dt(tag, k, text, size, color, border, y, t0, t1, box=None, fade=0.2, n=20):
         s += f":box=1:boxcolor={box}:boxborderw={size // 3}"
     return s
 
-def phrases(text, limit=34):
+def phrases(text, limit=28):
     """Split a line into balanced subtitle phrases (one or two short lines each), preferring punctuation breaks."""
     import math
     if len(text) <= limit:
@@ -111,7 +111,7 @@ def render(n, spec):
         t = a
         for x in parts:   # short phrases, timed in proportion to their length
             d = (b - a) * len(x) / tot
-            f.append(dt(f"c{n}", k, x, 60, "white", "0x14246b", "h*0.665", round(t, 2), round(t + d, 2),
+            f.append(dt(f"c{n}", k, x, 60, "white", "0x14246b", "h*0.80-text_h", round(t, 2), round(t + d, 2),
                         box="0x0b1640@0.50", fade=0.08, n=30))
             t += d; k += 1
     # rotating product-name chips (real store products only)
