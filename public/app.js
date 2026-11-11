@@ -39,3 +39,15 @@ document.addEventListener('click',e=>{
  if(d){const c=d.closest('.card');document.getElementById('modalCover').src=c.querySelector('img').src;document.getElementById('modalTitle').textContent=c.querySelector('h3').textContent;document.getElementById('modalPrice').textContent=c.querySelector('.price').textContent;const live=c.querySelector('.buy-link');const mb=document.getElementById('modalBuy');if(live){mb.href=live.href;mb.textContent='BUY NOW';mb.target='_blank'}else{mb.removeAttribute('href');mb.textContent='CHECKOUT COMING SOON';mb.removeAttribute('target')}modal.classList.add('open');modal.setAttribute('aria-hidden','false')}
  if(e.target.matches('.modalclose')||e.target===modal){modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}
 });
+
+// Featured YouTube video: show the thumbnail until clicked, then load the player.
+document.querySelectorAll('.yt-facade').forEach(btn=>btn.addEventListener('click',()=>{
+ const f=document.createElement('iframe');
+ f.className='featured-video featured-embed';
+ f.src='https://www.youtube-nocookie.com/embed/'+btn.dataset.yt+'?autoplay=1&rel=0&modestbranding=1&playsinline=1';
+ f.title=btn.dataset.title;
+ f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+ f.referrerPolicy='strict-origin-when-cross-origin';
+ f.allowFullscreen=true;
+ btn.replaceWith(f);
+}));
