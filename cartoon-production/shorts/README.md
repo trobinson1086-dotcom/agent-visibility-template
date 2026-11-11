@@ -15,3 +15,14 @@ Five 9:16 (1080×1920) YouTube Shorts cut from the original Episode 1 master
 - `episode1-promo-shorts-youtube-info.txt`: titles, descriptions, hashtags and original timestamps.
 
 The original master is only read, never modified.
+
+## Merch and holiday Shorts
+
+Five merch Shorts and one holiday Short from the episode's merch section (7:29–8:40).
+`merch_spec.py` builds `merch.json` (per-shot framing, captions, rotating product names);
+render with `SHORTS_SPEC=<scratch>/scripts/merch.json SHORTS_OUT=<folder> python3 -I render_shorts.py <scratch>`.
+On-screen product names list only products sold in the shop (`src/fulfillment/merch.ts`).
+
+Subtitles (owner, 11 Nov 2026): smaller (60 px), short phrases of one or two lines, lower middle above
+YouTube's controls; every Short ends with a question-style call to action
+("What happens next? Watch Episode 1 on YouTube!").

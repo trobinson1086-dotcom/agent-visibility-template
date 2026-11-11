@@ -12,7 +12,7 @@ import json, os, subprocess, sys, textwrap
 S = sys.argv[1]
 SRC = f"{S}/src/episode1.mp4"
 FONT = f"{S}/assets/Fredoka.ttf"
-OUT = f"{S}/Squish_Man_Episode_1_Promo_Shorts"
+OUT = os.environ.get("SHORTS_OUT", f"{S}/Squish_Man_Episode_1_Promo_Shorts")
 TMP = f"{S}/work"
 W, H, FPS = 1080, 1920, 30
 CW = 608                       # 9:16 window inside the 1920x1080 source (1080*9/16 = 607.5)
@@ -60,6 +60,26 @@ def dt(tag, k, text, size, color, border, y, t0, t1, box=None, fade=0.2, n=20):
         s += f":box=1:boxcolor={box}:boxborderw={size // 3}"
     return s
 
+def phrases(text, limit=34):
+    """Split a line into balanced subtitle phrases (one or two short lines each), preferring punctuation breaks."""
+    import math
+    if len(text) <= limit:
+        return [text]
+    k = math.ceil(len(text) / limit)
+    target = len(text) / k
+    words, out, cur = text.split(), [], ""
+    for i, w in enumerate(words):
+        cur = (cur + " " + w).strip()
+        nxt = words[i + 1] if i + 1 < len(words) else None
+        if nxt is None:
+            break
+        rest = len(" ".join(words[i + 1:]))
+        punct = w[-1] in ",.!?;"
+        if (punct and len(cur) >= target * 0.6 and rest >= 8) or len(cur) + 1 + len(nxt) > target * 1.2:
+            out.append(cur); cur = ""
+    out.append(cur)
+    return out
+
 def render(n, spec):
     os.makedirs(TMP, exist_ok=True)
     parts, src_map, t = [], [], 0.0
@@ -83,8 +103,24 @@ def render(n, spec):
     # title banner (first seconds)
     f.append(dt(f"t{n}", 0, spec["title"], 126, "0xFFD52A", "0x17315d", "230", 0.15, spec.get("title_end", 3.2), n=12))
     # dialogue captions (episode times -> short times)
-    for k, (s0, s1, text) in enumerate(spec["captions"]):
-        f.append(dt(f"c{n}", k, text, 82, "white", "0x14246b", "h*0.655", out_t(s0), out_t(s1), box="0x0b1640@0.45", fade=0.12, n=20))
+    k = 0
+    for s0, s1, text in spec["captions"]:
+        a, b = out_t(s0), out_t(s1)
+        parts = phrases(text)
+        tot = sum(len(x) for x in parts)
+        t = a
+        for x in parts:   # short phrases, timed in proportion to their length
+            d = (b - a) * len(x) / tot
+            f.append(dt(f"c{n}", k, x, 60, "white", "0x14246b", "h*0.665", round(t, 2), round(t + d, 2),
+                        box="0x0b1640@0.50", fade=0.08, n=30))
+            t += d; k += 1
+    # rotating product-name chips (real store products only)
+    ch = spec.get("chips")
+    if ch:
+        cols = ["0xE5398D@0.92", "0x1D4FA8@0.92", "0x7B3FC4@0.92", "0x0F9D9A@0.92", "0xF07C1A@0.92"]
+        for i, item in enumerate(ch["items"]):
+            c0 = round(ch["start"] + i * ch["each"], 2); c1 = round(c0 + ch["each"], 2)
+            f.append(dt(f"p{n}", i, item, 76, "white", "0x14246b", "330", c0, c1, box=cols[i % len(cols)], fade=0.1, n=18))
     # end call to action
     e0 = round(total - spec.get("end_len", 3.3), 2)
     f.append(dt(f"e{n}", 0, spec["end"], spec.get("end_size", 90), "0xFFD52A", "0x17315d", "h*0.30", e0, total + 1,
@@ -96,7 +132,7 @@ def render(n, spec):
          "-af", "alimiter=limit=0.84:attack=2:release=60:level=false", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", final])
     return final, total, src_map
 
-SPECS = json.load(open(f"{S}/scripts/shorts.json"))
+SPECS = json.load(open(os.environ.get("SHORTS_SPEC", f"{S}/scripts/shorts.json")))
 os.makedirs(OUT, exist_ok=True)
 want = sys.argv[2:] or list(SPECS)
 report = {}

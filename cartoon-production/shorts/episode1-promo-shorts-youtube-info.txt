@@ -2,7 +2,7 @@ SQUISH MAN — EPISODE 1 PROMO SHORTS
 The Amazing Adventures of Squish Man™ · Squish Man & Pudy's Big Parade Adventure — Episode 1
 Full episode: https://youtu.be/3G5FevbM0RI
 Source: original 13:00 master "episode 1 edited.mp4" (Drive folder "Squish full screen 1", 1920×1080, 30 fps). The original file was only read, never altered.
-All five: 1080×1920 (9:16), H.264 High, 30 fps, AAC stereo 48 kHz, 15–30 s. Only the episode's own voices, music and sound effects are used (no added music). Timestamps below are minutes:seconds in the original episode.
+All five: 1080×1920 (9:16), H.264 High, 30 fps, AAC stereo 48 kHz, 15–30 s. Subtitles: short phrases (one or two lines) in the lower middle, above YouTube's controls. Only the episode's own voices, music and sound effects are used (no added music). Timestamps below are minutes:seconds in the original episode.
 Upload tip: set each Short as "Made for kids" in YouTube Studio, and link it to the full episode with the "Related video" field.
 
 ========================================================================
@@ -27,7 +27,7 @@ ORIGINAL TIMESTAMPS USED (in order):
   1. 4:27.37 – 4:35.37  (8.0 s)  → Short 0:00.00 – 0:08.00
   2. 4:07.70 – 4:27.20  (19.5 s)  → Short 0:08.00 – 0:27.50
 
-ON-SCREEN TEXT: title "THE BIG PARADE!"; ending "Watch Episode 1 on YouTube!"
+ON-SCREEN TEXT: title "THE BIG PARADE!"; ending "What happens next? Watch Episode 1 on YouTube!"
 CAPTIONS (dialogue as spoken):
   • Colorful floats rolled through Maple Hollow
   • as friends waved and cheered.
@@ -61,7 +61,7 @@ ORIGINAL TIMESTAMPS USED (in order):
   2. 1:00.87 – 1:08.60  (7.7 s)  → Short 0:08.60 – 0:16.33
   3. 1:12.70 – 1:24.10  (11.4 s)  → Short 0:16.33 – 0:27.73
 
-ON-SCREEN TEXT: title "MEET SQUISH MAN!"; ending "Meet him in Episode 1 on YouTube!"
+ON-SCREEN TEXT: title "MEET SQUISH MAN!"; ending "What happens next? Watch Episode 1 on YouTube!"
 CAPTIONS (dialogue as spoken):
   • Squish Man! Squish Man!
   • Tiny paws with a big, big plan
@@ -132,7 +132,7 @@ HASHTAGS:
 ORIGINAL TIMESTAMPS USED (in order):
   1. 4:35.37 – 4:59.37  (24.0 s)  → Short 0:00.00 – 0:24.00
 
-ON-SCREEN TEXT: title "PARADE MAGIC!"; ending "Watch the whole parade in Episode 1 on YouTube!"
+ON-SCREEN TEXT: title "PARADE MAGIC!"; ending "What happens next? Watch Episode 1 on YouTube!"
 CAPTIONS (dialogue as spoken):
   • All of Maple Hollow celebrated together!
   • Look, Squish Man!

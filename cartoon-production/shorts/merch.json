@@ -1,0 +1,674 @@
+{
+ "1": {
+  "file": "Merch_1_Squish_Squad_Store.mp4",
+  "title": "WELCOME TO THE SQUISH SQUAD STORE!",
+  "end": "Ready to join the Squish Squad? Shop at SquishMan.com!",
+  "segments": [
+   [
+    449.6,
+    474.7,
+    [
+     [
+      449.601,
+      0.45
+     ],
+     [
+      453.899,
+      0.47
+     ],
+     [
+      453.901,
+      0.38
+     ],
+     [
+      455.565,
+      0.38
+     ],
+     [
+      457.045,
+      0.66
+     ],
+     [
+      457.599,
+      0.66
+     ],
+     [
+      457.601,
+      0.24
+     ],
+     [
+      459.599,
+      0.62
+     ],
+     [
+      459.601,
+      0.27
+     ],
+     [
+      461.532,
+      0.68
+     ],
+     [
+      461.534,
+      0.38
+     ],
+     [
+      462.716,
+      0.38
+     ],
+     [
+      463.899,
+      0.7
+     ],
+     [
+      463.901,
+      0.28
+     ],
+     [
+      465.599,
+      0.32
+     ],
+     [
+      465.601,
+      0.4
+     ],
+     [
+      467.532,
+      0.55
+     ],
+     [
+      467.534,
+      0.4
+     ],
+     [
+      469.466,
+      0.55
+     ],
+     [
+      469.468,
+      0.4
+     ],
+     [
+      470.799,
+      0.62
+     ],
+     [
+      470.801,
+      0.28
+     ],
+     [
+      472.599,
+      0.32
+     ],
+     [
+      472.601,
+      0.3
+     ]
+    ]
+   ]
+  ],
+  "captions": [
+   [
+    449.9,
+    451.1,
+    "Hey, Squish Squad!"
+   ],
+   [
+    451.2,
+    454.0,
+    "Welcome to the magical world of Squish Man!"
+   ],
+   [
+    459.4,
+    462.0,
+    "Colorful shirts, cozy hoodies,"
+   ],
+   [
+    462.0,
+    465.0,
+    "and awesome Squish Squad gear for every adventure!"
+   ],
+   [
+    465.4,
+    469.0,
+    "Lunch boxes, water bottles, puzzles, and more!"
+   ],
+   [
+    470.9,
+    474.4,
+    "Ask your grown-up to shop at SquishMan.com!"
+   ]
+  ],
+  "chips": {
+   "start": 3.6,
+   "each": 1.9,
+   "items": [
+    "T-Shirts & Hoodies",
+    "Kids' & Girls' Styles",
+    "Caps & Beanies",
+    "Water Bottles & Mugs",
+    "Puzzles & Backpacks",
+    "Blankets & Pillows",
+    "...and more!"
+   ]
+  },
+  "title_end": 3.4
+ },
+ "2": {
+  "file": "Merch_2_Tees_and_Hoodies.mp4",
+  "title": "SQUISH SQUAD TEES & HOODIES!",
+  "end": "Which tee would you pick? Shop at SquishMan.com!",
+  "segments": [
+   [
+    457.6,
+    465.0,
+    [
+     [
+      457.601,
+      0.24
+     ],
+     [
+      459.599,
+      0.62
+     ],
+     [
+      459.601,
+      0.27
+     ],
+     [
+      461.532,
+      0.68
+     ],
+     [
+      461.534,
+      0.38
+     ],
+     [
+      462.716,
+      0.38
+     ],
+     [
+      463.899,
+      0.7
+     ],
+     [
+      463.901,
+      0.28
+     ]
+    ]
+   ],
+   [
+    486.7,
+    497.9,
+    [
+     [
+      486.701,
+      0.3
+     ],
+     [
+      489.466,
+      0.55
+     ],
+     [
+      489.468,
+      0.4
+     ],
+     [
+      490.799,
+      0.62
+     ],
+     [
+      490.801,
+      0.28
+     ],
+     [
+      492.599,
+      0.32
+     ],
+     [
+      492.601,
+      0.3
+     ],
+     [
+      496.032,
+      0.6
+     ],
+     [
+      496.034,
+      0.52
+     ]
+    ]
+   ],
+   [
+    506.8,
+    508.2,
+    [
+     [
+      506.801,
+      0.3
+     ]
+    ]
+   ]
+  ],
+  "captions": [
+   [
+    459.4,
+    462.0,
+    "Colorful shirts, cozy hoodies,"
+   ],
+   [
+    462.0,
+    464.95,
+    "and awesome Squish Squad gear for every adventure!"
+   ],
+   [
+    490.9,
+    494.4,
+    "Ask your grown-up to shop at SquishMan.com!"
+   ]
+  ],
+  "chips": {
+   "start": 3.5,
+   "each": 1.6,
+   "items": [
+    "T-Shirts",
+    "Hoodies",
+    "Long Sleeves",
+    "Sweatshirts",
+    "Kids' & Toddler Tees",
+    "Girls' Styles",
+    "Baby One-Piece"
+   ]
+  }
+ },
+ "3": {
+  "file": "Merch_3_Bottles_Puzzles_and_More.mp4",
+  "title": "WATER BOTTLES, PUZZLES & MORE!",
+  "end": "Ready for your next adventure? Shop at SquishMan.com!",
+  "segments": [
+   [
+    454.0,
+    457.5,
+    [
+     [
+      454.0,
+      0.38
+     ],
+     [
+      455.565,
+      0.38
+     ],
+     [
+      457.045,
+      0.66
+     ]
+    ]
+   ],
+   [
+    465.2,
+    478.6,
+    [
+     [
+      465.2,
+      0.28
+     ],
+     [
+      465.599,
+      0.32
+     ],
+     [
+      465.601,
+      0.4
+     ],
+     [
+      467.532,
+      0.55
+     ],
+     [
+      467.534,
+      0.4
+     ],
+     [
+      469.466,
+      0.55
+     ],
+     [
+      469.468,
+      0.4
+     ],
+     [
+      470.799,
+      0.62
+     ],
+     [
+      470.801,
+      0.28
+     ],
+     [
+      472.599,
+      0.32
+     ],
+     [
+      472.601,
+      0.3
+     ],
+     [
+      476.032,
+      0.6
+     ],
+     [
+      476.034,
+      0.52
+     ]
+    ]
+   ]
+  ],
+  "captions": [
+   [
+    465.4,
+    469.0,
+    "Lunch boxes, water bottles, puzzles, and more!"
+   ],
+   [
+    470.9,
+    474.4,
+    "Ask your grown-up to shop at SquishMan.com!"
+   ],
+   [
+    476.3,
+    478.4,
+    "Join the Squish Squad!"
+   ]
+  ],
+  "chips": {
+   "start": 3.5,
+   "each": 1.6,
+   "items": [
+    "Water Bottles",
+    "Maple Hollow Puzzles",
+    "Mugs",
+    "Backpacks",
+    "Tote Bags",
+    "Notebooks",
+    "Stickers & Posters"
+   ]
+  }
+ },
+ "4": {
+  "file": "Merch_4_Shop_with_Squish_Man_and_Pudy.mp4",
+  "title": "SHOP WITH SQUISH MAN & PUDY!",
+  "end": "Want your own Squish Man gear? Ask a grown-up to visit SquishMan.com!",
+  "segments": [
+   [
+    449.6,
+    457.5,
+    [
+     [
+      449.601,
+      0.45
+     ],
+     [
+      453.899,
+      0.47
+     ],
+     [
+      453.901,
+      0.38
+     ],
+     [
+      455.565,
+      0.38
+     ],
+     [
+      457.045,
+      0.66
+     ]
+    ]
+   ],
+   [
+    476.033,
+    486.6,
+    [
+     [
+      476.034,
+      0.52
+     ],
+     [
+      478.799,
+      0.52
+     ],
+     [
+      478.801,
+      0.44
+     ],
+     [
+      482.75,
+      0.46
+     ]
+    ]
+   ]
+  ],
+  "captions": [
+   [
+    449.9,
+    451.1,
+    "Hey, Squish Squad!"
+   ],
+   [
+    451.2,
+    454.0,
+    "Welcome to the magical world of Squish Man!"
+   ],
+   [
+    476.3,
+    478.4,
+    "Join the Squish Squad!"
+   ],
+   [
+    479.2,
+    481.0,
+    "Want your own Squish Man gear?"
+   ],
+   [
+    481.3,
+    486.2,
+    "Ask your grown-up to visit SquishMan.com and shop the Squish Squad Collection!"
+   ]
+  ],
+  "title_end": 3.4
+ },
+ "5": {
+  "file": "Merch_5_The_Whole_Collection.mp4",
+  "title": "THE WHOLE SQUISH SQUAD COLLECTION!",
+  "end": "Which one is your favorite? Shop at SquishMan.com!",
+  "segments": [
+   [
+    486.7,
+    506.6,
+    [
+     [
+      486.701,
+      0.3
+     ],
+     [
+      489.466,
+      0.55
+     ],
+     [
+      489.468,
+      0.4
+     ],
+     [
+      490.799,
+      0.62
+     ],
+     [
+      490.801,
+      0.28
+     ],
+     [
+      492.599,
+      0.32
+     ],
+     [
+      492.601,
+      0.3
+     ],
+     [
+      496.032,
+      0.6
+     ],
+     [
+      496.034,
+      0.52
+     ],
+     [
+      498.799,
+      0.52
+     ],
+     [
+      498.801,
+      0.44
+     ],
+     [
+      502.8,
+      0.46
+     ]
+    ]
+   ]
+  ],
+  "captions": [
+   [
+    490.9,
+    494.4,
+    "Ask your grown-up to shop at SquishMan.com!"
+   ],
+   [
+    496.3,
+    498.4,
+    "Join the Squish Squad!"
+   ],
+   [
+    499.2,
+    501.0,
+    "Want your own Squish Man gear?"
+   ],
+   [
+    501.3,
+    506.2,
+    "Ask your grown-up to visit SquishMan.com and shop the Squish Squad Collection!"
+   ]
+  ],
+  "chips": {
+   "start": 3.3,
+   "each": 1.05,
+   "items": [
+    "T-Shirts",
+    "Hoodies",
+    "Sweatshirts",
+    "Long Sleeves",
+    "Kids' Styles",
+    "Girls' Styles",
+    "Caps & Beanies",
+    "Water Bottles",
+    "Mugs",
+    "Puzzles",
+    "Backpacks",
+    "Tote Bags",
+    "Blankets",
+    "Pillows",
+    "Socks",
+    "Notebooks"
+   ]
+  },
+  "title_end": 3.2
+ },
+ "6": {
+  "file": "Holiday_Merch_Collection.mp4",
+  "title": "HOLIDAY MERCH COLLECTION!",
+  "end": "Ready for the holidays? Shop at SquishMan.com!",
+  "segments": [
+   [
+    509.033,
+    516.2,
+    [
+     [
+      509.034,
+      0.22
+     ],
+     [
+      511.718,
+      0.4
+     ],
+     [
+      514.999,
+      0.42
+     ],
+     [
+      515.001,
+      0.21
+     ]
+    ]
+   ],
+   [
+    498.8,
+    506.6,
+    [
+     [
+      498.801,
+      0.44
+     ],
+     [
+      502.8,
+      0.46
+     ]
+    ]
+   ],
+   [
+    517.033,
+    520.0,
+    [
+     [
+      517.034,
+      0.35
+     ]
+    ]
+   ]
+  ],
+  "captions": [
+   [
+    499.2,
+    501.0,
+    "Want your own Squish Man gear?"
+   ],
+   [
+    501.3,
+    506.2,
+    "Ask your grown-up to visit SquishMan.com and shop the Squish Squad Collection!"
+   ],
+   [
+    510.3,
+    513.2,
+    "Make the holidays magical with Squish Man!"
+   ],
+   [
+    513.3,
+    516.0,
+    "Shop festive favorites at SquishMan.com!"
+   ]
+  ],
+  "chips": {
+   "start": 3.4,
+   "each": 1.7,
+   "items": [
+    "Magical Christmas Wishes",
+    "Cookies for Santa",
+    "Santa's Little Helpers",
+    "Thankful Hearts",
+    "Kids' & Girls' Tees",
+    "Long Sleeves & Sweatshirts",
+    "Snow Globe Ornament"
+   ]
+  }
+ }
+}
