@@ -413,7 +413,7 @@ app.get("/api/fulfillment/health", async (c) => {
 
 /** Lulu's read-only file and price checks for each story paperback. */
 app.get("/api/fulfillment/books", async (c) => {
-	return c.json(await fulfillmentBooks(c.env), 200, { "Cache-Control": "no-store" });
+	return c.json(await fulfillmentBooks(c.env, c.req.query("group") ?? "en"), 200, { "Cache-Control": "no-store" });
 });
 
 app.post("/api/lulu/webhook", async (c) => {

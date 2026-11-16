@@ -985,6 +985,16 @@ describe("story paperback checks", () => {
 		expect(res.status).toBe(200);
 		expect(await res.json()).toEqual({ lulu: "missing" });
 	});
+
+	it("checks one group of five books per request and rejects unknown groups", async () => {
+		for (const group of ["es-paperback", "es-hardcover"]) {
+			const res = await SELF.fetch(`${BASE}/api/fulfillment/books?group=${group}`);
+			expect(res.status).toBe(200);
+			expect(await res.json()).toEqual({ lulu: "missing" });
+		}
+		const bad = await SELF.fetch(`${BASE}/api/fulfillment/books?group=nope`);
+		expect(await bad.json()).toMatchObject({ error: 'unknown group "nope"', groups: ["en", "es-paperback", "es-hardcover"] });
+	});
 });
 
 describe("Lulu key diagnosis", () => {

@@ -308,31 +308,38 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 }
 
 const BOOKS_KEY = "fulfillment:books";
-/** The story books checked by booksCheck (each needs about six Lulu calls). */
-const STORY_PAPERBACKS = [
-	"EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5",
-	"ES-PAPERBACK-1", "ES-PAPERBACK-2", "ES-PAPERBACK-3", "ES-PAPERBACK-4", "ES-PAPERBACK-5",
-	"ES-HARDCOVER-1", "ES-HARDCOVER-2", "ES-HARDCOVER-3", "ES-HARDCOVER-4", "ES-HARDCOVER-5",
-];
+/**
+ * The story books checked by booksCheck, in groups of five: each book needs
+ * about six Lulu calls, so checking all fifteen in one request runs past the
+ * Worker's subrequest limit and Lulu's rate limit. `?group=` picks one.
+ */
+export const BOOK_GROUPS: Record<string, readonly string[]> = {
+	en: ["EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5"],
+	"es-paperback": ["ES-PAPERBACK-1", "ES-PAPERBACK-2", "ES-PAPERBACK-3", "ES-PAPERBACK-4", "ES-PAPERBACK-5"],
+	"es-hardcover": ["ES-HARDCOVER-1", "ES-HARDCOVER-2", "ES-HARDCOVER-3", "ES-HARDCOVER-4", "ES-HARDCOVER-5"],
+};
 
 /**
- * Lulu's read-only checks for every mapped story paperback: cover size, the
- * cost of one copy by mail, file validation and whether it auto-prints.
- * Cached in KV for 5 minutes like the health check. Creates no print jobs.
+ * Lulu's read-only checks for one group of story books (default: English
+ * paperbacks): cover size, the cost of one copy by mail, file validation and
+ * whether it auto-prints. Cached in KV for 5 minutes per group. Creates no print jobs.
  */
-export async function booksCheck(env: Env): Promise<Record<string, unknown>> {
-	const cached = await env.VISIBILITY_CACHE.get(BOOKS_KEY, "json");
+export async function booksCheck(env: Env, group = "en"): Promise<Record<string, unknown>> {
+	const keys = BOOK_GROUPS[group];
+	if (!keys) return { error: `unknown group "${group}"`, groups: Object.keys(BOOK_GROUPS) };
+	const cacheKey = group === "en" ? BOOKS_KEY : `${BOOKS_KEY}:${group}`;
+	const cached = await env.VISIBILITY_CACHE.get(cacheKey, "json");
 	if (cached) return { ...(cached as Record<string, unknown>), cached: true };
 	const creds = luluCredentials(env, true);
 	if (!creds) return { lulu: "missing" };
-	const result: Record<string, unknown> = { luluEnvironment: creds.mode };
-	for (const key of STORY_PAPERBACKS) {
+	const result: Record<string, unknown> = { luluEnvironment: creds.mode, group, groups: Object.keys(BOOK_GROUPS) };
+	for (const key of keys) {
 		const entry = byKey(key);
 		result[key] = entry
 			? { productionEnabled: entry.productionEnabled, ...(await bookCheck(env, creds, key, ["MAIL"])) }
 			: "not in catalog";
 	}
-	await env.VISIBILITY_CACHE.put(BOOKS_KEY, JSON.stringify(result), { expirationTtl: HEALTH_TTL });
+	await env.VISIBILITY_CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: HEALTH_TTL });
 	return result;
 }
 
