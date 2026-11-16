@@ -237,3 +237,51 @@ describe("Agent Visibility template", () => {
 		expect(dir.status).toBe(404);
 	});
 });
+
+describe("site forms", () => {
+	const post = (path: string, body: unknown) =>
+		SELF.fetch(`${BASE}${path}`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json", "cf-connecting-ip": `203.0.113.${Math.floor(Math.random() * 250)}` },
+			body: JSON.stringify(body),
+		});
+	const contact = { name: "Pat", email: "pat@example.com", reason: "General Question", message: "Hello Squish Man!" };
+
+	it("rejects a contact message with missing fields or an unknown reason", async () => {
+		expect((await post("/api/contact", { ...contact, email: "nope" })).status).toBe(400);
+		expect((await post("/api/contact", { ...contact, message: "  " })).status).toBe(400);
+		expect((await post("/api/contact", { ...contact, reason: "Spam" })).status).toBe(400);
+	});
+
+	it("says email isn't set up when there is no Resend key, so the page falls back to mailto", async () => {
+		const res = await post("/api/contact", contact);
+		expect(res.status).toBe(503);
+		expect(await res.json()).toEqual({ ok: false, error: "EMAIL_NOT_CONFIGURED" });
+	});
+
+	it("quietly accepts a submission that fills the hidden bot field", async () => {
+		const res = await post("/api/contact", { ...contact, website: "http://spam.example" });
+		expect(res.status).toBe(200);
+		expect(await res.json()).toEqual({ ok: true });
+	});
+
+	it("checks the Squish Squad sign-up", async () => {
+		const signup = { name: "Pat", email: "pat@example.com", interest: "Birthday Club" };
+		expect((await post("/api/squad/signup", { ...signup, interest: "Free money" })).status).toBe(400);
+		expect((await post("/api/squad/signup", { ...signup, email: "" })).status).toBe(400);
+		expect((await post("/api/squad/signup", signup)).status).toBe(503);
+	});
+
+	it("limits how often one visitor can submit", async () => {
+		const send = () =>
+			SELF.fetch(`${BASE}/api/squad/signup`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json", "cf-connecting-ip": "198.51.100.7" },
+				body: JSON.stringify({ name: "Pat", email: "pat@example.com" }),
+			});
+		const statuses: number[] = [];
+		for (let i = 0; i < 9; i++) statuses.push((await send()).status);
+		expect(statuses.slice(0, 8).every((s) => s === 503)).toBe(true);
+		expect(statuses[8]).toBe(429);
+	});
+});
