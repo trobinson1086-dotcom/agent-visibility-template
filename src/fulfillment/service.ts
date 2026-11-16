@@ -308,8 +308,12 @@ async function printfulCheck(token: string | undefined): Promise<string | Record
 }
 
 const BOOKS_KEY = "fulfillment:books";
-/** The story paperbacks checked by booksCheck (each needs about six Lulu calls). */
-const STORY_PAPERBACKS = ["EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5"];
+/** The story books checked by booksCheck (each needs about six Lulu calls). */
+const STORY_PAPERBACKS = [
+	"EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5",
+	"ES-PAPERBACK-1", "ES-PAPERBACK-2", "ES-PAPERBACK-3", "ES-PAPERBACK-4", "ES-PAPERBACK-5",
+	"ES-HARDCOVER-1", "ES-HARDCOVER-2", "ES-HARDCOVER-3", "ES-HARDCOVER-4", "ES-HARDCOVER-5",
+];
 
 /**
  * Lulu's read-only checks for every mapped story paperback: cover size, the

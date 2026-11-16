@@ -344,8 +344,19 @@ describe("catalog", () => {
 		const lulu = (k: string) => json.products.find((p) => p.key === k)?.lulu;
 		expect(lulu("EN-PAPERBACK-2")).toEqual(square);
 		for (const k of ["EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5"]) expect(lulu(k)).toEqual(letter);
-		const unmapped = json.products.filter((p) => !/^EN-PAPERBACK-[1-5]$/.test(p.key) && p.lulu !== "NOT_PHYSICAL");
-		expect(unmapped).toHaveLength(40);
+		// Spanish Libros 1–5: paperbacks match the English specs; hardcovers are casewrap at the same size.
+		const caseSquare = { podPackageId: "0850X0850.FC.STD.CW.080CW444.GXX", pageCount: 32 };
+		const caseLetter = { podPackageId: "0850X1100.FC.STD.CW.080CW444.GXX", pageCount: 32 };
+		expect(lulu("ES-PAPERBACK-2")).toEqual(square);
+		expect(lulu("ES-HARDCOVER-2")).toEqual(caseSquare);
+		for (const n of [1, 3, 4, 5]) {
+			expect(lulu(`ES-PAPERBACK-${n}`)).toEqual(letter);
+			expect(lulu(`ES-HARDCOVER-${n}`)).toEqual(caseLetter);
+		}
+		const unmapped = json.products.filter(
+			(p) => !/^(EN-PAPERBACK|ES-PAPERBACK|ES-HARDCOVER)-[1-5]$/.test(p.key) && p.lulu !== "NOT_PHYSICAL",
+		);
+		expect(unmapped).toHaveLength(30);
 		expect(unmapped.every((p) => p.lulu === "FULFILLMENT_MAPPING_REQUIRED")).toBe(true);
 		expect(json.products.find((p) => p.key === "EN-EBOOK-1")?.lulu).toBe("NOT_PHYSICAL");
 		expect(json.products.filter((p) => p.productionEnabled).map((p) => p.key)).toEqual(["EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5"]);
