@@ -20,6 +20,7 @@ import {
 	shippingCents,
 } from "./merch";
 import {
+	confirmOrder,
 	createOrder,
 	externalId,
 	getOrder,
@@ -370,4 +371,65 @@ export async function reconcileMerch(env: Env): Promise<number> {
 		}
 	}
 	return n;
+}
+
+/**
+ * Owner-approved Printful drafts. PRINTFUL_CONFIRM_DRAFTS lists
+ * "printfulOrderId:approvedTotal" pairs (comma separated). Each listed draft is
+ * confirmed once, and only while Printful still shows it as a draft of one of
+ * our orders whose current total equals the approved total to the cent.
+ * Anything else is logged and left for a person.
+ */
+export async function confirmApprovedDrafts(env: Env): Promise<{ confirmed: number; skipped: number }> {
+	const out = { confirmed: 0, skipped: 0 };
+	const db = env.ORDERS_DB;
+	const t = token(env);
+	const raw = (env.PRINTFUL_CONFIRM_DRAFTS ?? "").trim();
+	if (!db || !t || !raw) return out;
+	for (const pair of raw.split(",")) {
+		const [idText, totalText] = pair.split(":").map((v) => v.trim());
+		const approved = Number(totalText);
+		if (!/^\d+$/.test(idText ?? "") || !Number.isFinite(approved)) {
+			log("confirm_skipped", { entry: pair.slice(0, 40), reason: "BAD_ENTRY" });
+			out.skipped++;
+			continue;
+		}
+		try {
+			const rec = await db
+				.prepare("SELECT stripe_session_id FROM fulfillments WHERE provider = 'printful' AND printful_order_id = ?")
+				.bind(idText)
+				.first<{ stripe_session_id: string }>();
+			if (!rec) {
+				log("confirm_skipped", { printful: idText, reason: "NOT_OUR_ORDER" });
+				out.skipped++;
+				continue;
+			}
+			const order = await getOrder(t, await externalId(rec.stripe_session_id));
+			if (!order || String(order.id) !== idText) {
+				log("confirm_skipped", { printful: idText, reason: "NOT_FOUND" });
+				out.skipped++;
+				continue;
+			}
+			if (order.status !== "draft") {
+				// Already confirmed (by us or in the dashboard), canceled or failed: just record it.
+				await applyOrder(db, rec.stripe_session_id, order);
+				out.skipped++;
+				continue;
+			}
+			const total = Number((order.costs as { total?: unknown } | undefined)?.total);
+			if (!Number.isFinite(total) || Math.round(total * 100) !== Math.round(approved * 100)) {
+				log("confirm_skipped", { printful: idText, reason: "TOTAL_CHANGED", approved, total });
+				out.skipped++;
+				continue;
+			}
+			const confirmed = await confirmOrder(t, order.id);
+			await applyOrder(db, rec.stripe_session_id, confirmed);
+			log("confirmed_draft", { printful: idText, session: rec.stripe_session_id, printful_status: confirmed.status });
+			out.confirmed++;
+		} catch (err) {
+			log("confirm_error", { printful: idText, error: errorDetail(err).slice(0, 120) });
+			out.skipped++;
+		}
+	}
+	return out;
 }
