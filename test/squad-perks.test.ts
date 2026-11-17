@@ -11,6 +11,7 @@ import {
 	birthdayGift,
 	getSquadMember,
 	memberEbooks,
+	parentConfirmName,
 	recordSquadMember,
 	type SquadMember,
 	squadWelcomePage,
@@ -736,5 +737,92 @@ describe("membership tiers", () => {
 		expect(hero.html).toContain("Squish Squad Hero");
 		expect(hero.html).not.toContain("shirt-size");
 		expect(hero.html).toContain("2 more eBooks every 6 months");
+	});
+});
+
+// --- Name check and waiting-gift alerts -----------------------------------------
+
+describe("birthday gift follow-up", () => {
+	const HERO_YEARLY = "price_1UXFN69cRroVv8pkP2HM68jr";
+	const NOW = new Date("2026-11-20T15:00:00Z");
+
+	function typoSession(id: string, first: string, second: string) {
+		sessions.set(id, {
+			id,
+			object: "checkout.session",
+			livemode: false,
+			payment_status: "paid",
+			status: "complete",
+			payment_intent: null,
+			subscription: `sub_${id}`,
+			created: Math.floor(Date.parse("2026-11-05T12:00:00Z") / 1000),
+			customer_details: { email: `${id}@example.com`, name: "Pat Parent", phone: null },
+			collected_information: {
+				shipping_details: {
+					name: "Pat Parent",
+					address: { line1: "100 Maple St", line2: null, city: "Austin", state: "TX", postal_code: "78701", country: "US" },
+				},
+			},
+			custom_fields: [
+				{ key: "childname", type: "text", text: { value: first } },
+				{ key: "childname2", type: "text", text: { value: second } },
+				{ key: "birthmonth", type: "dropdown", dropdown: { value: "12" } },
+			],
+			line_items: { data: [{ quantity: 1, price: { id: HERO_YEARLY } }], has_more: false },
+			metadata: {},
+		});
+		subscriptions.set(`sub_${id}`, "active");
+		return id;
+	}
+
+	it("emails the parent to pick the spelling when the two names differ, and lets them pick it once", async () => {
+		const e = testEnv();
+		await deliver(e, typoSession("cs_test_namecheck", "Mya", "Maya"));
+		const m = await getSquadMember(e, "cs_test_namecheck");
+		expect(m).toMatchObject({ childName: "Mya", childNameAlt: "Maya", nameConfirmed: false });
+		const check = emails.find((x) => String(x.subject).startsWith("Please check your child's name"));
+		expect(check?.to).toEqual(["cs_test_namecheck@example.com"]);
+		expect(check?.html).toContain("<b>Mya</b> and <b>Maya</b>");
+		expect(check?.html).toContain("/api/squad/welcome?session_id=cs_test_namecheck#name");
+
+		// Matching names: no check email.
+		await deliver(e, typoSession("cs_test_nameok", "Leo", "leo"));
+		expect(emails.some((x) => (x.to as string[])[0] === "cs_test_nameok@example.com" && String(x.subject).includes("check"))).toBe(false);
+
+		const page = await squadWelcomePage(e, "cs_test_namecheck");
+		expect(page.html).toContain("Which spelling is right?");
+		expect(page.html).toContain('value="Maya"');
+
+		const res = await SELF.fetch(`${BASE}/api/squad/child-name`, {
+			method: "POST",
+			body: new URLSearchParams({ session_id: "cs_test_namecheck", choice: "Maya" }),
+			redirect: "manual",
+		});
+		expect(res.status).toBe(303);
+		expect(await getSquadMember(env, "cs_test_namecheck")).toMatchObject({ childName: "Maya", nameConfirmed: true, childNameAlt: null });
+		// Once confirmed, an old link can't change it.
+		expect(await parentConfirmName(env, "cs_test_namecheck", "Zed")).toBeNull();
+	});
+
+	it("tells the shop's inbox once about gifts that wait, and reminds the parent about the spelling", async () => {
+		const e = testEnv({ SQUAD_POSTERS: "draft", FULFILLMENT_CONTACT_EMAIL: "orders@squishman.com" });
+		await recordSquadMember(e, member("cs_test_alerttypo", { nameConfirmed: false, childName: "Mya", childNameAlt: "Maya", email: "typo@example.com", tier: "hero" }));
+		await recordSquadMember(e, member("cs_test_alertdraft", { childName: "Ruby", tier: "hero" }));
+		subscriptions.set("sub_cs_test_alerttypo", "active");
+		subscriptions.set("sub_cs_test_alertdraft", "active");
+		const summary = await runSquadDaily(e, "sandbox", NOW, { force: true });
+		expect(summary.alerts).toBe(2);
+		const alerts = emails.filter((x) => (x.to as string[])[0] === "orders@squishman.com" && String(x.subject).includes("waiting"));
+		expect(alerts).toHaveLength(1);
+		expect(alerts[0].html).toContain("Mya");
+		expect(alerts[0].html).toContain("confirmed the spelling");
+		expect(alerts[0].html).toContain("Ruby");
+		expect(alerts[0].html).toContain("Confirm the draft order in your Printful dashboard");
+		expect(emails.some((x) => (x.to as string[])[0] === "typo@example.com" && String(x.subject).startsWith("Reminder: please check"))).toBe(true);
+
+		// The next day: nothing new, so no second alert or reminder.
+		const before = emails.length;
+		await runSquadDaily(e, "sandbox", new Date("2026-11-21T15:00:00Z"), { force: true });
+		expect(emails.length).toBe(before);
 	});
 });

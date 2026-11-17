@@ -77,6 +77,8 @@ export interface SquadMember {
 	childName: string;
 	/** False when the two name fields did not match: confirm spelling before printing. */
 	nameConfirmed: boolean;
+	/** The second spelling typed at checkout, kept while the two don't match. */
+	childNameAlt?: string | null;
 	/** 1-12. */
 	birthMonth: number | null;
 	email: string | null;
@@ -155,6 +157,7 @@ export function memberFromSession(
 		plan,
 		childName: name,
 		nameConfirmed: name.length > 0 && name.toLowerCase() === again.toLowerCase(),
+		childNameAlt: again && again.toLowerCase() !== name.toLowerCase() ? again : null,
 		birthMonth: month >= 1 && month <= 12 ? month : null,
 		email: session.customer_details?.email ?? null,
 		shipping: ship
@@ -241,6 +244,21 @@ export async function confirmChildName(
 	const name = childName === undefined ? m.childName : cleanChildName(childName);
 	if (!name) return null;
 	const updated = { ...m, childName: name, nameConfirmed: true };
+	await env.VISIBILITY_CACHE.put(KEY_PREFIX + sessionId, JSON.stringify(updated));
+	return updated;
+}
+
+/**
+ * The parent picks (or types) the right spelling on the welcome page. Only
+ * while it is still unconfirmed, so a confirmed name can't be changed by
+ * anyone holding an old link; after that, email us.
+ */
+export async function parentConfirmName(env: Env, sessionId: string, childName: string): Promise<SquadMember | null> {
+	const m = await getSquadMember(env, sessionId);
+	if (!m || m.nameConfirmed) return null;
+	const name = cleanChildName(childName);
+	if (!name) return null;
+	const updated = { ...m, childName: name, nameConfirmed: true, childNameAlt: null };
 	await env.VISIBILITY_CACHE.put(KEY_PREFIX + sessionId, JSON.stringify(updated));
 	return updated;
 }
@@ -427,9 +445,15 @@ export async function squadWelcomePage(
 			"<b>Every Squish Man eBook</b>, plus first copies of new releases.",
 		],
 	};
+	const spellings = [m.childName, m.childNameAlt].filter((x, i, a): x is string => !!x && a.indexOf(x) === i);
 	const warn = m.nameConfirmed
 		? ""
-		: `<p class="warn">The two name spellings you typed didn't match. We'll email you to confirm the spelling before making anything with your child's name.</p>`;
+		: `<div class="box warn" id="name"><h2>✏️ Which spelling is right?</h2>
+<p>The two name spellings you typed didn't match. Pick the right one so your child's birthday gift is just right. Nothing is made with the name until you do.</p>
+<form method="post" action="/api/squad/child-name"><input type="hidden" name="session_id" value="${esc(session.id)}">
+${spellings.map((sp, i) => `<label style="display:block;margin:8px 0;font-size:1.1rem"><input type="radio" name="choice" value="${esc(sp)}"${i === 0 ? " checked" : ""}> <b>${esc(sp)}</b></label>`).join("")}
+<label style="display:block;margin:8px 0;font-size:1.1rem"><input type="radio" name="choice" value="other"${spellings.length ? "" : " checked"}> Something else: <input type="text" name="other" maxlength="20" autocomplete="off" style="font-size:1rem;padding:8px;border-radius:8px;border:1px solid #b8cbea"></label>
+<button class="btn" type="submit">Save the name</button></form></div>`;
 	const body = `
 <div class="noprint">
 <h1>Welcome to the Squish Squad, ${esc(name)}! 🐾</h1>

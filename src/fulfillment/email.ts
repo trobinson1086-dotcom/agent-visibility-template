@@ -232,6 +232,69 @@ export function squadWelcomeEmail(
 	return { subject: "Welcome to the Squish Squad! 🐾", html, text };
 }
 
+/**
+ * Sent when the two name spellings typed at checkout don't match: the parent
+ * picks the right one on the welcome page before anything is made with it.
+ * `reminder` is the second nudge, sent when the birthday gift is due and the
+ * spelling is still unconfirmed.
+ */
+export function nameCheckEmail(
+	env: Env,
+	m: { sessionId: string; childName: string; childNameAlt?: string | null },
+	{ reminder = false }: { reminder?: boolean } = {},
+): Pick<Email, "subject" | "html" | "text"> {
+	const url = `${baseUrl(env)}/api/squad/welcome?session_id=${encodeURIComponent(m.sessionId)}#name`;
+	const spellings = [m.childName, m.childNameAlt].filter((x, i, a): x is string => !!x && a.indexOf(x) === i);
+	const typed = spellings.length > 1 ? `You typed <b>${spellings.map(esc).join("</b> and <b>")}</b>.` : "";
+	const typedText = spellings.length > 1 ? `You typed ${spellings.join(" and ")}. ` : "";
+	const lead = reminder
+		? "Your child's Squish Squad birthday gift is almost ready, but we still need the right spelling of their name before we make it."
+		: "Thanks for joining the Squish Squad! The two name spellings at checkout didn't match, and we want your child's birthday gift to be just right.";
+	const html = layout(
+		env,
+		"Please check your child's name",
+		`<h1 style="font-size:24px;color:#07347d;margin:0 0 12px">Please check your child's name ✏️</h1>
+<p>${esc(lead)} ${typed}</p>
+<p>${button(url, "Choose the right spelling")}</p>
+<p>It takes a few seconds, and nothing is printed with the name until you do.</p>`,
+	);
+	const text = `Please check your child's name\n\n${lead} ${typedText}\n\nChoose the right spelling: ${url}\n\nNothing is printed with the name until you do.`;
+	return { subject: reminder ? "Reminder: please check your child's name 🎂" : "Please check your child's name for their birthday gift ✏️", html, text };
+}
+
+/** One line of the owner's birthday gift alert. */
+export interface PosterAlertItem {
+	childName: string;
+	birthday: string;
+	gift: string;
+	/** What is holding it up, in plain words. */
+	reason: string;
+	/** What to do about it, in plain words. */
+	todo: string;
+}
+
+/** Sent to the shop's own inbox when a birthday gift is waiting on someone. */
+export function posterAlertEmail(env: Env, items: PosterAlertItem[]): Pick<Email, "subject" | "html" | "text"> {
+	const rows = items
+		.map(
+			(i) =>
+				`<li style="margin:0 0 12px"><b>${esc(i.childName || "(no name yet)")}</b>, ${esc(i.gift)} for ${esc(i.birthday)}<br>${esc(i.reason)}<br><b>To do:</b> ${esc(i.todo)}</li>`,
+		)
+		.join("");
+	const n = items.length;
+	const html = layout(
+		env,
+		"Birthday gifts waiting",
+		`<h1 style="font-size:22px;color:#07347d;margin:0 0 12px">${n} Squish Squad birthday gift${n === 1 ? " is" : "s are"} waiting 🎂</h1>
+<ul style="padding-left:18px">${rows}</ul>
+<p style="font-size:14px;color:#4b5a7c">You get this once for each gift when it starts waiting. The site keeps trying on its own every day.</p>`,
+	);
+	const text = `${n} Squish Squad birthday gift${n === 1 ? " is" : "s are"} waiting\n\n${items
+		.map((i) => `- ${i.childName || "(no name yet)"}, ${i.gift} for ${i.birthday}: ${i.reason} To do: ${i.todo}`)
+		.join("\n")}`;
+	return { subject: `${n} birthday gift${n === 1 ? "" : "s"} waiting on the Squish Squad 🎂`, html, text };
+}
+
 /** Pal birthday: the printable personalized poster, by email. */
 export function digitalBirthdayEmail(
 	env: Env,

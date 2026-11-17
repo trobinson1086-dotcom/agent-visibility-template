@@ -27,6 +27,9 @@ import {
 	packBonus,
 	packBonusEmail,
 	packEmail,
+	nameCheckEmail,
+	posterAlertEmail,
+	type PosterAlertItem,
 	posterEmail,
 	sendOnce,
 	type SquadPack,
@@ -745,6 +748,8 @@ export interface DailySummary {
 	squishMail: Record<string, number>;
 	pack: { month: string; published: boolean; sent: number; skipped: number; failed: number };
 	ran: boolean;
+	/** Birthday gifts newly reported to the shop's inbox as waiting. */
+	alerts?: number;
 }
 
 /**
@@ -752,6 +757,79 @@ export interface DailySummary {
  * work once per UTC day, at or after 14:00 UTC (morning in the US), so pack
  * emails arrive at a friendly hour. `force` runs it now regardless.
  */
+const ALERT_PREFIX = "squad:poster-alert:";
+const GIFT_LABEL: Record<BirthdayGift, string> = { digital: "printable poster (email)", poster: "printed poster", box: "birthday box" };
+
+/** Why a birthday gift waits and what to do, or null when nobody needs to act. */
+export function posterAlert(rec: PosterRecord): Pick<PosterAlertItem, "reason" | "todo"> | null {
+	const code = (rec.detail ?? "").split(":")[0];
+	if (rec.status === "ORDERED") {
+		return code === "PRINTFUL_DRAFT"
+			? { reason: "The Printful order is a draft, so it won't print until it's confirmed.", todo: "Confirm the draft order in your Printful dashboard so it prints and ships." }
+			: null;
+	}
+	if (rec.status === "FAILED") {
+		return rec.attempts >= MAX_AUTO_ATTEMPTS
+			? { reason: `The order failed ${rec.attempts} times (${(rec.detail ?? "unknown error").slice(0, 120)}).`, todo: "Check Printful, then order it again from the admin page." }
+			: null;
+	}
+	if (rec.status !== "HELD") return null;
+	switch (code) {
+		case "NAME_UNCONFIRMED":
+		case "NAME_MISSING":
+			return { reason: "The parent hasn't confirmed the spelling of the child's name.", todo: "Nothing yet: we emailed the parent a reminder. If they write to you, confirm the name from the admin page." };
+		case "SHIRT_SIZE_NEEDED":
+			return { reason: "The parent hasn't picked a tee size for the birthday box.", todo: "Nothing yet: it's asked on their welcome page. You can email them to pick one." };
+		case "INVALID_ADDRESS":
+		case "NON_US_ADDRESS":
+			return { reason: "The mailing address is missing a part or isn't in the US.", todo: "Email the parent for a full US address." };
+		case "NO_EMAIL":
+		case "EMAIL_RESEND_NOT_CONFIGURED":
+			return { reason: "The birthday email couldn't be sent.", todo: "Check the member's email address and the email settings." };
+		case "PRINTFUL_NOT_CONFIGURED":
+		case "POSTERS_OFF":
+		case "ASSETS_NOT_CONFIGURED":
+			return { reason: "Printed posters are switched off or not set up on the site.", todo: "Turn printed posters back on in the site settings." };
+		default:
+			return null;
+	}
+}
+
+/**
+ * Once a day: email the parent a reminder when a gift waits on the spelling,
+ * and tell the shop's inbox about every gift that newly needs someone.
+ */
+async function alertWaitingPosters(env: Env, date: string, waiting: Array<{ member: SquadMember; rec: PosterRecord }>): Promise<number> {
+	const fresh: Array<{ key: string; item: PosterAlertItem }> = [];
+	for (const { member, rec } of waiting) {
+		const alert = posterAlert(rec);
+		if (!alert) continue;
+		if (rec.detail?.startsWith("NAME_UNCONFIRMED") && member.email) {
+			await sendOnce(env, `squad-name-reminder:${member.sessionId}:${rec.year}`, {
+				to: member.email,
+				...nameCheckEmail(env, member, { reminder: true }),
+				tags: [{ name: "type", value: "squad_name_check" }],
+			}).catch((err) => log("email_failed", { member: member.sessionId, error: errorDetail(err).slice(0, 120) }));
+		}
+		const key = `${ALERT_PREFIX}${member.sessionId}:${rec.year}:${rec.status}:${(rec.detail ?? "").split(":")[0]}`;
+		if (await env.VISIBILITY_CACHE.get(key)) continue;
+		fresh.push({ key, item: { childName: member.childName, birthday: rec.birthday, gift: GIFT_LABEL[rec.gift ?? birthdayGift(member)], ...alert } });
+	}
+	const to = env.FULFILLMENT_CONTACT_EMAIL;
+	if (!fresh.length || !to) return 0;
+	// One email per distinct set of newly waiting gifts (a same-day retry with new ones still sends).
+	const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(fresh.map((f) => f.key).join("|"))));
+	const setId = [...digest.slice(0, 8)].map((b) => b.toString(16).padStart(2, "0")).join("");
+	const r = await sendOnce(env, `squad-poster-alert:${date}:${setId}`, {
+		to,
+		...posterAlertEmail(env, fresh.map((f) => f.item)),
+		tags: [{ name: "type", value: "squad_poster_alert" }],
+	});
+	if (r.status === "skipped") return 0;
+	for (const f of fresh) await env.VISIBILITY_CACHE.put(f.key, "1", { expirationTtl: 400 * 86_400 });
+	return fresh.length;
+}
+
 export async function runSquadDaily(
 	env: Env,
 	mode: FulfillmentMode,
@@ -775,6 +853,7 @@ export async function runSquadDaily(
 	const pack = await getPack(env, summary.pack.month);
 	summary.pack.published = !!pack?.published;
 	let failures = 0;
+	const waiting: Array<{ member: SquadMember; rec: PosterRecord }> = [];
 	for (const m of members) {
 		// Members recorded before the email index existed.
 		await indexMemberEmail(env, m);
@@ -782,6 +861,7 @@ export async function runSquadDaily(
 		if (poster) {
 			summary.posters[poster.status] = (summary.posters[poster.status] ?? 0) + 1;
 			if (poster.status === "FAILED" && poster.attempts < MAX_AUTO_ATTEMPTS) failures++;
+			if (posterAlert(poster)) waiting.push({ member: m, rec: poster });
 		}
 		const mail = await processSquishMail(env, mode, m, now, { subs });
 		if (mail) {
@@ -793,6 +873,12 @@ export async function runSquadDaily(
 			summary.pack[r]++;
 			if (r === "failed") failures++;
 		}
+	}
+	try {
+		summary.alerts = await alertWaitingPosters(env, date, waiting);
+	} catch (err) {
+		failures++;
+		log("poster_alert_failed", { error: errorDetail(err).slice(0, 120) });
 	}
 	// Retry next hour when anything failed (each step is idempotent).
 	if (failures === 0) await env.VISIBILITY_CACHE.put(DAILY_PREFIX + date, JSON.stringify(summary), { expirationTtl: 40 * 86_400 });

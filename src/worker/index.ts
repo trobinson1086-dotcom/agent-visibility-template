@@ -71,6 +71,7 @@ import {
 	listSquadMembers,
 	nextPoster,
 	setShirtSize,
+	parentConfirmName,
 	squadWelcomePage,
 	tierOf,
 } from "../fulfillment/squad";
@@ -401,6 +402,18 @@ app.post("/api/squad/shirt-size", async (c) => {
 	if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId)) return c.text("Unknown membership", 400);
 	const m = await setShirtSize(c.env, sessionId, size);
 	if (!m) return c.text("We couldn't save that size. Please try again, or email orders@squishman.com.", 400);
+	return c.redirect(`/api/squad/welcome?session_id=${encodeURIComponent(sessionId)}`, 303);
+});
+
+/** The parent picks the right spelling of the child's name (only while it is unconfirmed). */
+app.post("/api/squad/child-name", async (c) => {
+	const form = await c.req.parseBody().catch(() => ({}) as Record<string, unknown>);
+	const sessionId = typeof form.session_id === "string" ? form.session_id : "";
+	const choice = typeof form.choice === "string" ? form.choice : "";
+	const name = choice === "other" ? (typeof form.other === "string" ? form.other : "") : choice;
+	if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId)) return c.text("Unknown membership", 400);
+	const m = await parentConfirmName(c.env, sessionId, name);
+	if (!m) return c.text("We couldn't save that name. Please try again, or email orders@squishman.com.", 400);
 	return c.redirect(`/api/squad/welcome?session_id=${encodeURIComponent(sessionId)}`, 303);
 });
 
