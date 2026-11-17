@@ -43,3 +43,7 @@ document.querySelectorAll('.yt-facade').forEach(btn=>btn.addEventListener('click
  const io=new IntersectionObserver(es=>{es.forEach(e=>e.isIntersecting?hide.add(e.target):hide.delete(e.target));update()});
  document.querySelectorAll('#books,#squad-join,#contact,footer').forEach(el=>io.observe(el));
 })();
+
+// Holiday banner: shows only between its data-start and data-end times (Eastern),
+// or on any page opened with ?holiday=preview so it can be checked before the sale.
+(function(){var b=document.querySelector('.holiday-bar');if(!b)return;var now=Date.now(),s=Date.parse(b.dataset.start),e=Date.parse(b.dataset.end);var preview=/[?&]holiday=preview\b/.test(location.search);if(preview||(now>=s&&now<e))b.hidden=false;})();
