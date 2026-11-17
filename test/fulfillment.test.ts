@@ -2139,3 +2139,34 @@ describe("merch orders → Printful", () => {
 		});
 	});
 });
+
+describe("book collections", () => {
+	it("creates a free-shipping Stripe checkout at the collection's price", async () => {
+		const { createBundleCheckout } = await import("../src/fulfillment/bundles");
+		const before = stripeCreates.length;
+		const r = await createBundleCheckout(sandboxEnv(), "EN-LEARNING-SET", "https://squishman.com");
+		expect(r).toEqual({ status: 303, url: "https://checkout.stripe.com/c/pay/cs_test_new" });
+		const f = stripeCreates[before];
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("6599");
+		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("0");
+		expect(f.get("shipping_address_collection[allowed_countries][0]")).toBe("US");
+		expect(f.get("metadata[bundle]")).toBe("EN-LEARNING-SET");
+		const big = await createBundleCheckout(sandboxEnv(), "BILINGUAL-BUNDLE", "https://squishman.com");
+		expect(big.status).toBe(303);
+		expect(stripeCreates[before + 1].get("line_items[0][price_data][unit_amount]")).toBe("12999");
+	});
+
+	it("records a paid bundle as its ten books and holds it for a hand-placed Lulu order", async () => {
+		session("cs_test_bundle", { price: "price_adhoc_bundle", quantity: 1, metadata: { bundle: "BILINGUAL-BUNDLE" } });
+		const r = await deliver(sandboxEnv(), paidEvent("cs_test_bundle"));
+		expect(r.body).toMatchObject({ fulfillment: "held" });
+		const rec = await store.get(env.ORDERS_DB!, "cs_test_bundle");
+		expect(rec?.status).toBe("HELD");
+		const items = JSON.parse(rec!.items_json) as Array<{ key: string; quantity: number }>;
+		expect(items.map((i) => i.key)).toEqual([
+			"EN-LEARNING-1", "EN-LEARNING-2", "EN-LEARNING-3", "EN-LEARNING-4", "EN-LEARNING-5",
+			"ES-LEARNING-1", "ES-LEARNING-2", "ES-LEARNING-3", "ES-LEARNING-4", "ES-LEARNING-5",
+		]);
+		expect(lulu.creates).toBe(0);
+	});
+});

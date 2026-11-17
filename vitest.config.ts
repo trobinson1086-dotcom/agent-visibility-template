@@ -21,7 +21,7 @@ export default defineWorkersProject(async () => {
 					miniflare: {
 						// Provide the admin secret for the mutating-route tests, and start
 						// from a closed shop whatever the live MERCH_CHECKOUT setting is.
-						bindings: { ADMIN_TOKEN: "test-token", MERCH_CHECKOUT: "off", TEST_MIGRATIONS: migrations },
+						bindings: { ADMIN_TOKEN: "test-token", MERCH_CHECKOUT: "off", SQUAD_PACK_SECRET: "test-pack-secret", TEST_MIGRATIONS: migrations },
 					},
 				},
 			},

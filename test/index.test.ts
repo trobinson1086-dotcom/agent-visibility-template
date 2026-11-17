@@ -285,3 +285,16 @@ describe("site forms", () => {
 		expect(statuses[8]).toBe(429);
 	});
 });
+
+describe("book collections", () => {
+	it("refuses an unknown collection", async () => {
+		const res = await SELF.fetch(`${BASE}/api/bundle/checkout?bundle=NOPE`, { redirect: "manual" });
+		expect(res.status).toBe(404);
+	});
+
+	it("says checkout isn't ready when there is no Stripe key", async () => {
+		const res = await SELF.fetch(`${BASE}/api/bundle/checkout?bundle=BILINGUAL-BUNDLE`, { redirect: "manual" });
+		expect(res.status).toBe(503);
+		expect(await res.text()).toContain("orders@squishman.com");
+	});
+});

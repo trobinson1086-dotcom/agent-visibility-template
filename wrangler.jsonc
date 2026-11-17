@@ -16,6 +16,7 @@
 			"/.well-known/web-bot-auth/*",
 			"/api",
 			"/api/*",
+			"/assets/squad-packs/*",
 			"/index.json",
 			"/jsonld",
 			"/llms-full.txt",

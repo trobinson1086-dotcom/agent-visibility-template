@@ -62,6 +62,8 @@ import {
 import { type CheckoutRequest, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import { ebookDownloadPage } from "../fulfillment/ebooks";
 import { handleContact, handleSquadSignup } from "./forms";
+import { createBundleCheckout } from "../fulfillment/bundles";
+import { packFileAllowed } from "../fulfillment/pack-access";
 import {
 	birthdayGift,
 	confirmChildName,
@@ -372,6 +374,25 @@ app.get("/api/squad/poster-art/:file", async (c) => {
 	});
 });
 
+/**
+ * Squish Squad Pack files are for members: served only with the month's key
+ * from the pack email (packs through November 2026 stay open; see
+ * fulfillment/pack-access.ts).
+ */
+app.get("/assets/squad-packs/*", async (c) => {
+	const path = new URL(c.req.url).pathname;
+	if (!c.env.ASSETS || !(await packFileAllowed(c.env, path, c.req.query("k")))) {
+		return c.html(PACK_MEMBERS_ONLY, 403, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
+	}
+	const res = await c.env.ASSETS.fetch(new Request(new URL(path, c.req.url)));
+	const out = new Response(res.body, res);
+	out.headers.set("Cache-Control", "private, max-age=3600");
+	out.headers.set("X-Robots-Tag", "noindex");
+	return out;
+});
+
+const PACK_MEMBERS_ONLY = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Squish Squad members only | Squish Man</title><link rel="stylesheet" href="/style.css"></head><body><main class="policy" style="text-align:center"><h1>This Squish Squad Pack is for members</h1><p>Open it from the button in your monthly Squish Squad Pack email.</p><p>Not a member yet? <a href="/#squish-squad">Join the Squish Squad</a> to get a new printable pack every month.</p></main></body></html>`;
+
 /** Platinum Crown: the parent picks the child's tee size on the welcome page. */
 app.post("/api/squad/shirt-size", async (c) => {
 	const form = await c.req.parseBody().catch(() => ({}) as Record<string, unknown>);
@@ -401,6 +422,18 @@ async function formInput(req: Request): Promise<Record<string, unknown>> {
 		return {};
 	}
 }
+
+/** Book collections: send the buyer to a Stripe checkout for one bundle (see fulfillment/bundles.ts). */
+app.get("/api/bundle/checkout", async (c) => {
+	const result = await createBundleCheckout(c.env, c.req.query("bundle"), new URL(c.req.url).origin);
+	const headers = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
+	if (result.url) return c.redirect(result.url, 303);
+	return c.html(
+		`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Checkout unavailable</title><p style="font-family:sans-serif;padding:24px">Checkout isn't available right now. Please try again in a moment, or email <a href="mailto:orders@squishman.com">orders@squishman.com</a> and we'll help you order. <a href="/#collections">Back to the collections</a></p>`,
+		result.status as 404,
+		headers,
+	);
+});
 
 /** Contact form: emails the message to contact@squishman.com (see worker/forms.ts). */
 app.post("/api/contact", async (c) => {
