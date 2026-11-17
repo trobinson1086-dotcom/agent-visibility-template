@@ -153,6 +153,7 @@ export async function recordMerchOrder(
 	db: D1Database,
 	eventId: string,
 	session: StripeCheckoutSession,
+	{ draftOnly = false }: { draftOnly?: boolean } = {},
 ): Promise<MerchWebhookResult> {
 	const sku = session.metadata?.merch_sku ?? "";
 	const sel = merchFromSku(sku);
@@ -192,7 +193,7 @@ export async function recordMerchOrder(
 	return {
 		status: 200,
 		body: { received: true, fulfillment: "submitting" },
-		background: submitMerch(env, mode, session.id),
+		background: submitMerch(env, mode, session.id, { draftOnly }),
 	};
 }
 
@@ -227,6 +228,7 @@ export async function submitMerch(
 	env: Env,
 	mode: FulfillmentMode,
 	sessionId: string,
+	{ draftOnly = false }: { draftOnly?: boolean } = {},
 ): Promise<FulfillmentRecord | null> {
 	const db = env.ORDERS_DB;
 	const t = token(env);
@@ -251,7 +253,7 @@ export async function submitMerch(
 		const sel = merchFromSku(item.key.slice(SKU_PREFIX.length));
 		if (!sel) throw new Error(`UNKNOWN_MERCH_SKU:${item.key}`);
 		const s = JSON.parse(rec.shipping_json ?? "{}") as ShippingInfo;
-		const confirm = mode === "production" && rec.livemode === 1 && sel.product.productionEnabled;
+		const confirm = !draftOnly && mode === "production" && rec.livemode === 1 && sel.product.productionEnabled;
 		const order = await createOrder(
 			t,
 			{
