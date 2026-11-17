@@ -423,10 +423,10 @@ describe("Squish Squad packs", () => {
 		expect(nov).toBeDefined();
 		expect(nov!.html).toContain("Hi Ava!");
 		expect(nov!.html).toContain("https://squishman.com/assets/squad-packs/2026-11/squish-squad-pack-november-2026.pdf");
-		expect(nov!.html).toContain('src="https://squishman.com/assets/squad-packs/2026-11/email-hero.jpg"');
+		expect(nov!.html).toContain('src="https://squishman.com/assets/squad-packs/2026-11/email-hero.jpg?k=');
 		expect(nov!.text).toContain("https://squishman.com/assets/squad-packs/2026-11/wallpaper-bridge-butterfly.jpg");
-		// November went out before pack links were keyed, so its links stay plain.
-		expect(nov!.html).not.toContain("?k=");
+		// November is members-only too, so its email links carry the month's key.
+		expect(nov!.html).toContain("squish-squad-pack-november-2026.pdf?k=");
 	});
 
 	it("sends the built-in December pack on December 1", async () => {
