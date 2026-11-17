@@ -47,6 +47,10 @@ test/index.test.ts       Worker tests (vitest-pool-workers, via SELF.fetch)
 → physical, mapped catalog items only → one D1 row per session (idempotent)
 → Lulu quote + print job. Status/tracking arrive via `POST /api/lulu/webhook`
 and the hourly cron. Admin routes live under `/api/admin/*` (ADMIN_TOKEN).
+If a webhook never gets through, the hourly cron's missed-order catch-up
+(`catchUpMissedOrders`) finds paid checkouts with no order record and handles
+them the same way; checkouts paid before `CATCH_UP_LIVE_SINCE` only become
+Printful drafts. `/api/fulfillment/health` shows the last webhook rejection.
 
 - `fulfillment/catalog.data.ts` maps every Stripe price. Physical items stay
   `FULFILLMENT_MAPPING_REQUIRED` until the owner confirms Lulu specs; never

@@ -15,7 +15,7 @@ import {
 import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection, MUG_WRAP_FULL_FILE, ORNAMENT_SNOWGLOBE_FILE, SQUISH_SQUAD_FILE } from "../src/fulfillment/merch";
 import { ebookDownloadPage } from "../src/fulfillment/ebooks";
 import { cleanChildName, listSquadMembers, nextPoster, squadWelcomePage, type SquadMember } from "../src/fulfillment/squad";
-import { reconcile } from "../src/fulfillment/service";
+import { CATCH_UP_LIVE_SINCE, catchUpMissedOrders, reconcile, webhookStatus } from "../src/fulfillment/service";
 import * as store from "../src/fulfillment/store";
 import { verifyStripeSignature } from "../src/fulfillment/stripe";
 import type { CatalogEntry } from "../src/fulfillment/types";
@@ -907,6 +907,7 @@ describe("configuration health check", () => {
 			stripeSecretKey: "test",
 			stripeKeyCanReadCheckout: true,
 			stripeWebhookSecret: "configured",
+			stripeWebhook: { lastRejection: null, lastCatchUp: null },
 			printful: {
 				status: "ok",
 				storeProducts: 0,
@@ -2168,5 +2169,102 @@ describe("book collections", () => {
 			"ES-LEARNING-1", "ES-LEARNING-2", "ES-LEARNING-3", "ES-LEARNING-4", "ES-LEARNING-5",
 		]);
 		expect(lulu.creates).toBe(0);
+	});
+});
+
+describe("missed-order catch-up (webhook never got through)", () => {
+	// What the Stripe session list returns; each entry is also a session() fixture.
+	const listed: Array<Record<string, unknown>> = [];
+	const NOW = CATCH_UP_LIVE_SINCE + 24 * 3600;
+
+	function listedSession(id: string, created: number, opts: Parameters<typeof session>[1] = {}) {
+		session(id, opts);
+		const s = { ...(sessions.get(id) as Record<string, unknown>), created };
+		sessions.set(id, s);
+		listed.push(s);
+		return id;
+	}
+
+	beforeAll(() => {
+		fetchMock
+			.get("https://api.stripe.com")
+			.intercept({ path: (p) => p.startsWith("/v1/checkout/sessions?") && p.includes("status=complete"), method: "GET" })
+			.reply(() => ({ statusCode: 200, data: JSON.stringify({ object: "list", data: [...listed], has_more: false }) }))
+			.persist();
+	});
+
+	beforeEach(() => {
+		listed.length = 0;
+	});
+
+	it("records why Stripe's delivery was refused, for the health check", async () => {
+		const body = JSON.stringify(paidEvent("cs_test_badsig"));
+		const r = await handleStripeWebhook(sandboxEnv(), body, "t=1,v1=deadbeef");
+		expect(r.status).toBe(400);
+		const status = await webhookStatus(sandboxEnv());
+		expect(status.lastRejection).toMatchObject({ status: 400, error: "Invalid signature" });
+	});
+
+	it("sends a new paid merch order to Printful when the webhook never arrived", async () => {
+		listedSession("cs_live_newmiss", NOW - 3600, {
+			price: "price_adhoc_merch",
+			livemode: true,
+			metadata: { merch_sku: TEE_SKU },
+		});
+		const e = sandboxEnv({ FULFILLMENT_MODE: "production" });
+		const out = await catchUpMissedOrders(e, NOW);
+		expect(out).toMatchObject({ caughtUp: 1, drafts: 0, errors: 0 });
+		expect(printful.creates).toBe(1);
+		expect(printful.lastConfirm).toBe("true");
+		expect(await store.get(env.ORDERS_DB!, "cs_live_newmiss")).toMatchObject({ provider: "printful", status: "SUBMITTED" });
+	});
+
+	it("sends orders paid before the fix only as Printful drafts (the blanket and long sleeve)", async () => {
+		const created = CATCH_UP_LIVE_SINCE - 20 * 24 * 3600;
+		listedSession("cs_live_oldblanket", created, {
+			price: "price_adhoc_merch",
+			livemode: true,
+			metadata: { merch_sku: "BLANKET|Royal Blue|37×57 in|PUDY" },
+		});
+		listedSession("cs_live_oldlongsleeve", created + 86400, {
+			price: "price_adhoc_merch",
+			livemode: true,
+			metadata: { merch_sku: "LONGSLEEVE|White|L|LOGO" },
+		});
+		const e = sandboxEnv({ FULFILLMENT_MODE: "production" });
+		const out = await catchUpMissedOrders(e, NOW);
+		expect(out).toMatchObject({ caughtUp: 2, drafts: 2, errors: 0 });
+		expect(printful.creates).toBe(2);
+		expect(printful.lastConfirm).toBe("false");
+		for (const id of ["cs_live_oldblanket", "cs_live_oldlongsleeve"]) {
+			const rec = await store.get(env.ORDERS_DB!, id);
+			expect(rec).toMatchObject({ provider: "printful", status: "SUBMITTED", printful_status: "draft" });
+			expect(rec?.status_detail).toMatch(/^PRINTFUL_DRAFT/);
+			expect(rec?.printful_cost_json).toContain("total");
+		}
+		// A second run changes nothing.
+		const again = await catchUpMissedOrders(e, NOW + 3600);
+		expect(again.caughtUp).toBe(0);
+		expect(printful.creates).toBe(2);
+	});
+
+	it("leaves old non-merch orders for a person and never prints them", async () => {
+		listedSession("cs_live_oldbook", CATCH_UP_LIVE_SINCE - 86400, { livemode: true });
+		const out = await catchUpMissedOrders(sandboxEnv({ FULFILLMENT_MODE: "production" }), NOW);
+		expect(out).toMatchObject({ caughtUp: 0, skipped: 1 });
+		expect(lulu.creates + printful.creates).toBe(0);
+		expect(await store.get(env.ORDERS_DB!, "cs_live_oldbook")).toBeNull();
+	});
+
+	it("waits for the webhook first, and skips orders the webhook already handled", async () => {
+		listedSession("cs_test_recent", NOW - 60, { price: "price_adhoc_merch", metadata: { merch_sku: TEE_SKU } });
+		merchSession("cs_test_viahook");
+		await deliver(sandboxEnv(), paidEvent("cs_test_viahook"));
+		listed.push({ ...(sessions.get("cs_test_viahook") as Record<string, unknown>), created: NOW - 7200 });
+		const before = printful.creates;
+		const out = await catchUpMissedOrders(sandboxEnv(), NOW);
+		expect(out.caughtUp).toBe(0);
+		expect(printful.creates).toBe(before);
+		expect(await store.get(env.ORDERS_DB!, "cs_test_recent")).toBeNull();
 	});
 });

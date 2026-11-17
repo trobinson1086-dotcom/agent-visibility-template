@@ -158,6 +158,33 @@ export async function fetchCheckoutSession(
 }
 
 /**
+ * Completed Checkout Sessions created at or after `sinceSeconds`, newest
+ * first (read-only; used by the missed-order catch-up).
+ */
+export async function listCompletedCheckoutSessions(
+	secretKey: string,
+	sinceSeconds: number,
+	maxPages = 10,
+): Promise<StripeCheckoutSession[]> {
+	const out: StripeCheckoutSession[] = [];
+	let after: string | undefined;
+	for (let page = 0; page < maxPages; page++) {
+		const params = new URLSearchParams({ status: "complete", limit: "100", "created[gte]": String(sinceSeconds) });
+		if (after) params.set("starting_after", after);
+		const res = await fetch(`${STRIPE_API}/checkout/sessions?${params}`, {
+			headers: { Authorization: `Bearer ${secretKey}` },
+			signal: AbortSignal.timeout(TIMEOUT_MS),
+		});
+		if (!res.ok) throw new Error(`Stripe session list failed (HTTP ${res.status})`);
+		const body = (await res.json()) as { data: StripeCheckoutSession[]; has_more: boolean };
+		out.push(...body.data);
+		if (!body.has_more || body.data.length === 0) break;
+		after = body.data[body.data.length - 1].id;
+	}
+	return out;
+}
+
+/**
  * Create a Checkout Session from form fields (Stripe's bracket notation).
  * Needs a key with write access to Checkout Sessions.
  */

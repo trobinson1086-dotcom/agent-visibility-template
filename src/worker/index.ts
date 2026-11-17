@@ -56,6 +56,7 @@ import {
 	mode as fulfillmentMode,
 	present,
 	reconcile,
+	catchUpMissedOrders,
 	refresh,
 	retry,
 } from "../fulfillment/service";
@@ -723,6 +724,11 @@ export default {
 	async scheduled(_controller, env, ctx) {
 		ctx.waitUntil(rebuildCache(env));
 		ctx.waitUntil(reconcile(env));
+		ctx.waitUntil(
+			catchUpMissedOrders(env).catch((err) =>
+				console.error(JSON.stringify({ at: "fulfillment", event: "catch_up_failed", error: String(err).slice(0, 200) })),
+			),
+		);
 		ctx.waitUntil(
 			runSquadDaily(env, fulfillmentMode(env)).catch((err) =>
 				console.error(JSON.stringify({ at: "squad", event: "daily_error", error: String(err).slice(0, 200) })),
