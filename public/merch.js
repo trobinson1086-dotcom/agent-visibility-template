@@ -245,6 +245,7 @@ if(params.get('shop')==='thanks'){
  t.innerHTML='<b>Thank you! Your Squish Squad order is confirmed.</b><span>It is printed just for you and usually ships within 1–2 weeks. Questions? Email <a href="mailto:orders@squishman.com">orders@squishman.com</a>.</span>';
  root.before(t);
 }
+root.classList.add('merch-loading');
 fetch('/api/merch',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{
  if(!data||!(data.checkout==='on'||(data.checkout==='preview'&&params.get('shop')==='preview')))return;
  // Hidden cards the shop now sells (puzzles) join their category.
@@ -260,7 +261,7 @@ fetch('/api/merch',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{
   p.colors=shopColors(p);
   const el=document.getElementById('merch-item-'+n);if(el)el.outerHTML=cardHtml(p,n);
  });
-}).catch(()=>{});
+}).catch(()=>{}).finally(()=>root.classList.remove('merch-loading'));
 
 // Design picker: swap photos and price, keep the chosen color and size.
 // Products with many designs (stickers) use a dropdown instead of buttons.
