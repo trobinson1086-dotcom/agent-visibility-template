@@ -380,8 +380,11 @@ export async function reconcileMerch(env: Env): Promise<number> {
  * our orders whose current total equals the approved total to the cent.
  * Anything else is logged and left for a person.
  */
+const CONFIRM_STATUS_KEY = "printful:last-confirm";
+
 export async function confirmApprovedDrafts(env: Env): Promise<{ confirmed: number; skipped: number }> {
 	const out = { confirmed: 0, skipped: 0 };
+	const results: Array<{ printful: string; result: string }> = [];
 	const db = env.ORDERS_DB;
 	const t = token(env);
 	const raw = (env.PRINTFUL_CONFIRM_DRAFTS ?? "").trim();
@@ -391,6 +394,7 @@ export async function confirmApprovedDrafts(env: Env): Promise<{ confirmed: numb
 		const approved = Number(totalText);
 		if (!/^\d+$/.test(idText ?? "") || !Number.isFinite(approved)) {
 			log("confirm_skipped", { entry: pair.slice(0, 40), reason: "BAD_ENTRY" });
+			results.push({ printful: String(idText ?? "").slice(0, 20), result: "BAD_ENTRY" });
 			out.skipped++;
 			continue;
 		}
@@ -401,35 +405,58 @@ export async function confirmApprovedDrafts(env: Env): Promise<{ confirmed: numb
 				.first<{ stripe_session_id: string }>();
 			if (!rec) {
 				log("confirm_skipped", { printful: idText, reason: "NOT_OUR_ORDER" });
+				results.push({ printful: idText, result: "NOT_OUR_ORDER" });
 				out.skipped++;
 				continue;
 			}
 			const order = await getOrder(t, await externalId(rec.stripe_session_id));
 			if (!order || String(order.id) !== idText) {
 				log("confirm_skipped", { printful: idText, reason: "NOT_FOUND" });
+				results.push({ printful: idText, result: "NOT_FOUND" });
 				out.skipped++;
 				continue;
 			}
 			if (order.status !== "draft") {
 				// Already confirmed (by us or in the dashboard), canceled or failed: just record it.
 				await applyOrder(db, rec.stripe_session_id, order);
+				results.push({ printful: idText, result: `ALREADY_${order.status.toUpperCase()}` });
 				out.skipped++;
 				continue;
 			}
 			const total = Number((order.costs as { total?: unknown } | undefined)?.total);
 			if (!Number.isFinite(total) || Math.round(total * 100) !== Math.round(approved * 100)) {
 				log("confirm_skipped", { printful: idText, reason: "TOTAL_CHANGED", approved, total });
+				results.push({ printful: idText, result: `TOTAL_CHANGED (now ${total})` });
 				out.skipped++;
 				continue;
 			}
 			const confirmed = await confirmOrder(t, order.id);
 			await applyOrder(db, rec.stripe_session_id, confirmed);
 			log("confirmed_draft", { printful: idText, session: rec.stripe_session_id, printful_status: confirmed.status });
+			results.push({ printful: idText, result: `CONFIRMED (${confirmed.status})` });
 			out.confirmed++;
 		} catch (err) {
 			log("confirm_error", { printful: idText, error: errorDetail(err).slice(0, 120) });
+			results.push({
+				printful: idText,
+				result: err instanceof PrintfulError ? `PRINTFUL_ERROR ${err.status}: ${err.detail.slice(0, 160)}` : "ERROR",
+			});
 			out.skipped++;
 		}
 	}
+	try {
+		await env.VISIBILITY_CACHE.put(
+			CONFIRM_STATUS_KEY,
+			JSON.stringify({ at: new Date().toISOString(), results }),
+			{ expirationTtl: 30 * 24 * 3600 },
+		);
+	} catch {
+		// Diagnostics only.
+	}
 	return out;
+}
+
+/** Last run of confirmApprovedDrafts (ids and outcomes only), for the health check. */
+export async function confirmStatus(env: Env): Promise<unknown> {
+	return env.VISIBILITY_CACHE.get(CONFIRM_STATUS_KEY, "json");
 }

@@ -54,7 +54,7 @@ import {
 	SQUISH_SQUAD_FILE,
 	STICKER_FILES,
 } from "./merch";
-import { checkoutState, reconcileMerch, recordMerchOrder, refreshMerch, retryMerch } from "./merch-service";
+import { checkoutState, confirmStatus, reconcileMerch, recordMerchOrder, refreshMerch, retryMerch } from "./merch-service";
 import { getFile } from "./printful";
 import * as store from "./store";
 import {
@@ -545,7 +545,8 @@ export async function webhookStatus(env: Env): Promise<Record<string, unknown>> 
 		env.VISIBILITY_CACHE.get(REJECTION_KEY, "json"),
 		env.VISIBILITY_CACHE.get(CATCH_UP_KEY, "json"),
 	]);
-	return { lastRejection: lastRejection ?? null, lastCatchUp: lastCatchUp ?? null };
+	const lastDraftConfirm = await confirmStatus(env);
+	return { lastRejection: lastRejection ?? null, lastCatchUp: lastCatchUp ?? null, lastDraftConfirm: lastDraftConfirm ?? null };
 }
 
 /**

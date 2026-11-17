@@ -908,7 +908,7 @@ describe("configuration health check", () => {
 			stripeSecretKey: "test",
 			stripeKeyCanReadCheckout: true,
 			stripeWebhookSecret: "configured",
-			stripeWebhook: { lastRejection: null, lastCatchUp: null },
+			stripeWebhook: { lastRejection: null, lastCatchUp: null, lastDraftConfirm: null },
 			printful: {
 				status: "ok",
 				storeProducts: 0,
@@ -2323,7 +2323,7 @@ describe("owner-approved Printful drafts", () => {
 
 	it("does nothing when no drafts are approved", async () => {
 		await draft("cs_test_none");
-		expect(await confirmApprovedDrafts(sandboxEnv())).toEqual({ confirmed: 0, skipped: 0 });
+		expect(await confirmApprovedDrafts(sandboxEnv({ PRINTFUL_CONFIRM_DRAFTS: "" }))).toEqual({ confirmed: 0, skipped: 0 });
 		expect(confirms).toBe(0);
 	});
 });
