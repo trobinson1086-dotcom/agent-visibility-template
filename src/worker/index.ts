@@ -61,6 +61,8 @@ import {
 } from "../fulfillment/service";
 import { type CheckoutRequest, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import { ebookDownloadPage } from "../fulfillment/ebooks";
+import { handleContact, handleSquadSignup } from "./forms";
+import { createBundleCheckout } from "../fulfillment/bundles";
 import { packFileAllowed } from "../fulfillment/pack-access";
 import {
 	birthdayGift,
@@ -406,6 +408,45 @@ app.post("/api/squad/shirt-size", async (c) => {
 app.get("/api/squad/welcome", async (c) => {
 	const { status, html } = await squadWelcomePage(c.env, c.req.query("session_id"));
 	return c.html(html, status as 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
+});
+
+/** Read a form post sent as JSON or as an ordinary form submission. */
+async function formInput(req: Request): Promise<Record<string, unknown>> {
+	try {
+		if ((req.headers.get("content-type") ?? "").includes("application/json")) {
+			const body = await req.json();
+			return body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+		}
+		return Object.fromEntries((await req.formData()).entries());
+	} catch {
+		return {};
+	}
+}
+
+/** Book collections: send the buyer to a Stripe checkout for one bundle (see fulfillment/bundles.ts). */
+app.get("/api/bundle/checkout", async (c) => {
+	const result = await createBundleCheckout(c.env, c.req.query("bundle"), new URL(c.req.url).origin);
+	const headers = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
+	if (result.url) return c.redirect(result.url, 303);
+	return c.html(
+		`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Checkout unavailable</title><p style="font-family:sans-serif;padding:24px">Checkout isn't available right now. Please try again in a moment, or email <a href="mailto:orders@squishman.com">orders@squishman.com</a> and we'll help you order. <a href="/#collections">Back to the collections</a></p>`,
+		result.status as 404,
+		headers,
+	);
+});
+
+/** Contact form: emails the message to contact@squishman.com (see worker/forms.ts). */
+app.post("/api/contact", async (c) => {
+	const ip = c.req.header("cf-connecting-ip") ?? "unknown";
+	const result = await handleContact(c.env, await formInput(c.req.raw), ip);
+	return c.json(result.body, result.status as 200, { "Cache-Control": "no-store" });
+});
+
+/** Squish Squad sign-up: emails the sign-up to squishfans@squishman.com (see worker/forms.ts). */
+app.post("/api/squad/signup", async (c) => {
+	const ip = c.req.header("cf-connecting-ip") ?? "unknown";
+	const result = await handleSquadSignup(c.env, await formInput(c.req.raw), ip);
+	return c.json(result.body, result.status as 200, { "Cache-Control": "no-store" });
 });
 
 /** Squish Squad Shop: checkout state, prices, sizes and colors for the shop page. */

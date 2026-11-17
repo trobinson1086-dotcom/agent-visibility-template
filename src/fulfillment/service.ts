@@ -15,6 +15,7 @@
  * merch-service.ts, which sends them to Printful under the same mode.
  */
 import type { Env } from "../lib/types";
+import { bundleByKey } from "./bundles";
 import { byKey, byPriceId, luluMapping, printFiles } from "./catalog";
 import { memberFromSession, recordSquadMember, squadOf } from "./squad";
 import { refundMemberShipping } from "./squad-perks";
@@ -523,8 +524,24 @@ export async function handleStripeWebhook(
 	const items: OrderItem[] = [];
 	const lines: OrderLine[] = [];
 	const unknown: string[] = [];
+	// A book collection (fulfillment/bundles.ts) is one line that stands for several books.
+	const bundle = bundleByKey(session.metadata?.bundle);
 	for (const li of lineItems) {
 		const priceId = li.price?.id ?? "";
+		if (bundle) {
+			const quantity = Math.trunc(li.quantity ?? 0);
+			if (quantity < 1 || quantity > 100) {
+				unknown.push(`${priceId}:qty`);
+				continue;
+			}
+			lines.push({ title: bundle.name, quantity });
+			for (const key of bundle.books) {
+				const book = byKey(key);
+				if (book) items.push({ key: book.key, stripePriceId: priceId, title: book.title, quantity });
+				else unknown.push(key);
+			}
+			continue;
+		}
 		const entry = byPriceId(priceId);
 		if (!entry) {
 			unknown.push(priceId || "(none)");

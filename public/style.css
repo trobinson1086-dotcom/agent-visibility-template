@@ -261,5 +261,22 @@ header.menu-open #site-nav a.nav-merch,html:not(.js) header #site-nav a.nav-merc
 .yt-facade{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:0;margin:0;background:#071d49;cursor:pointer;overflow:hidden}.yt-facade img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .3s}.yt-facade:hover img{transform:scale(1.03)}.yt-play{position:absolute;left:14px;bottom:14px;display:flex;align-items:center;gap:8px;padding:9px 16px 9px 12px;border-radius:999px;background:#ffd52a;color:#17315d;font-weight:900;font-size:.85rem;letter-spacing:.04em;box-shadow:0 6px 18px rgba(0,0,0,.35);transition:transform .2s}.yt-play::before{content:'';border-style:solid;border-width:8px 0 8px 13px;border-color:transparent transparent transparent #17315d}.yt-facade:hover .yt-play,.yt-facade:focus-visible .yt-play{transform:scale(1.1)}.yt-facade:focus-visible{outline:4px solid #ffd52a;outline-offset:-4px}
 .media-screen:has(.yt-facade),.media-screen:has(.featured-embed){min-height:0;display:block}
 @media(max-width:520px){.yt-play{left:10px;bottom:10px;padding:6px 12px 6px 9px;font-size:.7rem}.yt-play::before{border-width:6px 0 6px 10px}}
+.social-tiktok{background:#010101}
+.social-youtube{background:#ff0000}
+.squad-join{display:grid;gap:10px;min-width:min(100%,380px);text-align:left}
+.squad-join label{display:grid;gap:6px;color:var(--deep);font-size:13px;font-weight:900}
+.squad-join input,.squad-join select{width:100%;border:1px solid #cddbf2;border-radius:12px;padding:12px;background:#fff;color:var(--ink);font:inherit}
+.squad-join input:focus,.squad-join select:focus{outline:3px solid #ffd63266;border-color:var(--blue)}
+.squad-join .btn{border:0;cursor:pointer;text-align:center}
+.form-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.form-status{margin:0;font-weight:800;line-height:1.4}
+.form-status:empty{display:none}
+.form-status.ok{color:#16794a}
+.form-status.err{color:#b3261e}
+button[disabled]{opacity:.7;cursor:progress}
+@media(max-width:720px){.squad-join{min-width:0;width:100%}}
 /* Phones: the header keeps one row (logo, menu, SHOP NOW); Merch is in the menu. */
 @media (max-width:560px){header .merch-btn{display:none}}
+.bundle-price{margin:10px 0 14px;color:var(--deep);font-weight:800}
+.bundle-price b{display:block;font-size:30px;line-height:1.1}
+.bundle-thanks{max-width:640px;margin:0 auto 18px;background:#fff;border:3px solid var(--gold);border-radius:16px;padding:14px 18px;font-weight:900;color:#16794a}

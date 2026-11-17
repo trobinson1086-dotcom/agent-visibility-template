@@ -22,6 +22,8 @@ export interface Email {
 	html: string;
 	text: string;
 	from?: string;
+	/** Where replies go; defaults to REPLY_TO. */
+	replyTo?: string;
 	headers?: Record<string, string>;
 	tags?: Array<{ name: string; value: string }>;
 }
@@ -74,7 +76,7 @@ export async function sendOnce(env: Env, key: string, email: Email): Promise<Sen
 		body: JSON.stringify({
 			from: email.from ?? env.EMAIL_FROM ?? DEFAULT_FROM,
 			to: [email.to],
-			reply_to: REPLY_TO,
+			reply_to: email.replyTo ?? REPLY_TO,
 			subject: email.subject,
 			html: email.html,
 			text: email.text,
