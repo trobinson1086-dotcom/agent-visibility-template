@@ -57,9 +57,20 @@ and the hourly cron. Admin routes live under `/api/admin/*` (ADMIN_TOKEN).
   products with `productionEnabled`.
 - Schema changes go in `migrations/` (applied to tests automatically).
 
+## eBook checkout (bot check)
+
+The site's eBook buttons go to `GET /api/ebook/checkout?ebook=EN-EBOOK-N`
+(`fulfillment/ebook-checkout.ts`), not to public Payment Links, because a
+card-testing bot hammered the $4.99 links in Nov 2026. With the
+`TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` Worker secrets set, the buyer
+passes a Cloudflare Turnstile check, the worker verifies it server side and only
+then creates a one-off Checkout Session. Without them it creates the session
+directly. Keep both as secrets (dashboard variables of type Secret survive
+deploys; plain-text ones are wiped by `wrangler deploy`).
+
 ## eBook delivery
 
-The eBook payment links redirect to `GET /api/ebook-download?session_id=…`,
+eBook checkouts redirect to `GET /api/ebook-download?session_id=…`,
 which re-reads the Checkout Session from Stripe and, only if it is paid, shows
 Drive links for the `EN-EBOOK-N` items bought (`fulfillment/ebooks.ts`, files in
 the "Squishman Books 1-5 Published" Drive folder). Audiobooks are paused

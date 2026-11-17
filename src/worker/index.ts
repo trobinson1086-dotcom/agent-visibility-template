@@ -21,7 +21,7 @@
  * use the content (see https://contentsignals.org / the Content-Signals
  * proposal). The React SPA at `/` is served from static assets.
  */
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
 import {
 	renderIndexJson,
@@ -63,6 +63,7 @@ import { type CheckoutRequest, createMerchCheckout, merchCatalog } from "../fulf
 import { ebookDownloadPage } from "../fulfillment/ebooks";
 import { handleContact, handleSquadSignup } from "./forms";
 import { createBundleCheckout } from "../fulfillment/bundles";
+import { finishEbookCheckout, startEbookCheckout, type EbookCheckoutResult } from "../fulfillment/ebook-checkout";
 import { packFileAllowed } from "../fulfillment/pack-access";
 import {
 	birthdayGift,
@@ -435,6 +436,20 @@ async function formInput(req: Request): Promise<Record<string, unknown>> {
 		return {};
 	}
 }
+
+/** eBooks: bot check, then a one-off Stripe checkout (see fulfillment/ebook-checkout.ts). */
+const ebookResponse = (c: Context<{ Bindings: Env }>, r: EbookCheckoutResult) => {
+	if (r.url) return c.redirect(r.url, 303);
+	return c.html(r.html ?? "", r.status as 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
+};
+app.get("/api/ebook/checkout", async (c) =>
+	ebookResponse(c, await startEbookCheckout(c.env, c.req.query("ebook"), new URL(c.req.url).origin)),
+);
+app.post("/api/ebook/checkout", async (c) => {
+	const form = await c.req.parseBody().catch(() => ({}) as Record<string, unknown>);
+	const ip = c.req.header("CF-Connecting-IP") ?? undefined;
+	return ebookResponse(c, await finishEbookCheckout(c.env, form, ip, new URL(c.req.url).origin));
+});
 
 /** Book collections: send the buyer to a Stripe checkout for one bundle (see fulfillment/bundles.ts). */
 app.get("/api/bundle/checkout", async (c) => {
