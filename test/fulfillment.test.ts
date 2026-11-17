@@ -12,6 +12,7 @@ import {
 	health,
 	retry,
 } from "../src/fulfillment/service";
+import { confirmApprovedDrafts } from "../src/fulfillment/merch-service";
 import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection, MUG_WRAP_FULL_FILE, ORNAMENT_SNOWGLOBE_FILE, SQUISH_SQUAD_FILE } from "../src/fulfillment/merch";
 import { ebookDownloadPage } from "../src/fulfillment/ebooks";
 import { cleanChildName, listSquadMembers, nextPoster, squadWelcomePage, type SquadMember } from "../src/fulfillment/squad";
@@ -2267,5 +2268,62 @@ describe("missed-order catch-up (webhook never got through)", () => {
 		expect(out.caughtUp).toBe(0);
 		expect(printful.creates).toBe(before);
 		expect(await store.get(env.ORDERS_DB!, "cs_test_recent")).toBeNull();
+	});
+});
+
+describe("owner-approved Printful drafts", () => {
+	let confirms = 0;
+
+	beforeAll(() => {
+		fetchMock
+			.get("https://api.printful.com")
+			.intercept({ path: (p) => /^\/orders\/\d+\/confirm$/.test(p), method: "POST" })
+			.reply((opts) => {
+				confirms++;
+				const id = Number(String(opts.path).split("/")[2]);
+				for (const o of printful.orders.values()) {
+					if (o.id === id) {
+						o.status = "pending";
+						return { statusCode: 200, data: JSON.stringify({ code: 200, result: o }) };
+					}
+				}
+				return { statusCode: 404, data: JSON.stringify({ code: 404, result: "Not found" }) };
+			})
+			.persist();
+	});
+
+	beforeEach(() => {
+		confirms = 0;
+	});
+
+	async function draft(id: string) {
+		merchSession(id);
+		await deliver(sandboxEnv(), paidEvent(id));
+		return (await store.get(env.ORDERS_DB!, id))!.printful_order_id!;
+	}
+
+	it("confirms a listed draft once, only at the approved total", async () => {
+		const pf = await draft("cs_test_approve");
+		const e = sandboxEnv({ PRINTFUL_CONFIRM_DRAFTS: `${pf}:25.08` });
+		expect(await confirmApprovedDrafts(e)).toEqual({ confirmed: 1, skipped: 0 });
+		expect(confirms).toBe(1);
+		expect(await store.get(env.ORDERS_DB!, "cs_test_approve")).toMatchObject({ printful_status: "pending", status_detail: null });
+		// Later runs see it is no longer a draft and never confirm again.
+		expect(await confirmApprovedDrafts(e)).toEqual({ confirmed: 0, skipped: 1 });
+		expect(confirms).toBe(1);
+	});
+
+	it("leaves a draft alone when its total is not the approved one, or it is not ours", async () => {
+		const pf = await draft("cs_test_changed");
+		const e = sandboxEnv({ PRINTFUL_CONFIRM_DRAFTS: `${pf}:20.00, 999999:25.08, junk` });
+		expect(await confirmApprovedDrafts(e)).toEqual({ confirmed: 0, skipped: 3 });
+		expect(confirms).toBe(0);
+		expect(await store.get(env.ORDERS_DB!, "cs_test_changed")).toMatchObject({ printful_status: "draft" });
+	});
+
+	it("does nothing when no drafts are approved", async () => {
+		await draft("cs_test_none");
+		expect(await confirmApprovedDrafts(sandboxEnv())).toEqual({ confirmed: 0, skipped: 0 });
+		expect(confirms).toBe(0);
 	});
 });

@@ -60,7 +60,7 @@ import {
 	refresh,
 	retry,
 } from "../fulfillment/service";
-import { type CheckoutRequest, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
+import { type CheckoutRequest, confirmApprovedDrafts, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import { ebookDownloadPage } from "../fulfillment/ebooks";
 import { handleContact, handleSquadSignup } from "./forms";
 import { createBundleCheckout } from "../fulfillment/bundles";
@@ -719,9 +719,21 @@ app.all("/api/identity", async (c) => {
 	return c.json(result);
 });
 
+/** Matches the second cron in wrangler.jsonc. */
+const CONFIRM_CRON = "*/5 * * * *";
+
 export default {
 	fetch: app.fetch,
-	async scheduled(_controller, env, ctx) {
+	async scheduled(controller, env, ctx) {
+		if (controller.cron === CONFIRM_CRON) {
+			// Frequent, cheap run: only owner-approved Printful drafts (PRINTFUL_CONFIRM_DRAFTS).
+			ctx.waitUntil(
+				confirmApprovedDrafts(env).catch((err) =>
+					console.error(JSON.stringify({ at: "fulfillment", event: "confirm_failed", error: String(err).slice(0, 200) })),
+				),
+			);
+			return;
+		}
 		ctx.waitUntil(rebuildCache(env));
 		ctx.waitUntil(reconcile(env));
 		ctx.waitUntil(

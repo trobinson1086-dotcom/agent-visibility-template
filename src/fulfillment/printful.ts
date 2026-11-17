@@ -100,6 +100,11 @@ export async function createOrder(
 	return call<PrintfulOrder>(token, "POST", `/orders?confirm=${confirm ? "true" : "false"}`, order);
 }
 
+/** Confirm a draft order: Printful charges the store's billing method and starts printing. */
+export async function confirmOrder(token: string, orderId: number): Promise<PrintfulOrder> {
+	return call<PrintfulOrder>(token, "POST", `/orders/${orderId}/confirm`);
+}
+
 export async function getFile(token: string, id: number): Promise<{ id: number; status: string }> {
 	return call(token, "GET", `/files/${id}`);
 }

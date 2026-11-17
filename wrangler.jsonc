@@ -28,7 +28,8 @@
 	},
 	"triggers": {
 		// Hourly cache rebuild (see rebuildCache in src/lib/store.ts).
-		"crons": ["17 * * * *"]
+		// Second cron: confirm owner-approved Printful drafts (src/fulfillment/merch-service.ts).
+		"crons": ["17 * * * *", "*/5 * * * *"]
 	},
 	"ai": {
 		"binding": "AI"
@@ -69,6 +70,9 @@
 		"SQUAD_EMAIL_FROM": "Squish Squad <squad@squishman.com>",
 		// Squish Squad birthday posters: "off" | "draft" (Printful drafts, confirm each in the dashboard) | "on" (ordered and paid automatically).
 		"SQUAD_POSTERS": "draft",
+		// Owner-approved Printful drafts to confirm (charges the Printful account): "orderId:approvedTotal,…".
+		// Nov 17: Meghan's long sleeve ($22.68) and blanket ($48.35), missed by the webhook.
+		"PRINTFUL_CONFIRM_DRAFTS": "187915166:22.68,187915172:48.35",
 		// Refund up to $5.99 shipping on members' $25+ book orders: "off" | "on".
 		"SQUAD_SHIPPING_REFUNDS": "on"
 	}
