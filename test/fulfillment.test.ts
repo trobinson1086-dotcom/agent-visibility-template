@@ -2159,6 +2159,27 @@ describe("book collections", () => {
 		expect(stripeCreates[before + 1].get("line_items[0][price_data][unit_amount]")).toBe("12999");
 	});
 
+	it("sells the Story Collection with free shipping and promo codes allowed", async () => {
+		const { createBundleCheckout } = await import("../src/fulfillment/bundles");
+		const before = stripeCreates.length;
+		const r = await createBundleCheckout(sandboxEnv(), "EN-STORY-SET", "https://squishman.com");
+		expect(r.status).toBe(303);
+		const f = stripeCreates[before];
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("6499");
+		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("0");
+		expect(f.get("allow_promotion_codes")).toBe("true");
+		expect(f.get("metadata[bundle]")).toBe("EN-STORY-SET");
+	});
+
+	it("records a paid Story Collection as the five story paperbacks", async () => {
+		session("cs_test_storyset", { price: "price_adhoc_story", quantity: 1, metadata: { bundle: "EN-STORY-SET" } });
+		await deliver(sandboxEnv(), paidEvent("cs_test_storyset"));
+		const rec = await store.get(env.ORDERS_DB!, "cs_test_storyset");
+		const items = JSON.parse(rec!.items_json) as Array<{ key: string; quantity: number }>;
+		expect(items.map((i) => i.key)).toEqual(["EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5"]);
+		expect(items.every((i) => i.quantity === 1)).toBe(true);
+	});
+
 	it("records a paid bundle as its ten books and holds it for a hand-placed Lulu order", async () => {
 		session("cs_test_bundle", { price: "price_adhoc_bundle", quantity: 1, metadata: { bundle: "BILINGUAL-BUNDLE" } });
 		const r = await deliver(sandboxEnv(), paidEvent("cs_test_bundle"));
