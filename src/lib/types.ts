@@ -106,6 +106,11 @@ export interface Env {
 	ASSETS?: Fetcher;
 	/** Public origin used in email links and poster art URLs, e.g. https://squishman.com. */
 	PUBLIC_BASE_URL?: string;
+	/**
+	 * Optional secret that signs Squish Squad Pack links (fulfillment/pack-access.ts).
+	 * Unset = the Stripe webhook secret is used instead.
+	 */
+	SQUAD_PACK_SECRET?: string;
 	/** Secret: Resend API key with sending access for squishman.com. Unset = no emails. */
 	RESEND_API_KEY?: string;
 	/** Sender of order emails, e.g. "Squish Man <orders@squishman.com>". */

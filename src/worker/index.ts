@@ -61,6 +61,7 @@ import {
 } from "../fulfillment/service";
 import { type CheckoutRequest, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import { ebookDownloadPage } from "../fulfillment/ebooks";
+import { packFileAllowed } from "../fulfillment/pack-access";
 import {
 	birthdayGift,
 	confirmChildName,
@@ -370,6 +371,25 @@ app.get("/api/squad/poster-art/:file", async (c) => {
 		"X-Robots-Tag": "noindex",
 	});
 });
+
+/**
+ * Squish Squad Pack files are for members: served only with the month's key
+ * from the pack email (packs through November 2026 stay open; see
+ * fulfillment/pack-access.ts).
+ */
+app.get("/assets/squad-packs/*", async (c) => {
+	const path = new URL(c.req.url).pathname;
+	if (!c.env.ASSETS || !(await packFileAllowed(c.env, path, c.req.query("k")))) {
+		return c.html(PACK_MEMBERS_ONLY, 403, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
+	}
+	const res = await c.env.ASSETS.fetch(new Request(new URL(path, c.req.url)));
+	const out = new Response(res.body, res);
+	out.headers.set("Cache-Control", "private, max-age=3600");
+	out.headers.set("X-Robots-Tag", "noindex");
+	return out;
+});
+
+const PACK_MEMBERS_ONLY = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Squish Squad members only | Squish Man</title><link rel="stylesheet" href="/style.css"></head><body><main class="policy" style="text-align:center"><h1>This Squish Squad Pack is for members</h1><p>Open it from the button in your monthly Squish Squad Pack email.</p><p>Not a member yet? <a href="/#squish-squad">Join the Squish Squad</a> to get a new printable pack every month.</p></main></body></html>`;
 
 /** Platinum Crown: the parent picks the child's tee size on the welcome page. */
 app.post("/api/squad/shirt-size", async (c) => {

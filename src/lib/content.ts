@@ -151,7 +151,7 @@ confidence, persistence, patience, creativity, teamwork and being yourself.
 
 ## Schools, libraries & programs
 Ask about school or bulk orders, educator resources and author/media events.
-Schools: schools@squishman.com • Parents: parents@squishman.com • Media: media@squishman.com`,
+Email: contact@squishman.com`,
 	},
 	{
 		slug: "watch",
@@ -204,11 +204,11 @@ Spanish learning/activity editions.
 Can I preview a book before buying? Yes. Books 1–5 include real Look Inside
 sample pages taken from the approved interiors.
 
-Do you offer school or bulk orders? Schools, libraries and programs can contact
-schools@squishman.com.
+Do you offer school or bulk orders? Schools, libraries and programs can email
+contact@squishman.com.
 
 Where can I get order help? orders@squishman.com for order questions or
-support@squishman.com for customer support.`,
+contact@squishman.com for anything else.`,
 	},
 	{
 		slug: "contact",
@@ -216,15 +216,9 @@ support@squishman.com for customer support.`,
 		title: "Contact Squish Man™",
 		body: `# Contact
 
-- General questions: contact@squishman.com
-- Customer support: support@squishman.com
+- General questions, schools, parents, media and feedback: contact@squishman.com
 - Orders & purchases: orders@squishman.com
-- Schools & teachers: schools@squishman.com
-- Squish Squad fan club: squishfans@squishman.com
-- Parents & families: parents@squishman.com
-- Comments & feedback: comments@squishman.com
-- Say hello: hello@squishman.com
-- Media & press: media@squishman.com`,
+- Squish Squad fan club: squishfans@squishman.com`,
 	},
 	{
 		slug: "policies",
