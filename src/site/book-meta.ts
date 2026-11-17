@@ -135,6 +135,8 @@ export function bookMeta(b: SiteBook): BookMeta {
 		brand: { "@type": "Brand", name: "The Amazing Adventures of Squish Man" },
 		publisher: { "@id": `${SITE}/#org`, "@type": "Organization", name: "The Amazing Adventures of Squish Man", url: `${SITE}/` },
 		audience: { "@type": "PeopleAudience", suggestedMinAge: 5, suggestedMaxAge: 9 },
+		// The story covers print "Written by Travis Robinson".
+		...(b.shelf === "english" || b.shelf === "spanish" ? { author: { "@type": "Person", name: "Travis Robinson" } } : {}),
 		isPartOf: { "@type": "BookSeries", name: "The Amazing Adventures of Squish Man" },
 		...(n && (b.shelf === "english" || b.shelf === "spanish") ? { position: Number(n) } : {}),
 		offers: formats.map((f) => ({
