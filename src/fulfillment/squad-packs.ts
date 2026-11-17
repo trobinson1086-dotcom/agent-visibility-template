@@ -42,16 +42,18 @@ export const BUILT_IN_PACKS: Readonly<Record<string, SquadPack>> = {
 	// "Squishman subscription membership tier 1"), 6 pages as the owner made it.
 	// The "THE AMAZING ADVENTURES OF" ribbon text on pages 1 and 5 was misspelled
 	// in the source art and is redrawn.
+	// Page 6 (the Squish Man word search) is a standalone page from the owner's
+	// "Squish Man extra pages" Drive folder, added so the pack has 7 pages.
 	"2026-12": {
 		month: "2026-12",
 		subject: "Your December Squish Squad Pack is here ❄️",
 		heading: "December Fun in Maple Hollow",
 		intro:
-			"Snow is falling in Maple Hollow, and Squish Man and Pudy made you six new pages: your own Squish Squad Member page, the Friends Make Life Brighter coloring page, the Park Path Adventure maze, math practice, the December Kindness Challenge and a Great Job certificate. Print the pack and have fun!",
+			"Snow is falling in Maple Hollow, and Squish Man and Pudy made you seven new pages: your own Squish Squad Member page, the Friends Make Life Brighter coloring page, the Park Path Adventure maze, math practice, the December Kindness Challenge, a Squish Man word search and a Great Job certificate. Print the pack and have fun!",
 		heroImage: `${DEC}/email-hero.jpg`,
 		items: [
 			{
-				title: "December printable pack (6 pages, PDF)",
+				title: "December printable pack (7 pages, PDF)",
 				description:
 					"I'm a Squish Squad Member!, Friends Make Life Brighter coloring page, Park Path Adventure maze, math practice, December Kindness Challenge, and a Great Job certificate.",
 				url: `${DEC}/squish-squad-pack-december-2026.pdf`,
@@ -62,17 +64,19 @@ export const BUILT_IN_PACKS: Readonly<Record<string, SquadPack>> = {
 	// From the New Year package in the tier 1 Drive folder (file titled
 	// "Squish_Squad_decemeber _Member_Package_Complete.pdf", whose pages say
 	// January). The owner dropped its Park Path maze (already in December) and
-	// made the full-color forest scene the wallpaper: 5 printable pages.
+	// made the full-color forest scene the wallpaper: 5 printable pages. Pages 5 and 6
+	// (Spot the Difference; Be Brave, Be Kind, Be You) are standalone pages from the
+	// owner's "Squish Man extra pages" Drive folder, added so the pack has 7 pages.
 	"2027-01": {
 		month: "2027-01",
 		subject: "Your January Squish Squad Pack is here ✨",
 		heading: "Big Dreams for the New Year",
 		intro:
-			"Happy New Year from Maple Hollow! Squish Man and Pudy made you five new pages: My Big Dreams for the New Year, the Squish Man Superhero Adventure and Be Kind coloring pages, All About Kindness activities and word search, and a Great Job certificate. Plus a cozy wallpaper for a grown-up's phone or tablet. Print the pack and have fun!",
+			"Happy New Year from Maple Hollow! Squish Man and Pudy made you seven new pages: My Big Dreams for the New Year, the Squish Man Superhero Adventure and Be Kind coloring pages, All About Kindness activities and word search, Spot the Difference, the Be Brave, Be Kind, Be You coloring page and a Great Job certificate. Plus a cozy wallpaper for a grown-up's phone or tablet. Print the pack and have fun!",
 		heroImage: `${JAN}/email-hero.jpg`,
 		items: [
 			{
-				title: "January printable pack (5 pages, PDF)",
+				title: "January printable pack (7 pages, PDF)",
 				description:
 					"My Big Dreams for the New Year, Superhero Adventure coloring page, Be Kind coloring page, All About Kindness activities, and a Great Job certificate.",
 				url: `${JAN}/squish-squad-pack-january-2027.pdf`,
