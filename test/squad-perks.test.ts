@@ -29,6 +29,7 @@ import {
 	savePack,
 } from "../src/fulfillment/squad-perks";
 import { nameFontSize, posterSvg } from "../src/fulfillment/squad-poster";
+import { packKey } from "../src/fulfillment/pack-access";
 import type { Env } from "../src/lib/types";
 
 const BASE = "https://example.com";
@@ -424,6 +425,8 @@ describe("Squish Squad packs", () => {
 		expect(nov!.html).toContain("https://squishman.com/assets/squad-packs/2026-11/squish-squad-pack-november-2026.pdf");
 		expect(nov!.html).toContain('src="https://squishman.com/assets/squad-packs/2026-11/email-hero.jpg"');
 		expect(nov!.text).toContain("https://squishman.com/assets/squad-packs/2026-11/wallpaper-bridge-butterfly.jpg");
+		// November went out before pack links were keyed, so its links stay plain.
+		expect(nov!.html).not.toContain("?k=");
 	});
 
 	it("sends the built-in December pack on December 1", async () => {
@@ -434,7 +437,12 @@ describe("Squish Squad packs", () => {
 		const dec = emails.find((m) => (m.to as string[])[0] === "dec@example.com" && String(m.subject).includes("December"));
 		expect(dec?.html).toContain("Hi Noah!");
 		expect(dec?.html).toContain("https://squishman.com/assets/squad-packs/2026-12/squish-squad-pack-december-2026.pdf");
-		expect(dec?.html).toContain('src="https://squishman.com/assets/squad-packs/2026-12/email-hero.jpg"');
+		expect(dec?.html).toContain('src="https://squishman.com/assets/squad-packs/2026-12/email-hero.jpg');
+		// Pack files from December on are members-only: every link carries the month's key.
+		const key = await packKey(e, "2026-12");
+		expect(key).toBeTruthy();
+		expect(dec?.html).toContain(`squish-squad-pack-december-2026.pdf?k=${key}`);
+		expect(dec?.html).toContain(`email-hero.jpg?k=${key}`);
 	});
 
 	it("sends the built-in January pack on January 1", async () => {

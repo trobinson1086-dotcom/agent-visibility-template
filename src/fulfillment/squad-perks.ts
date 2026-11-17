@@ -32,6 +32,7 @@ import {
 	type SquadPack,
 } from "./email";
 import { BACK_CROWN_FILE, STICKER_FILES } from "./merch";
+import { signPack } from "./pack-access";
 import { BUILT_IN_PACKS } from "./squad-packs";
 import { createOrder, externalId, getOrder, PrintfulError, type PrintfulOrderItem } from "./printful";
 import {
@@ -697,6 +698,7 @@ async function sendPack(
 	try {
 		const status = await subscriptionStatus(env, member, subs);
 		if (!ACTIVE.has(status)) return "skipped";
+		const signed = await signPack(env, pack);
 		const common = {
 			from: env.SQUAD_EMAIL_FROM,
 			to: member.email,
@@ -705,12 +707,12 @@ async function sendPack(
 		const r = packSent
 			? await sendOnce(env, `pack-bonus:${pack.month}:${member.sessionId}`, {
 					...common,
-					...packBonusEmail(env, pack, member.childName, tier),
+					...packBonusEmail(env, signed, member.childName, tier),
 					tags: [{ name: "type", value: "squad_pack_bonus" }, { name: "month", value: pack.month.replace("-", "_") }],
 				})
 			: await sendOnce(env, `pack:${pack.month}:${member.sessionId}`, {
 					...common,
-					...packEmail(env, pack, member.childName, tier),
+					...packEmail(env, signed, member.childName, tier),
 					tags: [{ name: "type", value: "squad_pack" }, { name: "month", value: pack.month.replace("-", "_") }],
 				});
 		if (r.status === "skipped") return "skipped";
@@ -729,7 +731,7 @@ export async function testSendPack(env: Env, pack: SquadPack, to: string, tier: 
 	return sendOnce(env, `pack-test:${pack.month}:${tier}:${to}:${Date.now()}`, {
 		from: env.SQUAD_EMAIL_FROM,
 		to,
-		...packEmail(env, pack, "Squish Squad member", tier),
+		...packEmail(env, await signPack(env, pack), "Squish Squad member", tier),
 		tags: [{ name: "type", value: "squad_pack_test" }],
 	});
 }
