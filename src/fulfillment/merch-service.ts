@@ -112,6 +112,8 @@ export async function createMerchCheckout(
 	try {
 		const s = await createCheckoutSession(env.STRIPE_SECRET_KEY, {
 			mode: "payment",
+			// Lets shoppers enter a promotion code the owner made in Stripe (e.g. a thank-you discount).
+			allow_promotion_codes: "true",
 			"line_items[0][quantity]": String(quantity),
 			"line_items[0][price_data][currency]": "usd",
 			"line_items[0][price_data][unit_amount]": String(sel.unitCents),

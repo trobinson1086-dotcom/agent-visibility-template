@@ -1087,6 +1087,7 @@ describe("merch checkout", () => {
 		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("1298"); // $9.99 + $2.99
 		expect(f.get("shipping_address_collection[allowed_countries][0]")).toBe("US");
 		expect(f.get("metadata[merch_sku]")).toBe("HOODIE|Pink|2XL|FULL");
+		expect(f.get("allow_promotion_codes")).toBe("true");
 		expect(f.get("success_url")).toBe("https://squishman.com/?shop=thanks#merch");
 	});
 
