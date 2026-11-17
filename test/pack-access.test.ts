@@ -35,16 +35,17 @@ describe("Squish Squad Pack files are members-only", () => {
 		expect(res.status).toBe(403);
 	});
 
-	it("keeps November's already-emailed links working", async () => {
-		const res = await SELF.fetch(`https://example.com${NOV_PDF}`);
-		expect(res.status).toBe(200);
+	it("locks November to members like the later packs", async () => {
+		expect((await SELF.fetch(`https://example.com${NOV_PDF}`)).status).toBe(403);
+		const key = await packKey(e, "2026-11");
+		expect((await SELF.fetch(`https://example.com${NOV_PDF}?k=${key}`)).status).toBe(200);
 	});
 
 	it("keys only this site's pack links", async () => {
 		const key = await packKey(e, "2026-12");
 		expect(await signPackUrl(e, DEC_PDF)).toBe(`${DEC_PDF}?k=${key}`);
 		expect(await signPackUrl(e, `https://squishman.com${DEC_PDF}`)).toBe(`https://squishman.com${DEC_PDF}?k=${key}`);
-		expect(await signPackUrl(e, NOV_PDF)).toBe(NOV_PDF);
+		expect(await signPackUrl(e, NOV_PDF)).toBe(`${NOV_PDF}?k=${await packKey(e, "2026-11")}`);
 		expect(await signPackUrl(e, "https://drive.google.com/file/d/abc/view")).toBe("https://drive.google.com/file/d/abc/view");
 		expect(await packFileAllowed(e, "/assets/squad-packs/2026-12/../../index.html", key ?? "")).toBe(false);
 	});

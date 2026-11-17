@@ -4,8 +4,8 @@
  * (wrangler.jsonc `run_worker_first`) and only serves a file when the link
  * carries the month's key (`?k=…`), which only the pack emails contain.
  *
- * Packs up to OPEN_THROUGH went out before the key existed, so their plain
- * links stay open: members who saved those emails can still print them.
+ * Packs up to OPEN_THROUGH stay open on plain links. Every pack from November
+ * 2026 on needs its key (no pack email had gone out before the key existed).
  *
  * The key is an HMAC of the month, signed with SQUAD_PACK_SECRET (or, when that
  * secret isn't set, the Stripe webhook secret). With neither set (local dev and
@@ -15,8 +15,8 @@ import type { Env } from "../lib/types";
 import type { PackItem, SquadPack } from "./email";
 
 export const PACK_DIR = "/assets/squad-packs/";
-/** The last month whose pack emails went out with plain (unsigned) links. */
-export const OPEN_THROUGH = "2026-11";
+/** The last month whose pack files open without a key (none: November 2026 was the first pack). */
+export const OPEN_THROUGH = "2026-10";
 
 const PACK_FILE = /^\/assets\/squad-packs\/(20\d\d-(?:0[1-9]|1[0-2]))\/[A-Za-z0-9._-]+$/;
 
