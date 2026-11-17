@@ -307,3 +307,22 @@ button[disabled]{opacity:.7;cursor:progress}
 .bundle-price{margin:10px 0 14px;color:var(--deep);font-weight:800}
 .bundle-price b{display:block;font-size:30px;line-height:1.1}
 .bundle-thanks{max-width:640px;margin:0 auto 18px;background:#fff;border:3px solid var(--gold);border-radius:16px;padding:14px 18px;font-weight:900;color:#16794a}
+/* Nov 17 polish: skip link, Book 1 badge, phone Book 1 bar, focus rings */
+.skip-link{position:absolute;left:12px;top:-60px;z-index:50;background:var(--gold);color:var(--deep);font-weight:900;padding:10px 16px;border-radius:12px;text-decoration:none;transition:top .15s}
+.skip-link:focus{top:12px}
+:where(a,button,select,input,textarea,summary):focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.card{position:relative}
+.card-start{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold),0 8px 25px #0002}
+.start-here{position:absolute;top:-10px;left:50%;transform:translateX(-50%);z-index:1;background:var(--red);color:#fff;font:700 12px/1 'Fredoka',Arial,sans-serif;letter-spacing:.8px;padding:6px 12px;border-radius:999px;box-shadow:0 3px 0 #b5261d;white-space:nowrap}
+.sticky-book1{display:none}
+@media (max-width:720px){
+ .sticky-book1{display:flex;align-items:center;gap:10px;position:fixed;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));z-index:20;background:#fff;color:var(--ink);text-decoration:none;border:3px solid var(--gold);border-radius:18px;padding:8px 10px;box-shadow:0 10px 30px #0004;transform:translateY(calc(100% + 24px));transition:transform .25s ease;visibility:hidden}
+ .sticky-book1.show{transform:none;visibility:visible}
+ .sticky-book1 img{width:44px;height:auto;border-radius:6px;flex:none}
+ .sticky-book1>span:not(.btn){flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
+ .sticky-book1 b{font:700 16px/1.1 'Fredoka',Arial,sans-serif;color:var(--blue)}
+ .sticky-book1 small{font-size:11px;color:#46557f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .sticky-book1 .btn{width:auto;flex:none;padding:9px 12px;font-size:12px}
+ body.has-sticky footer{padding-bottom:96px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
