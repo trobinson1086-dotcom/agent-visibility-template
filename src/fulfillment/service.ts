@@ -19,7 +19,7 @@ import { bundleByKey } from "./bundles";
 import { byKey, byPriceId, luluMapping, printFiles } from "./catalog";
 import { memberFromSession, recordSquadMember, squadOf } from "./squad";
 import { refundMemberShipping } from "./squad-perks";
-import { orderEmail, sendOnce, squadWelcomeEmail, type OrderLine } from "./email";
+import { nameCheckEmail, orderEmail, sendOnce, squadWelcomeEmail, type OrderLine } from "./email";
 import { paidEbooks } from "./ebooks";
 import {
 	calculateCost,
@@ -508,7 +508,16 @@ export async function handleStripeWebhook(
 					tags: [{ name: "type", value: "squad_welcome" }],
 				}).catch((err) => log("email_failed", { session: sessionId, error: errorDetail(err).slice(0, 120) }))
 			: undefined;
-		return { status: 200, body: { received: true, squad: "member_recorded", tier: squad.tier }, background: welcome };
+		const nameCheck =
+			member.email && !member.nameConfirmed
+				? sendOnce(env, `squad-name-check:${sessionId}`, {
+						to: member.email,
+						...nameCheckEmail(env, member),
+						tags: [{ name: "type", value: "squad_name_check" }],
+					}).catch((err) => log("email_failed", { session: sessionId, error: errorDetail(err).slice(0, 120) }))
+				: undefined;
+		const background = welcome || nameCheck ? Promise.all([welcome, nameCheck]).then(() => undefined) : undefined;
+		return { status: 200, body: { received: true, squad: "member_recorded", tier: squad.tier }, background };
 	}
 	if (session.metadata?.merch_sku) {
 		const result = await recordMerchOrder(env, mode(env), db, event.id, session);
