@@ -272,6 +272,17 @@ describe("site forms", () => {
 		expect((await post("/api/squad/signup", signup)).status).toBe(503);
 	});
 
+	it("keeps every valid sign-up on the fan list, even when email is down", async () => {
+		await post("/api/squad/signup", { name: "Robin Lee", email: "Robin@Example.com", interest: "Everything" });
+		await post("/api/squad/signup", { name: "Robin Lee", email: "robin@example.com", interest: "Birthday Club" });
+		const fan = await env.VISIBILITY_CACHE.get<{ name: string; interest: string }>("fan:robin@example.com", "json");
+		expect(fan?.name).toBe("Robin Lee");
+		expect(fan?.interest).toBe("Birthday Club");
+		const bad = await post("/api/squad/signup", { name: "Spam", email: "spam@example.com", website: "x" });
+		expect(bad.status).toBe(200);
+		expect(await env.VISIBILITY_CACHE.get("fan:spam@example.com")).toBeNull();
+	});
+
 	it("limits how often one visitor can submit", async () => {
 		const send = () =>
 			SELF.fetch(`${BASE}/api/squad/signup`, {

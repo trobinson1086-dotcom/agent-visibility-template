@@ -326,3 +326,8 @@ button[disabled]{opacity:.7;cursor:progress}
  body.has-sticky footer{padding-bottom:96px}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
+
+.author{background:#fff}.author-card{max-width:980px;margin:auto;display:grid;grid-template-columns:200px 1fr;gap:34px;align-items:center;background:#fffaf0;border:3px solid var(--gold);border-radius:26px;padding:34px;box-shadow:0 12px 30px #12366814}.author-card img{width:100%;height:auto}.author-card h2{text-align:left;margin-top:4px}.author-card p{font-size:17px;line-height:1.65;margin:0 0 12px}.author-sign{display:grid;gap:2px;margin-top:16px!important}.author-sign b{color:var(--deep);font-size:18px}.author-sign span{font-size:14px;color:#5c6d89}
+.reviews-cta{text-align:center}.reviews-cta>p{max-width:720px;margin:12px auto 22px;font-size:17px;line-height:1.6}.reviews-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.reviews-cta small{display:block;margin-top:14px;color:#5c6d89}
+.footer-copy{grid-column:1/-1;margin:8px 0 0;font-size:12px;opacity:.8;text-align:center}
+@media(max-width:700px){.author-card{grid-template-columns:1fr;padding:24px;text-align:center}.author-card img{max-width:160px;margin:auto}.author-card h2{text-align:center}}

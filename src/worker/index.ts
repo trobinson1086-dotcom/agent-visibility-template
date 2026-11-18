@@ -63,7 +63,7 @@ import {
 } from "../fulfillment/service";
 import { type CheckoutRequest, confirmApprovedDrafts, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import { ebookDownloadPage } from "../fulfillment/ebooks";
-import { handleContact, handleSquadSignup } from "./forms";
+import { handleContact, handleSquadSignup, listFans } from "./forms";
 import { createBundleCheckout } from "../fulfillment/bundles";
 import { packFileAllowed } from "../fulfillment/pack-access";
 import {
@@ -550,6 +550,12 @@ app.get("/api/admin/fulfillment/catalog", (c) => {
 			productionEnabled: e.productionEnabled,
 		})),
 	});
+});
+
+/** The free Squish Squad fan list from the site's sign-up form (admin only). */
+app.get("/api/admin/squad/fans", async (c) => {
+	const fans = await listFans(c.env);
+	return c.json({ count: fans.length, fans }, 200, { "Cache-Control": "no-store" });
 });
 
 /** Squish Squad members and the birthday poster each one is due (admin only). */
