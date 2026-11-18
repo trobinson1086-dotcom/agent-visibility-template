@@ -9,7 +9,7 @@
  * and the page falls back to opening the visitor's email app, as before.
  */
 import type { Env } from "../lib/types";
-import { EmailError, esc, layout, sendOnce } from "../fulfillment/email";
+import { DEFAULT_FROM, EmailError, baseUrl, esc, layout, sendOnce } from "../fulfillment/email";
 
 export const CONTACT_INBOX = "contact@squishman.com";
 export const SQUAD_INBOX = "squishfans@squishman.com";
@@ -139,10 +139,88 @@ export async function handleSquadSignup(env: Env, input: Record<string, unknown>
 	if (!(SQUAD_INTERESTS as readonly string[]).includes(interest)) return fail(400, "BAD_INTEREST");
 	if (!(await underLimit(env, ip))) return fail(429, "TOO_MANY");
 
+	// Keep every sign-up on the fan list first, so none is lost even if email is down.
+	await saveFan(env, name, email, interest);
+
 	const key = `squad-signup:${await sha256([email.toLowerCase(), interest].join("\n"))}`;
-	return deliver(env, key, SQUAD_INBOX, email, `Squish Squad sign-up — ${interest}`, [
+	const result = await deliver(env, key, SQUAD_INBOX, email, `Squish Squad sign-up — ${interest}`, [
 		["Parent/guardian name", name],
 		["Email", email],
 		["Would like to receive", interest],
 	]);
+	if (result.body.ok) await welcomeFan(env, name, email);
+	return result;
+}
+
+/** One fan on the free Squish Squad list (parents and guardians only). */
+export interface Fan {
+	name: string;
+	email: string;
+	interest: string;
+	joinedAt: string;
+	updatedAt: string;
+}
+
+const FAN_PREFIX = "fan:";
+
+async function saveFan(env: Env, name: string, email: string, interest: string): Promise<void> {
+	const key = FAN_PREFIX + email.toLowerCase();
+	const now = new Date().toISOString();
+	const old = await env.VISIBILITY_CACHE.get<Fan>(key, "json");
+	const fan: Fan = { name, email, interest, joinedAt: old?.joinedAt ?? now, updatedAt: now };
+	await env.VISIBILITY_CACHE.put(key, JSON.stringify(fan));
+}
+
+/** Everyone on the free fan list, newest first (admin only). */
+export async function listFans(env: Env): Promise<Fan[]> {
+	const fans: Fan[] = [];
+	let cursor: string | undefined;
+	do {
+		const page = await env.VISIBILITY_CACHE.list({ prefix: FAN_PREFIX, cursor });
+		for (const k of page.keys) {
+			const fan = await env.VISIBILITY_CACHE.get<Fan>(k.name, "json");
+			if (fan) fans.push(fan);
+		}
+		cursor = page.list_complete ? undefined : page.cursor;
+	} while (cursor);
+	return fans.sort((a, b) => b.joinedAt.localeCompare(a.joinedAt));
+}
+
+/** A one-time welcome email to the new fan. A failure here never fails the sign-up. */
+async function welcomeFan(env: Env, name: string, email: string): Promise<void> {
+	const site = baseUrl(env);
+	const book1 = `${site}/product.html?book=book-1`;
+	const youtube = "https://www.youtube.com/@SquishManAdventures";
+	const first = name.split(/\s+/)[0] || "friend";
+	const subject = "Welcome to the Squish Squad! 👑";
+	const text = [
+		`Hi ${first},`,
+		"Welcome to the Squish Squad! Thank you for joining. You'll get Squish Man news, family activities and new adventure alerts from us.",
+		`New to Squish Man? Start with Book 1, Squish Man and the Missing Puppy Parade: ${book1}`,
+		`Watch the cartoon and songs on YouTube: ${youtube}`,
+		"Questions? Just reply to this email. To stop getting Squish Squad emails, reply STOP.",
+		"Big heart, tiny hero!\nThe Squish Man team",
+	].join("\n\n");
+	const html = layout(
+		env,
+		subject,
+		`<h2 style="margin:0 0 12px">Welcome to the Squish Squad, ${esc(first)}!</h2>` +
+			`<p style="margin:0 0 12px">Thank you for joining. You'll get Squish Man news, family activities and new adventure alerts from us.</p>` +
+			`<p style="margin:0 0 12px"><b>New to Squish Man?</b> Start with <a href="${esc(book1)}">Book 1, Squish Man and the Missing Puppy Parade</a>.</p>` +
+			`<p style="margin:0 0 12px">Watch the cartoon and songs on <a href="${youtube}">YouTube</a>.</p>` +
+			`<p style="margin:0 0 12px">Questions? Just reply to this email. To stop getting Squish Squad emails, reply STOP.</p>` +
+			`<p style="margin:0">Big heart, tiny hero!<br>The Squish Man team</p>`,
+	);
+	try {
+		await sendOnce(env, `squad-welcome:${await sha256(email.toLowerCase())}`, {
+			to: email,
+			from: DEFAULT_FROM,
+			replyTo: SQUAD_INBOX,
+			subject,
+			text,
+			html,
+		});
+	} catch (err) {
+		console.log(JSON.stringify({ at: "forms", event: "welcome_failed", error: String(err) }));
+	}
 }
