@@ -22,6 +22,7 @@
  * proposal). The React SPA at `/` is served from static assets.
  */
 import { Hono, type Context } from "hono";
+import { bookMeta, parseBooksJs, rewriteBookPage, type SiteBook } from "../site/book-meta";
 import { cors } from "hono/cors";
 import {
 	renderIndexJson,
@@ -56,12 +57,13 @@ import {
 	mode as fulfillmentMode,
 	present,
 	reconcile,
+	catchUpMissedOrders,
 	refresh,
 	retry,
 } from "../fulfillment/service";
-import { type CheckoutRequest, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
+import { type CheckoutRequest, confirmApprovedDrafts, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import { ebookDownloadPage } from "../fulfillment/ebooks";
-import { handleContact, handleSquadSignup } from "./forms";
+import { handleContact, handleSquadSignup, listFans } from "./forms";
 import { createBundleCheckout } from "../fulfillment/bundles";
 import { finishEbookCheckout, startEbookCheckout, type EbookCheckoutResult } from "../fulfillment/ebook-checkout";
 import { packFileAllowed } from "../fulfillment/pack-access";
@@ -377,6 +379,32 @@ app.get("/api/squad/poster-art/:file", async (c) => {
 });
 
 /**
+ * Book pages (/product?book=book-1): the page draws itself in the browser, so
+ * the worker writes each book's own title, description, share image,
+ * canonical link and schema.org Book data into the page first (see
+ * site/book-meta.ts). Unknown or missing books get the page unchanged, and its
+ * script sends the visitor back to the bookshelf.
+ */
+let booksCache: { at: number; books: SiteBook[] } | undefined;
+async function siteBooks(env: Env, base: string): Promise<SiteBook[]> {
+	if (booksCache && Date.now() - booksCache.at < 5 * 60_000) return booksCache.books;
+	const res = await env.ASSETS!.fetch(new Request(new URL("/books.js", base)));
+	const books = res.ok ? parseBooksJs(await res.text()) : [];
+	if (books.length) booksCache = { at: Date.now(), books };
+	return books;
+}
+async function bookPage(c: Context<{ Bindings: Env }>) {
+	if (!c.env.ASSETS) return c.notFound();
+	const page = await c.env.ASSETS.fetch(new Request(new URL("/product", c.req.url)));
+	const id = c.req.query("book");
+	if (!page.ok || !id) return page;
+	const book = (await siteBooks(c.env, c.req.url).catch(() => [] as SiteBook[])).find((b) => b.id === id);
+	return book ? rewriteBookPage(page, bookMeta(book)) : page;
+}
+app.get("/product", bookPage);
+app.get("/product.html", bookPage);
+
+/**
  * Squish Squad Pack files are for members: served only with the month's key
  * from the pack email (packs through November 2026 stay open; see
  * fulfillment/pack-access.ts).
@@ -537,6 +565,12 @@ app.get("/api/admin/fulfillment/catalog", (c) => {
 			productionEnabled: e.productionEnabled,
 		})),
 	});
+});
+
+/** The free Squish Squad fan list from the site's sign-up form (admin only). */
+app.get("/api/admin/squad/fans", async (c) => {
+	const fans = await listFans(c.env);
+	return c.json({ count: fans.length, fans }, 200, { "Cache-Control": "no-store" });
 });
 
 /** Squish Squad members and the birthday poster each one is due (admin only). */
@@ -733,11 +767,28 @@ app.all("/api/identity", async (c) => {
 	return c.json(result);
 });
 
+/** Matches the second cron in wrangler.jsonc. */
+const CONFIRM_CRON = "*/5 * * * *";
+
 export default {
 	fetch: app.fetch,
-	async scheduled(_controller, env, ctx) {
+	async scheduled(controller, env, ctx) {
+		if (controller.cron === CONFIRM_CRON) {
+			// Frequent, cheap run: only owner-approved Printful drafts (PRINTFUL_CONFIRM_DRAFTS).
+			ctx.waitUntil(
+				confirmApprovedDrafts(env).catch((err) =>
+					console.error(JSON.stringify({ at: "fulfillment", event: "confirm_failed", error: String(err).slice(0, 200) })),
+				),
+			);
+			return;
+		}
 		ctx.waitUntil(rebuildCache(env));
 		ctx.waitUntil(reconcile(env));
+		ctx.waitUntil(
+			catchUpMissedOrders(env).catch((err) =>
+				console.error(JSON.stringify({ at: "fulfillment", event: "catch_up_failed", error: String(err).slice(0, 200) })),
+			),
+		);
 		ctx.waitUntil(
 			runSquadDaily(env, fulfillmentMode(env)).catch((err) =>
 				console.error(JSON.stringify({ at: "squad", event: "daily_error", error: String(err).slice(0, 200) })),

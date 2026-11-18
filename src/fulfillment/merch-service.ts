@@ -20,6 +20,7 @@ import {
 	shippingCents,
 } from "./merch";
 import {
+	confirmOrder,
 	createOrder,
 	externalId,
 	getOrder,
@@ -112,6 +113,8 @@ export async function createMerchCheckout(
 	try {
 		const s = await createCheckoutSession(env.STRIPE_SECRET_KEY, {
 			mode: "payment",
+			// Lets shoppers enter a promotion code the owner made in Stripe (e.g. a thank-you discount).
+			allow_promotion_codes: "true",
 			"line_items[0][quantity]": String(quantity),
 			"line_items[0][price_data][currency]": "usd",
 			"line_items[0][price_data][unit_amount]": String(sel.unitCents),
@@ -153,6 +156,7 @@ export async function recordMerchOrder(
 	db: D1Database,
 	eventId: string,
 	session: StripeCheckoutSession,
+	{ draftOnly = false }: { draftOnly?: boolean } = {},
 ): Promise<MerchWebhookResult> {
 	const sku = session.metadata?.merch_sku ?? "";
 	const sel = merchFromSku(sku);
@@ -192,7 +196,7 @@ export async function recordMerchOrder(
 	return {
 		status: 200,
 		body: { received: true, fulfillment: "submitting" },
-		background: submitMerch(env, mode, session.id),
+		background: submitMerch(env, mode, session.id, { draftOnly }),
 	};
 }
 
@@ -227,6 +231,7 @@ export async function submitMerch(
 	env: Env,
 	mode: FulfillmentMode,
 	sessionId: string,
+	{ draftOnly = false }: { draftOnly?: boolean } = {},
 ): Promise<FulfillmentRecord | null> {
 	const db = env.ORDERS_DB;
 	const t = token(env);
@@ -251,7 +256,7 @@ export async function submitMerch(
 		const sel = merchFromSku(item.key.slice(SKU_PREFIX.length));
 		if (!sel) throw new Error(`UNKNOWN_MERCH_SKU:${item.key}`);
 		const s = JSON.parse(rec.shipping_json ?? "{}") as ShippingInfo;
-		const confirm = mode === "production" && rec.livemode === 1 && sel.product.productionEnabled;
+		const confirm = !draftOnly && mode === "production" && rec.livemode === 1 && sel.product.productionEnabled;
 		const order = await createOrder(
 			t,
 			{
@@ -366,4 +371,92 @@ export async function reconcileMerch(env: Env): Promise<number> {
 		}
 	}
 	return n;
+}
+
+/**
+ * Owner-approved Printful drafts. PRINTFUL_CONFIRM_DRAFTS lists
+ * "printfulOrderId:approvedTotal" pairs (comma separated). Each listed draft is
+ * confirmed once, and only while Printful still shows it as a draft of one of
+ * our orders whose current total equals the approved total to the cent.
+ * Anything else is logged and left for a person.
+ */
+const CONFIRM_STATUS_KEY = "printful:last-confirm";
+
+export async function confirmApprovedDrafts(env: Env): Promise<{ confirmed: number; skipped: number }> {
+	const out = { confirmed: 0, skipped: 0 };
+	const results: Array<{ printful: string; result: string }> = [];
+	const db = env.ORDERS_DB;
+	const t = token(env);
+	const raw = (env.PRINTFUL_CONFIRM_DRAFTS ?? "").trim();
+	if (!db || !t || !raw) return out;
+	for (const pair of raw.split(",")) {
+		const [idText, totalText] = pair.split(":").map((v) => v.trim());
+		const approved = Number(totalText);
+		if (!/^\d+$/.test(idText ?? "") || !Number.isFinite(approved)) {
+			log("confirm_skipped", { entry: pair.slice(0, 40), reason: "BAD_ENTRY" });
+			results.push({ printful: String(idText ?? "").slice(0, 20), result: "BAD_ENTRY" });
+			out.skipped++;
+			continue;
+		}
+		try {
+			const rec = await db
+				.prepare("SELECT stripe_session_id FROM fulfillments WHERE provider = 'printful' AND printful_order_id = ?")
+				.bind(idText)
+				.first<{ stripe_session_id: string }>();
+			if (!rec) {
+				log("confirm_skipped", { printful: idText, reason: "NOT_OUR_ORDER" });
+				results.push({ printful: idText, result: "NOT_OUR_ORDER" });
+				out.skipped++;
+				continue;
+			}
+			const order = await getOrder(t, await externalId(rec.stripe_session_id));
+			if (!order || String(order.id) !== idText) {
+				log("confirm_skipped", { printful: idText, reason: "NOT_FOUND" });
+				results.push({ printful: idText, result: "NOT_FOUND" });
+				out.skipped++;
+				continue;
+			}
+			if (order.status !== "draft") {
+				// Already confirmed (by us or in the dashboard), canceled or failed: just record it.
+				await applyOrder(db, rec.stripe_session_id, order);
+				results.push({ printful: idText, result: `ALREADY_${order.status.toUpperCase()}` });
+				out.skipped++;
+				continue;
+			}
+			const total = Number((order.costs as { total?: unknown } | undefined)?.total);
+			if (!Number.isFinite(total) || Math.round(total * 100) !== Math.round(approved * 100)) {
+				log("confirm_skipped", { printful: idText, reason: "TOTAL_CHANGED", approved, total });
+				results.push({ printful: idText, result: `TOTAL_CHANGED (now ${total})` });
+				out.skipped++;
+				continue;
+			}
+			const confirmed = await confirmOrder(t, order.id);
+			await applyOrder(db, rec.stripe_session_id, confirmed);
+			log("confirmed_draft", { printful: idText, session: rec.stripe_session_id, printful_status: confirmed.status });
+			results.push({ printful: idText, result: `CONFIRMED (${confirmed.status})` });
+			out.confirmed++;
+		} catch (err) {
+			log("confirm_error", { printful: idText, error: errorDetail(err).slice(0, 120) });
+			results.push({
+				printful: idText,
+				result: err instanceof PrintfulError ? `PRINTFUL_ERROR ${err.status}: ${err.detail.slice(0, 160)}` : "ERROR",
+			});
+			out.skipped++;
+		}
+	}
+	try {
+		await env.VISIBILITY_CACHE.put(
+			CONFIRM_STATUS_KEY,
+			JSON.stringify({ at: new Date().toISOString(), results }),
+			{ expirationTtl: 30 * 24 * 3600 },
+		);
+	} catch {
+		// Diagnostics only.
+	}
+	return out;
+}
+
+/** Last run of confirmApprovedDrafts (ids and outcomes only), for the health check. */
+export async function confirmStatus(env: Env): Promise<unknown> {
+	return env.VISIBILITY_CACHE.get(CONFIRM_STATUS_KEY, "json");
 }

@@ -54,7 +54,7 @@ import {
 	SQUISH_SQUAD_FILE,
 	STICKER_FILES,
 } from "./merch";
-import { checkoutState, reconcileMerch, recordMerchOrder, refreshMerch, retryMerch } from "./merch-service";
+import { checkoutState, confirmStatus, reconcileMerch, recordMerchOrder, refreshMerch, retryMerch } from "./merch-service";
 import { getFile } from "./printful";
 import * as store from "./store";
 import {
@@ -63,6 +63,7 @@ import {
 	missingShippingFields,
 	shippingFromSession,
 	verifyStripeSignature,
+	listCompletedCheckoutSessions,
 } from "./stripe";
 import type {
 	FulfillmentMode,
@@ -130,7 +131,8 @@ const HEALTH_TTL = 300;
  */
 export async function health(env: Env): Promise<Record<string, unknown>> {
 	const cached = await env.VISIBILITY_CACHE.get(HEALTH_KEY, "json");
-	if (cached) return { ...(cached as Record<string, unknown>), cached: true };
+	const stripeWebhook = await webhookStatus(env);
+	if (cached) return { ...(cached as Record<string, unknown>), stripeWebhook, cached: true };
 
 	const result: Record<string, unknown> = { mode: mode(env) };
 
@@ -210,7 +212,7 @@ export async function health(env: Env): Promise<Record<string, unknown>> {
 	}
 
 	await env.VISIBILITY_CACHE.put(HEALTH_KEY, JSON.stringify(result), { expirationTtl: HEALTH_TTL });
-	return result;
+	return { ...result, stripeWebhook };
 }
 
 /**
@@ -460,24 +462,156 @@ export async function handleStripeWebhook(
 	signature: string | null,
 ): Promise<WebhookResult> {
 	if (!env.STRIPE_WEBHOOK_SECRET) {
-		return { status: 503, body: { error: "Stripe webhook not configured" } };
+		return rejectWebhook(env, 503, "Stripe webhook not configured");
 	}
 	if (!(await verifyStripeSignature(rawBody, signature, env.STRIPE_WEBHOOK_SECRET))) {
-		return { status: 400, body: { error: "Invalid signature" } };
+		return rejectWebhook(env, 400, "Invalid signature");
 	}
 	let event: { id?: string; type?: string; livemode?: boolean; data?: { object?: { id?: string } } };
 	try {
 		event = JSON.parse(rawBody);
 	} catch {
-		return { status: 400, body: { error: "Invalid JSON" } };
+		return rejectWebhook(env, 400, "Invalid JSON");
 	}
 	if (!event.type || !PAID_EVENTS.has(event.type)) {
 		return { status: 200, body: { received: true, ignored: event.type ?? "unknown" } };
 	}
 	const sessionId = event.data?.object?.id;
 	if (!event.id || !sessionId || !/^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId)) {
-		return { status: 400, body: { error: "Malformed checkout event" } };
+		return rejectWebhook(env, 400, "Malformed checkout event");
 	}
+	let result: WebhookResult;
+	try {
+		result = await processPaidSession(env, event.id, sessionId);
+	} catch (err) {
+		log("webhook_error", { session: sessionId, event: event.id, error: errorDetail(err).slice(0, 120) });
+		return rejectWebhook(env, 500, "Order processing failed");
+	}
+	if (result.status >= 400) return rejectWebhook(env, result.status, String(result.body.error ?? "error"), result);
+	await markHandled(env, sessionId);
+	return result;
+}
+
+// ---------------------------------------------------------------------------
+// Missed-order catch-up: if a Stripe webhook never gets through (a wrong
+// signing secret, an outage, a blocked request), the hourly cron finds paid
+// checkouts that have no order record and handles them the same way. Orders
+// paid before CATCH_UP_LIVE_SINCE are only sent to Printful as drafts, so the
+// shop owner checks and confirms them by hand; nothing old is charged by itself.
+// ---------------------------------------------------------------------------
+
+/** Paid checkouts created before this time are only ever sent as Printful drafts. */
+export const CATCH_UP_LIVE_SINCE = Date.parse("2026-11-17T21:48:00Z") / 1000;
+/** How far back the catch-up looks (old misses become drafts, see above). */
+const CATCH_UP_DAYS = 60;
+/** Give the webhook this long before the catch-up steps in. */
+const CATCH_UP_GRACE_SECONDS = 15 * 60;
+const CATCH_UP_MAX_PAGES = 10;
+const HANDLED_PREFIX = "stripe-handled:";
+const HANDLED_TTL = 120 * 24 * 3600;
+const REJECTION_KEY = "stripe-webhook:last-rejection";
+const CATCH_UP_KEY = "stripe-webhook:last-catch-up";
+
+async function rejectWebhook(
+	env: Env,
+	status: number,
+	error: string,
+	result?: WebhookResult,
+): Promise<WebhookResult> {
+	log("webhook_rejected", { status, error });
+	try {
+		await env.VISIBILITY_CACHE.put(
+			REJECTION_KEY,
+			JSON.stringify({ status, error, at: new Date().toISOString() }),
+			{ expirationTtl: 30 * 24 * 3600 },
+		);
+	} catch {
+		// Diagnostics only.
+	}
+	return result ?? { status, body: { error } };
+}
+
+async function markHandled(env: Env, sessionId: string): Promise<void> {
+	try {
+		await env.VISIBILITY_CACHE.put(HANDLED_PREFIX + sessionId, "1", { expirationTtl: HANDLED_TTL });
+	} catch {
+		// The order record (or idempotent follow-ups) still protects against repeats.
+	}
+}
+
+/** Last webhook rejection and last catch-up run, for the health check (no values). */
+export async function webhookStatus(env: Env): Promise<Record<string, unknown>> {
+	const [lastRejection, lastCatchUp] = await Promise.all([
+		env.VISIBILITY_CACHE.get(REJECTION_KEY, "json"),
+		env.VISIBILITY_CACHE.get(CATCH_UP_KEY, "json"),
+	]);
+	const lastDraftConfirm = await confirmStatus(env);
+	return { lastRejection: lastRejection ?? null, lastCatchUp: lastCatchUp ?? null, lastDraftConfirm: lastDraftConfirm ?? null };
+}
+
+/**
+ * Find paid checkouts the webhook never handled and handle them. Safe to run
+ * repeatedly: every path is idempotent (one order record per checkout, emails
+ * and refunds sent once), and handled checkouts are marked.
+ */
+export async function catchUpMissedOrders(
+	env: Env,
+	nowSeconds = Math.floor(Date.now() / 1000),
+): Promise<{ checked: number; caughtUp: number; drafts: number; skipped: number; errors: number }> {
+	const out = { checked: 0, caughtUp: 0, drafts: 0, skipped: 0, errors: 0 };
+	const db = env.ORDERS_DB;
+	const key = env.STRIPE_SECRET_KEY;
+	if (!db || !key) return out;
+	const sessions = await listCompletedCheckoutSessions(key, nowSeconds - CATCH_UP_DAYS * 24 * 3600, CATCH_UP_MAX_PAGES);
+	for (const s of sessions) {
+		if (s.payment_status !== "paid") continue;
+		if (!s.created || nowSeconds - s.created < CATCH_UP_GRACE_SECONDS) continue;
+		out.checked++;
+		if (await env.VISIBILITY_CACHE.get(HANDLED_PREFIX + s.id)) continue;
+		if (await store.get(db, s.id)) {
+			await markHandled(env, s.id);
+			continue;
+		}
+		const old = s.created < CATCH_UP_LIVE_SINCE;
+		if (old && !s.metadata?.merch_sku) {
+			// Only merch can be safely drafted; tell the logs and leave it for a person.
+			log("missed_order_left_alone", { session: s.id, created: s.created });
+			await markHandled(env, s.id);
+			out.skipped++;
+			continue;
+		}
+		try {
+			const r = await processPaidSession(env, `catchup:${s.id}`, s.id, { draftOnly: old });
+			await r.background;
+			if (r.status >= 400) throw new Error(String(r.body.error ?? r.status));
+			await markHandled(env, s.id);
+			log("missed_order_caught_up", { session: s.id, draft: old, result: r.body });
+			out.caughtUp++;
+			if (old) out.drafts++;
+		} catch (err) {
+			out.errors++;
+			log("catch_up_error", { session: s.id, error: errorDetail(err).slice(0, 120) });
+		}
+	}
+	await env.VISIBILITY_CACHE.put(
+		CATCH_UP_KEY,
+		JSON.stringify({ at: new Date(nowSeconds * 1000).toISOString(), ...out }),
+		{ expirationTtl: 30 * 24 * 3600 },
+	);
+	return out;
+}
+
+/**
+ * Handle one paid Checkout Session (from the webhook or the catch-up).
+ * `draftOnly` sends merch to Printful as an unconfirmed draft and skips perks.
+ */
+export async function processPaidSession(
+	env: Env,
+	eventId: string,
+	sessionId: string,
+	{ draftOnly = false }: { draftOnly?: boolean } = {},
+): Promise<WebhookResult> {
+	const event = { id: eventId };
 	const db = env.ORDERS_DB;
 	if (!db || !env.STRIPE_SECRET_KEY) {
 		// 5xx so Stripe keeps retrying until storage/keys are configured.
@@ -495,6 +629,9 @@ export async function handleStripeWebhook(
 	if (session.payment_status !== "paid") {
 		log("awaiting_payment", { session: sessionId, payment_status: session.payment_status });
 		return { status: 200, body: { received: true, awaiting_payment: true } };
+	}
+	if (draftOnly && !session.metadata?.merch_sku) {
+		return { status: 200, body: { received: true, fulfillment: "left_for_owner" } };
 	}
 	const squad = squadOf(session);
 	if (squad) {
@@ -520,8 +657,8 @@ export async function handleStripeWebhook(
 		return { status: 200, body: { received: true, squad: "member_recorded", tier: squad.tier }, background };
 	}
 	if (session.metadata?.merch_sku) {
-		const result = await recordMerchOrder(env, mode(env), db, event.id, session);
-		if (result.body.duplicate) return result;
+		const result = await recordMerchOrder(env, mode(env), db, event.id, session, { draftOnly });
+		if (result.body.duplicate || draftOnly) return result;
 		// Hero / Platinum Crown members get cash back (and Platinum free shipping) on merch.
 		const perks = refundMemberShipping(env, session, { kind: "merch" }).catch((err) =>
 			log("merch_perks_error", { session: sessionId, error: errorDetail(err).slice(0, 120) }),

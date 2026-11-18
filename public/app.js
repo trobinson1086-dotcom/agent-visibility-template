@@ -7,7 +7,8 @@ const escHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 function card(b){
  const es=b.shelf==='spanish', buy=es?'COMPRAR AHORA':'BUY NOW', link=b.paperback||b.checkout;
  const name=b.name?`${b.label}: ${b.name}`:b.label;
- return `<article class="card"${es?' lang="es"':''}><img src="${A+encodeURI(b.cover)}" alt="${escHtml(name)} ${es?'portada':'cover'}" loading="lazy"><h3>${escHtml(name)}</h3><div class="price">${escHtml(b.price)}</div><a class="details" href="product.html?book=${encodeURIComponent(b.id)}">${es?'Ver el interior · Detalles del libro':'Look Inside · Product details'}</a>${link?`<a class="buy-link" href="${escHtml(link)}" target="_blank" rel="noopener">${buy}</a>`:`<button data-placeholder>${buy}</button>`}</article>`;
+ const start=b.id==='book-1'?'<span class="start-here">START HERE</span>':'';
+ return `<article class="card${start?' card-start':''}"${es?' lang="es"':''}>${start}<img src="${A+'400/'+encodeURI(b.cover)}" srcset="${A+'400/'+encodeURI(b.cover)} 400w, ${A+encodeURI(b.cover)} 900w" sizes="(max-width:600px) 45vw, 240px" width="400" height="549" alt="${escHtml(name)} ${es?'portada':'cover'}" loading="lazy" decoding="async"><h3>${escHtml(name)}</h3><div class="price">${escHtml(b.price)}</div><a class="details" href="product.html?book=${encodeURIComponent(b.id)}">${es?'Ver el interior · Detalles del libro':'Look Inside · Product details'}</a>${link?`<a class="buy-link" href="${escHtml(link)}" target="_blank" rel="noopener">${buy}</a>`:`<button data-placeholder>${buy}</button>`}</article>`;
 }
 Object.entries(SHELVES).forEach(([shelf,id])=>{const el=document.getElementById(id);if(el)el.innerHTML=BOOKS.filter(b=>b.shelf===shelf).map(card).join('')});
 document.addEventListener('click',e=>{if(e.target.matches('[data-placeholder]'))alert('Coming soon! To order now, email orders@squishman.com and we will help you.')});
@@ -30,3 +31,15 @@ document.querySelectorAll('.yt-facade').forEach(btn=>btn.addEventListener('click
  f.allowFullscreen=true;
  btn.replaceWith(f);
 }));
+
+// Phone "Start with Book 1" bar: shows once the hero's Book 1 card has scrolled
+// away, and steps aside while a book shelf, a form or the footer is on screen.
+(()=>{const bar=document.querySelector('.sticky-book1'),start=document.querySelector('.start-book1');
+ if(!bar||!start||!('IntersectionObserver' in window))return;
+ document.body.classList.add('has-sticky');
+ const hide=new Set();let pastHero=false;
+ const update=()=>bar.classList.toggle('show',pastHero&&hide.size===0);
+ new IntersectionObserver(([e])=>{pastHero=!e.isIntersecting&&e.boundingClientRect.top<0;update()}).observe(start);
+ const io=new IntersectionObserver(es=>{es.forEach(e=>e.isIntersecting?hide.add(e.target):hide.delete(e.target));update()});
+ document.querySelectorAll('#books,#squad-join,#contact,footer').forEach(el=>io.observe(el));
+})();

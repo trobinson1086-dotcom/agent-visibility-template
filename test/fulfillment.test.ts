@@ -12,10 +12,11 @@ import {
 	health,
 	retry,
 } from "../src/fulfillment/service";
+import { confirmApprovedDrafts } from "../src/fulfillment/merch-service";
 import { BACK_CROWN_FILE, MERCH, merchProduct, merchSelection, MUG_WRAP_FULL_FILE, ORNAMENT_SNOWGLOBE_FILE, SQUISH_SQUAD_FILE } from "../src/fulfillment/merch";
 import { ebookDownloadPage } from "../src/fulfillment/ebooks";
 import { cleanChildName, listSquadMembers, nextPoster, squadWelcomePage, type SquadMember } from "../src/fulfillment/squad";
-import { reconcile } from "../src/fulfillment/service";
+import { CATCH_UP_LIVE_SINCE, catchUpMissedOrders, reconcile, webhookStatus } from "../src/fulfillment/service";
 import * as store from "../src/fulfillment/store";
 import { verifyStripeSignature } from "../src/fulfillment/stripe";
 import type { CatalogEntry } from "../src/fulfillment/types";
@@ -920,6 +921,7 @@ describe("configuration health check", () => {
 			stripeSecretKey: "test",
 			stripeKeyCanReadCheckout: true,
 			stripeWebhookSecret: "configured",
+			stripeWebhook: { lastRejection: null, lastCatchUp: null, lastDraftConfirm: null },
 			printful: {
 				status: "ok",
 				storeProducts: 0,
@@ -1099,6 +1101,7 @@ describe("merch checkout", () => {
 		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("1298"); // $9.99 + $2.99
 		expect(f.get("shipping_address_collection[allowed_countries][0]")).toBe("US");
 		expect(f.get("metadata[merch_sku]")).toBe("HOODIE|Pink|2XL|FULL");
+		expect(f.get("allow_promotion_codes")).toBe("true");
 		expect(f.get("success_url")).toBe("https://squishman.com/?shop=thanks#merch");
 	});
 
@@ -2245,5 +2248,159 @@ describe("eBook checkout bot check", () => {
 		const books = await SELF.fetch(`${BASE}/books.js`);
 		const js = await books.text();
 		for (const n of [1, 2, 3, 4, 5]) expect(js).toContain(`/api/ebook/checkout?ebook=EN-EBOOK-${n}`);
+	});
+});
+
+describe("missed-order catch-up (webhook never got through)", () => {
+	// What the Stripe session list returns; each entry is also a session() fixture.
+	const listed: Array<Record<string, unknown>> = [];
+	const NOW = CATCH_UP_LIVE_SINCE + 24 * 3600;
+
+	function listedSession(id: string, created: number, opts: Parameters<typeof session>[1] = {}) {
+		session(id, opts);
+		const s = { ...(sessions.get(id) as Record<string, unknown>), created };
+		sessions.set(id, s);
+		listed.push(s);
+		return id;
+	}
+
+	beforeAll(() => {
+		fetchMock
+			.get("https://api.stripe.com")
+			.intercept({ path: (p) => p.startsWith("/v1/checkout/sessions?") && p.includes("status=complete"), method: "GET" })
+			.reply(() => ({ statusCode: 200, data: JSON.stringify({ object: "list", data: [...listed], has_more: false }) }))
+			.persist();
+	});
+
+	beforeEach(() => {
+		listed.length = 0;
+	});
+
+	it("records why Stripe's delivery was refused, for the health check", async () => {
+		const body = JSON.stringify(paidEvent("cs_test_badsig"));
+		const r = await handleStripeWebhook(sandboxEnv(), body, "t=1,v1=deadbeef");
+		expect(r.status).toBe(400);
+		const status = await webhookStatus(sandboxEnv());
+		expect(status.lastRejection).toMatchObject({ status: 400, error: "Invalid signature" });
+	});
+
+	it("sends a new paid merch order to Printful when the webhook never arrived", async () => {
+		listedSession("cs_live_newmiss", NOW - 3600, {
+			price: "price_adhoc_merch",
+			livemode: true,
+			metadata: { merch_sku: TEE_SKU },
+		});
+		const e = sandboxEnv({ FULFILLMENT_MODE: "production" });
+		const out = await catchUpMissedOrders(e, NOW);
+		expect(out).toMatchObject({ caughtUp: 1, drafts: 0, errors: 0 });
+		expect(printful.creates).toBe(1);
+		expect(printful.lastConfirm).toBe("true");
+		expect(await store.get(env.ORDERS_DB!, "cs_live_newmiss")).toMatchObject({ provider: "printful", status: "SUBMITTED" });
+	});
+
+	it("sends orders paid before the fix only as Printful drafts (the blanket and long sleeve)", async () => {
+		const created = CATCH_UP_LIVE_SINCE - 20 * 24 * 3600;
+		listedSession("cs_live_oldblanket", created, {
+			price: "price_adhoc_merch",
+			livemode: true,
+			metadata: { merch_sku: "BLANKET|Royal Blue|37×57 in|PUDY" },
+		});
+		listedSession("cs_live_oldlongsleeve", created + 86400, {
+			price: "price_adhoc_merch",
+			livemode: true,
+			metadata: { merch_sku: "LONGSLEEVE|White|L|LOGO" },
+		});
+		const e = sandboxEnv({ FULFILLMENT_MODE: "production" });
+		const out = await catchUpMissedOrders(e, NOW);
+		expect(out).toMatchObject({ caughtUp: 2, drafts: 2, errors: 0 });
+		expect(printful.creates).toBe(2);
+		expect(printful.lastConfirm).toBe("false");
+		for (const id of ["cs_live_oldblanket", "cs_live_oldlongsleeve"]) {
+			const rec = await store.get(env.ORDERS_DB!, id);
+			expect(rec).toMatchObject({ provider: "printful", status: "SUBMITTED", printful_status: "draft" });
+			expect(rec?.status_detail).toMatch(/^PRINTFUL_DRAFT/);
+			expect(rec?.printful_cost_json).toContain("total");
+		}
+		// A second run changes nothing.
+		const again = await catchUpMissedOrders(e, NOW + 3600);
+		expect(again.caughtUp).toBe(0);
+		expect(printful.creates).toBe(2);
+	});
+
+	it("leaves old non-merch orders for a person and never prints them", async () => {
+		listedSession("cs_live_oldbook", CATCH_UP_LIVE_SINCE - 86400, { livemode: true });
+		const out = await catchUpMissedOrders(sandboxEnv({ FULFILLMENT_MODE: "production" }), NOW);
+		expect(out).toMatchObject({ caughtUp: 0, skipped: 1 });
+		expect(lulu.creates + printful.creates).toBe(0);
+		expect(await store.get(env.ORDERS_DB!, "cs_live_oldbook")).toBeNull();
+	});
+
+	it("waits for the webhook first, and skips orders the webhook already handled", async () => {
+		listedSession("cs_test_recent", NOW - 60, { price: "price_adhoc_merch", metadata: { merch_sku: TEE_SKU } });
+		merchSession("cs_test_viahook");
+		await deliver(sandboxEnv(), paidEvent("cs_test_viahook"));
+		listed.push({ ...(sessions.get("cs_test_viahook") as Record<string, unknown>), created: NOW - 7200 });
+		const before = printful.creates;
+		const out = await catchUpMissedOrders(sandboxEnv(), NOW);
+		expect(out.caughtUp).toBe(0);
+		expect(printful.creates).toBe(before);
+		expect(await store.get(env.ORDERS_DB!, "cs_test_recent")).toBeNull();
+	});
+});
+
+describe("owner-approved Printful drafts", () => {
+	let confirms = 0;
+
+	beforeAll(() => {
+		fetchMock
+			.get("https://api.printful.com")
+			.intercept({ path: (p) => /^\/orders\/\d+\/confirm$/.test(p), method: "POST" })
+			.reply((opts) => {
+				confirms++;
+				const id = Number(String(opts.path).split("/")[2]);
+				for (const o of printful.orders.values()) {
+					if (o.id === id) {
+						o.status = "pending";
+						return { statusCode: 200, data: JSON.stringify({ code: 200, result: o }) };
+					}
+				}
+				return { statusCode: 404, data: JSON.stringify({ code: 404, result: "Not found" }) };
+			})
+			.persist();
+	});
+
+	beforeEach(() => {
+		confirms = 0;
+	});
+
+	async function draft(id: string) {
+		merchSession(id);
+		await deliver(sandboxEnv(), paidEvent(id));
+		return (await store.get(env.ORDERS_DB!, id))!.printful_order_id!;
+	}
+
+	it("confirms a listed draft once, only at the approved total", async () => {
+		const pf = await draft("cs_test_approve");
+		const e = sandboxEnv({ PRINTFUL_CONFIRM_DRAFTS: `${pf}:25.08` });
+		expect(await confirmApprovedDrafts(e)).toEqual({ confirmed: 1, skipped: 0 });
+		expect(confirms).toBe(1);
+		expect(await store.get(env.ORDERS_DB!, "cs_test_approve")).toMatchObject({ printful_status: "pending", status_detail: null });
+		// Later runs see it is no longer a draft and never confirm again.
+		expect(await confirmApprovedDrafts(e)).toEqual({ confirmed: 0, skipped: 1 });
+		expect(confirms).toBe(1);
+	});
+
+	it("leaves a draft alone when its total is not the approved one, or it is not ours", async () => {
+		const pf = await draft("cs_test_changed");
+		const e = sandboxEnv({ PRINTFUL_CONFIRM_DRAFTS: `${pf}:20.00, 999999:25.08, junk` });
+		expect(await confirmApprovedDrafts(e)).toEqual({ confirmed: 0, skipped: 3 });
+		expect(confirms).toBe(0);
+		expect(await store.get(env.ORDERS_DB!, "cs_test_changed")).toMatchObject({ printful_status: "draft" });
+	});
+
+	it("does nothing when no drafts are approved", async () => {
+		await draft("cs_test_none");
+		expect(await confirmApprovedDrafts(sandboxEnv({ PRINTFUL_CONFIRM_DRAFTS: "" }))).toEqual({ confirmed: 0, skipped: 0 });
+		expect(confirms).toBe(0);
 	});
 });
