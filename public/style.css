@@ -331,3 +331,4 @@ button[disabled]{opacity:.7;cursor:progress}
 .reviews-cta{text-align:center}.reviews-cta>p{max-width:720px;margin:12px auto 22px;font-size:17px;line-height:1.6}.reviews-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.reviews-cta small{display:block;margin-top:14px;color:#5c6d89}
 .footer-copy{grid-column:1/-1;margin:8px 0 0;font-size:12px;opacity:.8;text-align:center}
 @media(max-width:700px){.author-card{grid-template-columns:1fr;padding:24px;text-align:center}.author-card img{max-width:160px;margin:auto}.author-card h2{text-align:center}}
+.review-quote{max-width:620px;margin:0 auto 24px;padding:22px 26px;background:#fff;border-radius:20px;box-shadow:0 8px 24px rgba(20,40,90,.12)}.review-stars{font-size:18px;letter-spacing:2px;margin-bottom:8px}.review-quote blockquote{margin:0;font-size:22px;line-height:1.45;font-weight:700;color:#14285a}.review-quote figcaption{margin-top:10px;font-weight:700;color:#5c6d89}
