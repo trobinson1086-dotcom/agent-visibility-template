@@ -21,7 +21,8 @@
  * use the content (see https://contentsignals.org / the Content-Signals
  * proposal). The React SPA at `/` is served from static assets.
  */
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
+import { bookMeta, parseBooksJs, rewriteBookPage, type SiteBook } from "../site/book-meta";
 import { cors } from "hono/cors";
 import {
 	renderIndexJson,
@@ -375,6 +376,32 @@ app.get("/api/squad/poster-art/:file", async (c) => {
 		"X-Robots-Tag": "noindex",
 	});
 });
+
+/**
+ * Book pages (/product?book=book-1): the page draws itself in the browser, so
+ * the worker writes each book's own title, description, share image,
+ * canonical link and schema.org Book data into the page first (see
+ * site/book-meta.ts). Unknown or missing books get the page unchanged, and its
+ * script sends the visitor back to the bookshelf.
+ */
+let booksCache: { at: number; books: SiteBook[] } | undefined;
+async function siteBooks(env: Env, base: string): Promise<SiteBook[]> {
+	if (booksCache && Date.now() - booksCache.at < 5 * 60_000) return booksCache.books;
+	const res = await env.ASSETS!.fetch(new Request(new URL("/books.js", base)));
+	const books = res.ok ? parseBooksJs(await res.text()) : [];
+	if (books.length) booksCache = { at: Date.now(), books };
+	return books;
+}
+async function bookPage(c: Context<{ Bindings: Env }>) {
+	if (!c.env.ASSETS) return c.notFound();
+	const page = await c.env.ASSETS.fetch(new Request(new URL("/product", c.req.url)));
+	const id = c.req.query("book");
+	if (!page.ok || !id) return page;
+	const book = (await siteBooks(c.env, c.req.url).catch(() => [] as SiteBook[])).find((b) => b.id === id);
+	return book ? rewriteBookPage(page, bookMeta(book)) : page;
+}
+app.get("/product", bookPage);
+app.get("/product.html", bookPage);
 
 /**
  * Squish Squad Pack files are for members: served only with the month's key

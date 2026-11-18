@@ -21,6 +21,8 @@
 			"/jsonld",
 			"/llms-full.txt",
 			"/llms.txt",
+			"/product",
+			"/product.html",
 			"/robots.txt",
 			"/*.jsonld",
 			"/*.md"
