@@ -106,6 +106,8 @@ export interface Env {
 	// --- Email (Resend) and Squish Squad perks ------------------------------
 	/** Static assets (public/), used to render birthday poster art. */
 	ASSETS?: Fetcher;
+	/** SHA-256 (hex) of the key that opens the private /stats page (src/stats). */
+	STATS_KEY_HASH?: string;
 	/** Public origin used in email links and poster art URLs, e.g. https://squishman.com. */
 	PUBLIC_BASE_URL?: string;
 	/**

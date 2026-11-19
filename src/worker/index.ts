@@ -64,6 +64,8 @@ import {
 import { type CheckoutRequest, confirmApprovedDrafts, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import { ebookDownloadPage } from "../fulfillment/ebooks";
 import { handleContact, handleSquadSignup, listFans } from "./forms";
+import { buildReport, pruneStats, recordHit, statsAuthorized } from "../stats";
+import { renderStatsPage } from "../stats/page";
 import { createBundleCheckout } from "../fulfillment/bundles";
 import { packFileAllowed } from "../fulfillment/pack-access";
 import {
@@ -477,6 +479,39 @@ app.get("/api/bundle/checkout", async (c) => {
 });
 
 /** Contact form: emails the message to contact@squishman.com (see worker/forms.ts). */
+/** Visit counter beacon from public/mh.js (src/stats). Always 204. */
+app.post("/api/mh", (c) => recordHit(c.env, c.req.raw));
+
+/** The owner's private visitor stats: /stats?k=<key>. Anyone else gets the 404 page. */
+app.get("/stats", async (c) => {
+	const key = c.req.query("k");
+	if (!c.env.ORDERS_DB || !(await statsAuthorized(c.env, key))) {
+		const notFound = await c.env.ASSETS?.fetch(new Request(new URL("/404.html", c.req.url)));
+		return new Response(notFound ? await notFound.text() : "Not found", {
+			status: 404,
+			headers: { "content-type": "text/html; charset=utf-8", "X-Robots-Tag": "noindex" },
+		});
+	}
+	const days = Math.min(400, Math.max(1, Number.parseInt(c.req.query("d") ?? "7", 10) || 7));
+	const report = await buildReport(c.env, days);
+	return new Response(renderStatsPage(report, key!), {
+		headers: {
+			"content-type": "text/html; charset=utf-8",
+			"Cache-Control": "no-store",
+			"X-Robots-Tag": "noindex, nofollow",
+			"Referrer-Policy": "no-referrer",
+		},
+	});
+});
+
+/** Same numbers as JSON: /api/stats?k=<key>&d=30. */
+app.get("/api/stats", async (c) => {
+	const key = c.req.query("k") ?? (c.req.header("authorization") ?? "").replace(/^Bearer\s+/i, "");
+	if (!c.env.ORDERS_DB || !(await statsAuthorized(c.env, key))) return c.json({ error: "Not found" }, 404);
+	const days = Math.min(400, Math.max(1, Number.parseInt(c.req.query("d") ?? "7", 10) || 7));
+	return c.json(await buildReport(c.env, days), 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
+});
+
 app.post("/api/contact", async (c) => {
 	const ip = c.req.header("cf-connecting-ip") ?? "unknown";
 	const result = await handleContact(c.env, await formInput(c.req.raw), ip);
@@ -769,6 +804,11 @@ export default {
 		}
 		ctx.waitUntil(rebuildCache(env));
 		ctx.waitUntil(reconcile(env));
+		ctx.waitUntil(
+			pruneStats(env).catch((err) =>
+				console.error(JSON.stringify({ at: "stats", event: "prune_failed", error: String(err).slice(0, 200) })),
+			),
+		);
 		ctx.waitUntil(
 			catchUpMissedOrders(env).catch((err) =>
 				console.error(JSON.stringify({ at: "fulfillment", event: "catch_up_failed", error: String(err).slice(0, 200) })),
