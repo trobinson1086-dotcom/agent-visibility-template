@@ -336,3 +336,6 @@ button[disabled]{opacity:.7;cursor:progress}
 
 /* Holiday push (Nov 27 to Dec 1): banner and Story Collection card */
 .holiday-bar{display:block;text-align:center;background:var(--red);color:#fff;font-weight:800;padding:10px 4%;text-decoration:none;font-size:14px;line-height:1.4}.holiday-bar[hidden]{display:none}.holiday-bar b{color:var(--gold)}.holiday-bar span{display:inline-block;margin-left:8px;background:var(--gold);color:var(--deep);border-radius:8px;padding:3px 10px;font-size:12px;font-weight:900}.bundlegrid{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}.story-set{border:4px solid var(--gold);position:relative}.holiday-badge{background:var(--deep)}.story-set-covers{display:block;width:140px;height:auto;margin:14px auto 0;border-radius:12px;box-shadow:0 6px 18px #0002}.bundle-price s{display:block;color:#7a86a3;font-weight:700;font-size:15px}@media(max-width:560px){.holiday-bar{font-size:13px}.holiday-bar span{display:block;width:max-content;margin:6px auto 0}}
+
+/* Holiday sale note, Story Collection card extras */
+.sale-note{display:block;margin-top:4px;color:var(--red);font-size:13px;font-weight:900;letter-spacing:.4px;text-transform:uppercase}.sale-note[hidden]{display:none}.story-set-more{display:block;margin-top:10px;font-weight:800}

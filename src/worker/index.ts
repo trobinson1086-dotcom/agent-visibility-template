@@ -67,6 +67,7 @@ import { handleContact, handleSquadSignup, listFans } from "./forms";
 import { buildReport, pruneStats, recordHit, statsAuthorized } from "../stats";
 import { renderStatsPage } from "../stats/page";
 import { createBundleCheckout } from "../fulfillment/bundles";
+import { CAMPAIGNS, runCampaign, unsubscribe, unsubscribePage } from "./campaigns";
 import { packFileAllowed } from "../fulfillment/pack-access";
 import {
 	birthdayGift,
@@ -468,7 +469,7 @@ async function formInput(req: Request): Promise<Record<string, unknown>> {
 
 /** Book collections: send the buyer to a Stripe checkout for one bundle (see fulfillment/bundles.ts). */
 app.get("/api/bundle/checkout", async (c) => {
-	const result = await createBundleCheckout(c.env, c.req.query("bundle"), new URL(c.req.url).origin);
+	const result = await createBundleCheckout(c.env, c.req.query("bundle"), new URL(c.req.url).origin, c.req.query("from"));
 	const headers = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
 	if (result.url) return c.redirect(result.url, 303);
 	return c.html(
@@ -525,6 +526,13 @@ app.post("/api/squad/signup", async (c) => {
 	return c.json(result.body, result.status as 200, { "Cache-Control": "no-store" });
 });
 
+/** One-click unsubscribe from Squish Squad emails (link and List-Unsubscribe header in every campaign email). */
+app.on(["GET", "POST"], "/api/squad/unsubscribe", async (c) => {
+	const ok = await unsubscribe(c.env, (c.req.query("e") ?? "").slice(0, 254), (c.req.query("t") ?? "").slice(0, 64));
+	if (c.req.method === "POST") return c.json({ ok }, ok ? 200 : 400, { "Cache-Control": "no-store" });
+	return c.html(unsubscribePage(ok), ok ? 200 : 400, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
+});
+
 /** Squish Squad Shop: checkout state, prices, sizes and colors for the shop page. */
 app.get("/api/merch", (c) => {
 	return c.json(merchCatalog(c.env), 200, { "Cache-Control": "no-store" });
@@ -567,6 +575,19 @@ app.use("/api/admin/*", async (c, next) => {
 		return c.json({ error: "Unauthorized. Set the ADMIN_TOKEN secret." }, 401);
 	}
 	await next();
+});
+
+/** Holiday emails to the fan list: the campaigns and how many fans would get them. */
+app.get("/api/admin/squad/campaigns", async (c) => {
+	const fans = await listFans(c.env);
+	return c.json({ listSize: fans.length, campaigns: CAMPAIGNS.map((x) => ({ name: x.name, sendAt: x.sendAt, subject: x.subject })) }, 200, { "Cache-Control": "no-store" });
+});
+
+/** Dry run by default; &test=address sends one test copy; &send=1 sends to the list (once per fan). */
+app.post("/api/admin/squad/campaign", async (c) => {
+	const limit = Number.parseInt(c.req.query("limit") ?? "40", 10) || 40;
+	const r = await runCampaign(c.env, c.req.query("name"), { send: c.req.query("send") === "1", test: c.req.query("test") || undefined, limit });
+	return c.json(r.body, r.status as 200, { "Cache-Control": "no-store" });
 });
 
 /** Product → Stripe → Lulu mapping and readiness, for review before rollout. */
