@@ -29,10 +29,10 @@ export const CAMPAIGNS: readonly Campaign[] = [
 	{
 		name: "black-friday",
 		sendAt: "Fri Nov 27, 7 AM ET",
-		subject: "All 5 Squish Man books, $64.99, shipped free 🎁",
+		subject: "All 5 Squish Man books, $59.99, shipped free 🎁",
 		paragraphs: [
 			"Hi {first},",
-			"Looking for a gift this Black Friday? The Squish Man Story Collection has all 5 picture books about kindness, courage and friendship for $64.99 with free shipping. That's about $10 less than buying them one by one.",
+			"The Squish Man Black Friday deal is here. Through Cyber Monday, the Story Collection, all 5 picture books about kindness, courage and friendship, is $59.99 with free shipping. That's about $15 less than buying them one by one.",
 			"It's an easy gift for any little hero ages 5 to 9, and you can ship it straight to them.",
 		],
 		button: { label: "Get all 5 story books", href: "collection" },
@@ -44,19 +44,19 @@ export const CAMPAIGNS: readonly Campaign[] = [
 		paragraphs: [
 			"Hi {first},",
 			"Squish Man is a small, family-made book series, written and illustrated by Travis Robinson. Every order today helps a tiny hero grow.",
-			"All 5 story books are together in the Story Collection for $64.99, shipped free.",
+			"The Black Friday price is still on: all 5 story books for $59.99, shipped free, through Cyber Monday.",
 		],
 		button: { label: "Shop the Story Collection", href: "collection" },
 	},
 	{
 		name: "cyber-monday",
 		sendAt: "Mon Nov 30, 6 PM ET",
-		subject: "Cyber Monday: all 5 Squish Man books, shipped free",
+		subject: "Ends at midnight: the Squish Man Black Friday price",
 		paragraphs: [
 			"Hi {first},",
-			"Finishing your holiday shopping today? The Story Collection is an easy one: all 5 Squish Man books for $64.99 with free shipping, about $10 less than buying them one at a time.",
+			"Quick reminder: tonight at midnight Eastern the Story Collection goes back to $64.99. Until then, all 5 Squish Man books are $59.99 with free shipping.",
 		],
-		button: { label: "Get all 5 story books", href: "collection" },
+		button: { label: "Grab it before midnight", href: "collection" },
 	},
 	{
 		name: "giving-tuesday",
