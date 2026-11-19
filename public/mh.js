@@ -44,7 +44,7 @@ function what(el){
  var card=el.closest('.card,.merch-card,.squad-tier,.tier,article,.modal,.hero-book,section');
  var h=card&&card.querySelector('h1,h2,h3,h4');
  var t=h?txt(h):'';var b=txt(el);
- return (t&&t!==b?t+' · ':'')+b;
+ return (t&&t!==b?t+' \u00b7 ':'')+b;
 }
 d.addEventListener('click',function(e){
  var el=e.target&&e.target.closest&&e.target.closest('a,button');if(!el)return;
