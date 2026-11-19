@@ -2172,6 +2172,53 @@ describe("book collections", () => {
 		expect(stripeCreates[before + 1].get("line_items[0][price_data][unit_amount]")).toBe("12999");
 	});
 
+	it("sells the Story Collection with free shipping and promo codes allowed", async () => {
+		const { createBundleCheckout } = await import("../src/fulfillment/bundles");
+		const before = stripeCreates.length;
+		const r = await createBundleCheckout(sandboxEnv(), "EN-STORY-SET", "https://squishman.com", null, new Date("2026-11-20T12:00:00-05:00"));
+		expect(r.status).toBe(303);
+		const f = stripeCreates[before];
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("6499");
+		expect(f.get("metadata[price]")).toBe("regular");
+		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("0");
+		expect(f.get("allow_promotion_codes")).toBe("true");
+		expect(f.get("metadata[bundle]")).toBe("EN-STORY-SET");
+		expect(f.get("cancel_url")).toBe("https://squishman.com/#collections");
+	});
+
+	it("charges the same $64.99 for the Story Collection before, during and after Black Friday", async () => {
+		const { createBundleCheckout } = await import("../src/fulfillment/bundles");
+		const at = async (iso: string) => {
+			const before = stripeCreates.length;
+			await createBundleCheckout(sandboxEnv(), "EN-STORY-SET", "https://squishman.com", null, new Date(iso));
+			return stripeCreates[before].get("line_items[0][price_data][unit_amount]");
+		};
+		expect(await at("2026-11-26T23:59:59-05:00")).toBe("6499");
+		expect(await at("2026-11-27T00:00:00-05:00")).toBe("6499");
+		expect(await at("2026-11-30T23:59:59-05:00")).toBe("6499");
+		expect(await at("2026-12-01T00:00:00-05:00")).toBe("6499");
+	});
+
+	it("sends a Story Collection page buyer back to that page, and ignores unknown pages", async () => {
+		const { createBundleCheckout } = await import("../src/fulfillment/bundles");
+		let before = stripeCreates.length;
+		await createBundleCheckout(sandboxEnv(), "EN-STORY-SET", "https://squishman.com", "story-collection");
+		expect(stripeCreates[before].get("cancel_url")).toBe("https://squishman.com/story-collection.html");
+		expect(stripeCreates[before].get("success_url")).toBe("https://squishman.com/story-collection.html?order=thanks");
+		before = stripeCreates.length;
+		await createBundleCheckout(sandboxEnv(), "EN-STORY-SET", "https://squishman.com", "https://evil.example");
+		expect(stripeCreates[before].get("cancel_url")).toBe("https://squishman.com/#collections");
+	});
+
+	it("records a paid Story Collection as the five story paperbacks", async () => {
+		session("cs_test_storyset", { price: "price_adhoc_story", quantity: 1, metadata: { bundle: "EN-STORY-SET" } });
+		await deliver(sandboxEnv(), paidEvent("cs_test_storyset"));
+		const rec = await store.get(env.ORDERS_DB!, "cs_test_storyset");
+		const items = JSON.parse(rec!.items_json) as Array<{ key: string; quantity: number }>;
+		expect(items.map((i) => i.key)).toEqual(["EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5"]);
+		expect(items.every((i) => i.quantity === 1)).toBe(true);
+	});
+
 	it("records a paid bundle as its ten books and holds it for a hand-placed Lulu order", async () => {
 		session("cs_test_bundle", { price: "price_adhoc_bundle", quantity: 1, metadata: { bundle: "BILINGUAL-BUNDLE" } });
 		const r = await deliver(sandboxEnv(), paidEvent("cs_test_bundle"));

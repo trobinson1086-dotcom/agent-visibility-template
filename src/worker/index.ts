@@ -64,8 +64,11 @@ import {
 import { type CheckoutRequest, confirmApprovedDrafts, createMerchCheckout, merchCatalog } from "../fulfillment/merch-service";
 import { ebookDownloadPage } from "../fulfillment/ebooks";
 import { handleContact, handleSquadSignup, listFans } from "./forms";
+import { buildReport, pruneStats, recordHit, statsAuthorized } from "../stats";
+import { renderStatsPage } from "../stats/page";
 import { createBundleCheckout } from "../fulfillment/bundles";
 import { finishEbookCheckout, startEbookCheckout, type EbookCheckoutResult } from "../fulfillment/ebook-checkout";
+import { CAMPAIGNS, runCampaign, unsubscribe, unsubscribePage } from "./campaigns";
 import { packFileAllowed } from "../fulfillment/pack-access";
 import {
 	birthdayGift,
@@ -481,7 +484,7 @@ app.post("/api/ebook/checkout", async (c) => {
 
 /** Book collections: send the buyer to a Stripe checkout for one bundle (see fulfillment/bundles.ts). */
 app.get("/api/bundle/checkout", async (c) => {
-	const result = await createBundleCheckout(c.env, c.req.query("bundle"), new URL(c.req.url).origin);
+	const result = await createBundleCheckout(c.env, c.req.query("bundle"), new URL(c.req.url).origin, c.req.query("from"));
 	const headers = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
 	if (result.url) return c.redirect(result.url, 303);
 	return c.html(
@@ -492,6 +495,39 @@ app.get("/api/bundle/checkout", async (c) => {
 });
 
 /** Contact form: emails the message to contact@squishman.com (see worker/forms.ts). */
+/** Visit counter beacon from public/mh.js (src/stats). Always 204. */
+app.post("/api/mh", (c) => recordHit(c.env, c.req.raw));
+
+/** The owner's private visitor stats: /stats?k=<key>. Anyone else gets the 404 page. */
+app.get("/stats", async (c) => {
+	const key = c.req.query("k");
+	if (!c.env.ORDERS_DB || !(await statsAuthorized(c.env, key))) {
+		const notFound = await c.env.ASSETS?.fetch(new Request(new URL("/404.html", c.req.url)));
+		return new Response(notFound ? await notFound.text() : "Not found", {
+			status: 404,
+			headers: { "content-type": "text/html; charset=utf-8", "X-Robots-Tag": "noindex" },
+		});
+	}
+	const days = Math.min(400, Math.max(1, Number.parseInt(c.req.query("d") ?? "7", 10) || 7));
+	const report = await buildReport(c.env, days);
+	return new Response(renderStatsPage(report, key!), {
+		headers: {
+			"content-type": "text/html; charset=utf-8",
+			"Cache-Control": "no-store",
+			"X-Robots-Tag": "noindex, nofollow",
+			"Referrer-Policy": "no-referrer",
+		},
+	});
+});
+
+/** Same numbers as JSON: /api/stats?k=<key>&d=30. */
+app.get("/api/stats", async (c) => {
+	const key = c.req.query("k") ?? (c.req.header("authorization") ?? "").replace(/^Bearer\s+/i, "");
+	if (!c.env.ORDERS_DB || !(await statsAuthorized(c.env, key))) return c.json({ error: "Not found" }, 404);
+	const days = Math.min(400, Math.max(1, Number.parseInt(c.req.query("d") ?? "7", 10) || 7));
+	return c.json(await buildReport(c.env, days), 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
+});
+
 app.post("/api/contact", async (c) => {
 	const ip = c.req.header("cf-connecting-ip") ?? "unknown";
 	const result = await handleContact(c.env, await formInput(c.req.raw), ip);
@@ -503,6 +539,13 @@ app.post("/api/squad/signup", async (c) => {
 	const ip = c.req.header("cf-connecting-ip") ?? "unknown";
 	const result = await handleSquadSignup(c.env, await formInput(c.req.raw), ip);
 	return c.json(result.body, result.status as 200, { "Cache-Control": "no-store" });
+});
+
+/** One-click unsubscribe from Squish Squad emails (link and List-Unsubscribe header in every campaign email). */
+app.on(["GET", "POST"], "/api/squad/unsubscribe", async (c) => {
+	const ok = await unsubscribe(c.env, (c.req.query("e") ?? "").slice(0, 254), (c.req.query("t") ?? "").slice(0, 64));
+	if (c.req.method === "POST") return c.json({ ok }, ok ? 200 : 400, { "Cache-Control": "no-store" });
+	return c.html(unsubscribePage(ok), ok ? 200 : 400, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
 });
 
 /** Squish Squad Shop: checkout state, prices, sizes and colors for the shop page. */
@@ -547,6 +590,19 @@ app.use("/api/admin/*", async (c, next) => {
 		return c.json({ error: "Unauthorized. Set the ADMIN_TOKEN secret." }, 401);
 	}
 	await next();
+});
+
+/** Holiday emails to the fan list: the campaigns and how many fans would get them. */
+app.get("/api/admin/squad/campaigns", async (c) => {
+	const fans = await listFans(c.env);
+	return c.json({ listSize: fans.length, campaigns: CAMPAIGNS.map((x) => ({ name: x.name, sendAt: x.sendAt, subject: x.subject })) }, 200, { "Cache-Control": "no-store" });
+});
+
+/** Dry run by default; &test=address sends one test copy; &send=1 sends to the list (once per fan). */
+app.post("/api/admin/squad/campaign", async (c) => {
+	const limit = Number.parseInt(c.req.query("limit") ?? "40", 10) || 40;
+	const r = await runCampaign(c.env, c.req.query("name"), { send: c.req.query("send") === "1", test: c.req.query("test") || undefined, limit });
+	return c.json(r.body, r.status as 200, { "Cache-Control": "no-store" });
 });
 
 /** Product → Stripe → Lulu mapping and readiness, for review before rollout. */
@@ -784,6 +840,11 @@ export default {
 		}
 		ctx.waitUntil(rebuildCache(env));
 		ctx.waitUntil(reconcile(env));
+		ctx.waitUntil(
+			pruneStats(env).catch((err) =>
+				console.error(JSON.stringify({ at: "stats", event: "prune_failed", error: String(err).slice(0, 200) })),
+			),
+		);
 		ctx.waitUntil(
 			catchUpMissedOrders(env).catch((err) =>
 				console.error(JSON.stringify({ at: "fulfillment", event: "catch_up_failed", error: String(err).slice(0, 200) })),

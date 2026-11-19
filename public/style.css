@@ -332,3 +332,13 @@ button[disabled]{opacity:.7;cursor:progress}
 .footer-copy{grid-column:1/-1;margin:8px 0 0;font-size:12px;opacity:.8;text-align:center}
 @media(max-width:700px){.author-card{grid-template-columns:1fr;padding:24px;text-align:center}.author-card img{max-width:160px;margin:auto}.author-card h2{text-align:center}}
 .review-quote{max-width:620px;margin:0 auto 24px;padding:22px 26px;background:#fff;border-radius:20px;box-shadow:0 8px 24px rgba(20,40,90,.12)}.review-stars{font-size:18px;letter-spacing:2px;margin-bottom:8px}.review-quote blockquote{margin:0;font-size:22px;line-height:1.45;font-weight:700;color:#14285a}.review-quote figcaption{margin-top:10px;font-weight:700;color:#5c6d89}
+
+
+/* Holiday push (Nov 27 to Dec 1): banner and Story Collection card */
+.holiday-bar{display:block;text-align:center;background:var(--red);color:#fff;font-weight:800;padding:10px 4%;text-decoration:none;font-size:14px;line-height:1.4}.holiday-bar[hidden]{display:none}.holiday-bar b{color:var(--gold)}.holiday-bar span{display:inline-block;margin-left:8px;background:var(--gold);color:var(--deep);border-radius:8px;padding:3px 10px;font-size:12px;font-weight:900}.bundlegrid{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}.story-set{border:4px solid var(--gold);position:relative}.holiday-badge{background:var(--deep)}.story-set-covers{display:block;width:140px;height:auto;margin:14px auto 0;border-radius:12px;box-shadow:0 6px 18px #0002}.bundle-price s{display:block;color:#7a86a3;font-weight:700;font-size:15px}@media(max-width:560px){.holiday-bar{font-size:13px}.holiday-bar span{display:block;width:max-content;margin:6px auto 0}}
+
+/* Holiday sale note, Story Collection card extras */
+.sale-note{display:block;margin-top:4px;color:var(--red);font-size:13px;font-weight:900;letter-spacing:.4px;text-transform:uppercase}.sale-note[hidden]{display:none}.story-set-more{display:block;margin-top:10px;font-weight:800}
+
+/* Anything marked hidden stays hidden, whatever display a class gives it */
+[hidden]{display:none!important}

@@ -169,6 +169,8 @@ async function saveFan(env: Env, name: string, email: string, interest: string):
 	const old = await env.VISIBILITY_CACHE.get<Fan>(key, "json");
 	const fan: Fan = { name, email, interest, joinedAt: old?.joinedAt ?? now, updatedAt: now };
 	await env.VISIBILITY_CACHE.put(key, JSON.stringify(fan));
+	// Signing up again re-subscribes an address that had unsubscribed (see worker/campaigns.ts).
+	await env.VISIBILITY_CACHE.delete(`fan-unsub:${email.toLowerCase()}`);
 }
 
 /** Everyone on the free fan list, newest first (admin only). */
@@ -190,13 +192,17 @@ export async function listFans(env: Env): Promise<Fan[]> {
 async function welcomeFan(env: Env, name: string, email: string): Promise<void> {
 	const site = baseUrl(env);
 	const book1 = `${site}/product.html?book=book-1`;
+	const coloring = `${site}/assets/free/squish-man-coloring-page.pdf`;
+	const collection = `${site}/story-collection.html`;
 	const youtube = "https://www.youtube.com/@SquishManAdventures";
 	const first = name.split(/\s+/)[0] || "friend";
 	const subject = "Welcome to the Squish Squad! 👑";
 	const text = [
 		`Hi ${first},`,
 		"Welcome to the Squish Squad! Thank you for joining. You'll get Squish Man news, family activities and new adventure alerts from us.",
+		`Here's your free Squish Man coloring page to print: ${coloring}`,
 		`New to Squish Man? Start with Book 1, Squish Man and the Missing Puppy Parade: ${book1}`,
+		`Or get all 5 story books together, shipped free: ${collection}`,
 		`Watch the cartoon and songs on YouTube: ${youtube}`,
 		"Questions? Just reply to this email. To stop getting Squish Squad emails, reply STOP.",
 		"Big heart, tiny hero!\nThe Squish Man team",
@@ -206,7 +212,9 @@ async function welcomeFan(env: Env, name: string, email: string): Promise<void> 
 		subject,
 		`<h2 style="margin:0 0 12px">Welcome to the Squish Squad, ${esc(first)}!</h2>` +
 			`<p style="margin:0 0 12px">Thank you for joining. You'll get Squish Man news, family activities and new adventure alerts from us.</p>` +
+			`<p style="margin:0 0 16px;padding:14px 16px;background:#fff7dc;border-radius:12px"><b>🖍️ Your free coloring page:</b> <a href="${esc(coloring)}">print the Squish Man coloring page</a>.</p>` +
 			`<p style="margin:0 0 12px"><b>New to Squish Man?</b> Start with <a href="${esc(book1)}">Book 1, Squish Man and the Missing Puppy Parade</a>.</p>` +
+			`<p style="margin:0 0 12px">Or get <a href="${esc(collection)}">all 5 story books together</a>, shipped free.</p>` +
 			`<p style="margin:0 0 12px">Watch the cartoon and songs on <a href="${youtube}">YouTube</a>.</p>` +
 			`<p style="margin:0 0 12px">Questions? Just reply to this email. To stop getting Squish Squad emails, reply STOP.</p>` +
 			`<p style="margin:0">Big heart, tiny hero!<br>The Squish Man team</p>`,
