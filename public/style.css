@@ -339,3 +339,6 @@ button[disabled]{opacity:.7;cursor:progress}
 
 /* Holiday sale note, Story Collection card extras */
 .sale-note{display:block;margin-top:4px;color:var(--red);font-size:13px;font-weight:900;letter-spacing:.4px;text-transform:uppercase}.sale-note[hidden]{display:none}.story-set-more{display:block;margin-top:10px;font-weight:800}
+
+/* Anything marked hidden stays hidden, whatever display a class gives it */
+[hidden]{display:none!important}
