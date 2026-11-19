@@ -1,6 +1,7 @@
 /**
- * Book collections sold as one checkout: the English and Spanish Learning &
- * Activity sets (Books 1–5) and the Bilingual Mega Bundle (all ten).
+ * Book collections sold as one checkout: the Story Collection (English story
+ * paperbacks 1–5), the English and Spanish Learning & Activity sets (Books
+ * 1–5) and the Bilingual Mega Bundle (all ten).
  *
  * Prices and free shipping as Travis set them on 2026-11-17. Each checkout is
  * a Stripe Checkout Session with the price inline, so no Stripe product has to
@@ -21,9 +22,14 @@ export interface Bundle {
 }
 
 const EN = ["EN-LEARNING-1", "EN-LEARNING-2", "EN-LEARNING-3", "EN-LEARNING-4", "EN-LEARNING-5"] as const;
+const STORY = ["EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5"] as const;
 const ES = ["ES-LEARNING-1", "ES-LEARNING-2", "ES-LEARNING-3", "ES-LEARNING-4", "ES-LEARNING-5"] as const;
 
 export const BUNDLES: readonly Bundle[] = [
+	// Holiday push draft (2026-11-17): the five English story paperbacks together.
+	// Price is a proposal for Travis to confirm (singles are $14.99 each, $74.95 together).
+	// These paperbacks are mapped to Lulu, so the order prints like any story book.
+	{ key: "EN-STORY-SET", name: "Squish Man Story Collection (Books 1–5 Paperbacks)", unitCents: 6499, books: STORY },
 	{ key: "EN-LEARNING-SET", name: "Squish Man English Learning Set (Learning & Activity Books 1–5)", unitCents: 6599, books: EN },
 	{ key: "ES-LEARNING-SET", name: "Squish Man Colección en Español (Aprendizaje y Actividades 1–5)", unitCents: 6599, books: ES },
 	{ key: "BILINGUAL-BUNDLE", name: "Squish Man Bilingual Mega Bundle (10 Learning & Activity Books)", unitCents: 12999, books: [...EN, ...ES] },
@@ -62,6 +68,8 @@ export async function createBundleCheckout(
 			"shipping_options[0][shipping_rate_data][fixed_amount][amount]": "0",
 			"shipping_options[0][shipping_rate_data][fixed_amount][currency]": "usd",
 			"phone_number_collection[enabled]": "true",
+			// Lets a holiday or customer promo code from Stripe apply at checkout.
+			allow_promotion_codes: "true",
 			"metadata[bundle]": bundle.key,
 			success_url: `${origin}/?order=thanks#collections`,
 			cancel_url: `${origin}/#collections`,
