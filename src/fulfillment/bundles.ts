@@ -35,16 +35,14 @@ const STORY = ["EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBA
 const ES = ["ES-LEARNING-1", "ES-LEARNING-2", "ES-LEARNING-3", "ES-LEARNING-4", "ES-LEARNING-5"] as const;
 
 export const BUNDLES: readonly Bundle[] = [
-	// The five English story paperbacks together (proposed 2026-11-19, waits on
-	// Travis's OK): $69.99 every day, $64.99 Black Friday to Cyber Monday. Singles
-	// are $14.99 each, $74.95 together. These paperbacks are mapped to Lulu, so the
+	// The five English story paperbacks together: $64.99 every day with free
+	// shipping (Travis's pick, 2026-11-19). Singles are $14.99 each, $74.95 together. These paperbacks are mapped to Lulu, so the
 	// order prints like any story book.
 	{
 		key: "EN-STORY-SET",
 		name: "Squish Man Story Collection (Books 1–5 Paperbacks)",
-		unitCents: 6999,
+		unitCents: 6499,
 		books: STORY,
-		sale: { unitCents: 6499, ...HOLIDAY_SALE, label: "Black Friday price" },
 	},
 	{ key: "EN-LEARNING-SET", name: "Squish Man English Learning Set (Learning & Activity Books 1–5)", unitCents: 6599, books: EN },
 	{ key: "ES-LEARNING-SET", name: "Squish Man Colección en Español (Aprendizaje y Actividades 1–5)", unitCents: 6599, books: ES },

@@ -32,7 +32,7 @@ export const CAMPAIGNS: readonly Campaign[] = [
 		subject: "All 5 Squish Man books, $64.99, shipped free 🎁",
 		paragraphs: [
 			"Hi {first},",
-			"The Squish Man holiday deal is here. Through Cyber Monday, the whole Story Collection, all 5 picture books about kindness, courage and friendship, is $64.99 with free shipping. That's about $10 less than buying them one by one.",
+			"Looking for a gift this Black Friday? The Squish Man Story Collection has all 5 picture books about kindness, courage and friendship for $64.99 with free shipping. That's about $10 less than buying them one by one.",
 			"It's an easy gift for any little hero ages 5 to 9, and you can ship it straight to them.",
 		],
 		button: { label: "Get all 5 story books", href: "collection" },
@@ -44,19 +44,19 @@ export const CAMPAIGNS: readonly Campaign[] = [
 		paragraphs: [
 			"Hi {first},",
 			"Squish Man is a small, family-made book series, written and illustrated by Travis Robinson. Every order today helps a tiny hero grow.",
-			"The Black Friday price is still on: all 5 story books for $64.99, shipped free, through Cyber Monday.",
+			"All 5 story books are together in the Story Collection for $64.99, shipped free.",
 		],
 		button: { label: "Shop the Story Collection", href: "collection" },
 	},
 	{
 		name: "cyber-monday",
 		sendAt: "Mon Nov 30, 6 PM ET",
-		subject: "Ends at midnight: the Squish Man deal",
+		subject: "Cyber Monday: all 5 Squish Man books, shipped free",
 		paragraphs: [
 			"Hi {first},",
-			"Quick reminder: tonight at midnight Eastern the Story Collection goes back to its regular price. All 5 books are $64.99 with free shipping until the clock runs out.",
+			"Finishing your holiday shopping today? The Story Collection is an easy one: all 5 Squish Man books for $64.99 with free shipping, about $10 less than buying them one at a time.",
 		],
-		button: { label: "Grab it before midnight", href: "collection" },
+		button: { label: "Get all 5 story books", href: "collection" },
 	},
 	{
 		name: "giving-tuesday",

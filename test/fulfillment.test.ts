@@ -2165,7 +2165,7 @@ describe("book collections", () => {
 		const r = await createBundleCheckout(sandboxEnv(), "EN-STORY-SET", "https://squishman.com", null, new Date("2026-11-20T12:00:00-05:00"));
 		expect(r.status).toBe(303);
 		const f = stripeCreates[before];
-		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("6999");
+		expect(f.get("line_items[0][price_data][unit_amount]")).toBe("6499");
 		expect(f.get("metadata[price]")).toBe("regular");
 		expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("0");
 		expect(f.get("allow_promotion_codes")).toBe("true");
@@ -2173,17 +2173,17 @@ describe("book collections", () => {
 		expect(f.get("cancel_url")).toBe("https://squishman.com/#collections");
 	});
 
-	it("charges the Black Friday price only from Nov 27 until Cyber Monday ends (Eastern)", async () => {
+	it("charges the same $64.99 for the Story Collection before, during and after Black Friday", async () => {
 		const { createBundleCheckout } = await import("../src/fulfillment/bundles");
 		const at = async (iso: string) => {
 			const before = stripeCreates.length;
 			await createBundleCheckout(sandboxEnv(), "EN-STORY-SET", "https://squishman.com", null, new Date(iso));
 			return stripeCreates[before].get("line_items[0][price_data][unit_amount]");
 		};
-		expect(await at("2026-11-26T23:59:59-05:00")).toBe("6999");
+		expect(await at("2026-11-26T23:59:59-05:00")).toBe("6499");
 		expect(await at("2026-11-27T00:00:00-05:00")).toBe("6499");
 		expect(await at("2026-11-30T23:59:59-05:00")).toBe("6499");
-		expect(await at("2026-12-01T00:00:00-05:00")).toBe("6999");
+		expect(await at("2026-12-01T00:00:00-05:00")).toBe("6499");
 	});
 
 	it("sends a Story Collection page buyer back to that page, and ignores unknown pages", async () => {
