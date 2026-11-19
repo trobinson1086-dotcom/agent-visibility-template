@@ -50,6 +50,7 @@ d.addEventListener('click',function(e){
  var el=e.target&&e.target.closest&&e.target.closest('a,button');if(!el)return;
  if(el.matches('[data-buy]')){send('buy',{l:what(el)});return}
  var href=el.getAttribute('href')||'';
+ if(/\/api\/bundle\/checkout/.test(href)){send('buy',{l:what(el)});return}
  if(/^mailto:/i.test(href)){send('email',{l:href.slice(7).split('?')[0]});return}
  var h=href&&host(el.href);
  if(/(^|\.)stripe\.com$/.test(h)){send('buy',{l:what(el)});return}
