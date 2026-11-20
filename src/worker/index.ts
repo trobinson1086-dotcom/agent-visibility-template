@@ -67,7 +67,7 @@ import { handleContact, handleSquadSignup, listFans } from "./forms";
 import { buildReport, pruneStats, recordHit, statsAuthorized } from "../stats";
 import { renderStatsPage } from "../stats/page";
 import { createBundleCheckout } from "../fulfillment/bundles";
-import { CAMPAIGNS, runCampaign, unsubscribe, unsubscribePage } from "./campaigns";
+import { CAMPAIGNS, runCampaign, runDueCampaigns, unsubscribe, unsubscribePage } from "./campaigns";
 import { packFileAllowed } from "../fulfillment/pack-access";
 import {
 	birthdayGift,
@@ -580,7 +580,7 @@ app.use("/api/admin/*", async (c, next) => {
 /** Holiday emails to the fan list: the campaigns and how many fans would get them. */
 app.get("/api/admin/squad/campaigns", async (c) => {
 	const fans = await listFans(c.env);
-	return c.json({ listSize: fans.length, campaigns: CAMPAIGNS.map((x) => ({ name: x.name, sendAt: x.sendAt, subject: x.subject })) }, 200, { "Cache-Control": "no-store" });
+	return c.json({ listSize: fans.length, campaigns: CAMPAIGNS.map((x) => ({ name: x.name, sendAt: x.sendAt, sendAtUtc: x.sendAtUtc, subject: x.subject })) }, 200, { "Cache-Control": "no-store" });
 });
 
 /** Dry run by default; &test=address sends one test copy; &send=1 sends to the list (once per fan). */
@@ -819,6 +819,12 @@ export default {
 			ctx.waitUntil(
 				confirmApprovedDrafts(env).catch((err) =>
 					console.error(JSON.stringify({ at: "fulfillment", event: "confirm_failed", error: String(err).slice(0, 200) })),
+				),
+			);
+			// Holiday emails Travis approved (2026-11-20): only does anything inside a campaign's send window.
+			ctx.waitUntil(
+				runDueCampaigns(env).catch((err) =>
+					console.error(JSON.stringify({ at: "squad", event: "campaign_error", error: String(err).slice(0, 200) })),
 				),
 			);
 			return;

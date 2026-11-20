@@ -2,7 +2,7 @@
 import { env, fetchMock, SELF } from "cloudflare:test";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { Env } from "../src/lib/types";
-import { runCampaign, unsubscribeUrl } from "../src/worker/campaigns";
+import { CAMPAIGNS, SEND_WINDOW_MS, dueCampaigns, runCampaign, runDueCampaigns, unsubscribeUrl } from "../src/worker/campaigns";
 
 const BASE = "https://example.com";
 const sent: Array<{ to: string[]; subject: string; text: string; headers?: Record<string, string> }> = [];
@@ -86,5 +86,36 @@ describe("holiday campaigns", () => {
 		const body = (await res.json()) as { listSize: number; campaigns: Array<{ name: string }> };
 		expect(body.listSize).toBe(3);
 		expect(body.campaigns.map((c) => c.name)).toEqual(["black-friday", "small-business-saturday", "cyber-monday", "giving-tuesday"]);
+	});
+
+	it("schedules all four at their Eastern send times, each due only in its window", () => {
+		expect(CAMPAIGNS.map((c) => [c.name, c.sendAtUtc])).toEqual([
+			["black-friday", "2026-11-27T12:00:00Z"],
+			["small-business-saturday", "2026-11-28T14:00:00Z"],
+			["cyber-monday", "2026-11-30T23:00:00Z"],
+			["giving-tuesday", "2026-12-01T15:00:00Z"],
+		]);
+		expect(dueCampaigns(new Date("2026-11-20T08:30:00Z"))).toEqual([]);
+		expect(dueCampaigns(new Date("2026-11-27T11:59:59Z"))).toEqual([]);
+		expect(dueCampaigns(new Date("2026-11-27T12:00:00Z")).map((c) => c.name)).toEqual(["black-friday"]);
+		expect(dueCampaigns(new Date(Date.parse("2026-11-27T12:00:00Z") + SEND_WINDOW_MS - 1)).map((c) => c.name)).toEqual(["black-friday"]);
+		expect(dueCampaigns(new Date(Date.parse("2026-11-27T12:00:00Z") + SEND_WINDOW_MS))).toEqual([]);
+		// Cyber Monday's last call (6 PM) and Giving Tuesday (10 AM) never overlap.
+		expect(dueCampaigns(new Date("2026-12-01T15:30:00Z")).map((c) => c.name)).toEqual(["giving-tuesday"]);
+	});
+
+	it("the cron sends a due campaign to the list once, and nothing outside its window", async () => {
+		expect(await runDueCampaigns(withEmail(), new Date("2026-11-28T13:59:00Z"))).toEqual([]);
+		const before = sent.length;
+		const [first] = await runDueCampaigns(withEmail(), new Date("2026-11-28T14:05:00Z"));
+		expect(first.campaign).toBe("small-business-saturday");
+		expect(first.mode).toBe("send");
+		expect(first.sent).toBe(first.eligible);
+		expect(first.sent).toBeGreaterThan(0);
+		expect(sent.length - before).toBe(first.sent);
+		expect(sent.at(-1)?.subject).toBe("Shop small with Squish Man today 💛");
+		const [again] = await runDueCampaigns(withEmail(), new Date("2026-11-28T14:10:00Z"));
+		expect(again.sent).toBe(0);
+		expect(again.alreadySent).toBe(first.sent);
 	});
 });
