@@ -2173,7 +2173,7 @@ describe("book collections", () => {
 		expect(f.get("cancel_url")).toBe("https://squishman.com/#collections");
 	});
 
-	it("charges $59.99 only from Nov 27 until Cyber Monday ends (Eastern), $64.99 otherwise", async () => {
+	it("charges $61.99 only from Nov 27 until Cyber Monday ends (Eastern), $64.99 otherwise", async () => {
 		const { createBundleCheckout } = await import("../src/fulfillment/bundles");
 		const at = async (iso: string) => {
 			const before = stripeCreates.length;
@@ -2181,8 +2181,8 @@ describe("book collections", () => {
 			return stripeCreates[before].get("line_items[0][price_data][unit_amount]");
 		};
 		expect(await at("2026-11-26T23:59:59-05:00")).toBe("6499");
-		expect(await at("2026-11-27T00:00:00-05:00")).toBe("5999");
-		expect(await at("2026-11-30T23:59:59-05:00")).toBe("5999");
+		expect(await at("2026-11-27T00:00:00-05:00")).toBe("6199");
+		expect(await at("2026-11-30T23:59:59-05:00")).toBe("6199");
 		expect(await at("2026-12-01T00:00:00-05:00")).toBe("6499");
 	});
 

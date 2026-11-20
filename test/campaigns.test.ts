@@ -49,7 +49,7 @@ describe("holiday campaigns", () => {
 	it("sends each fan one copy with an unsubscribe header, and never twice", async () => {
 		const first = await runCampaign(withEmail(), "black-friday", { send: true });
 		expect(first.body).toMatchObject({ mode: "send", sent: 3, failed: 0 });
-		const mine = sent.filter((m) => m.subject.includes("$59.99"));
+		const mine = sent.filter((m) => m.subject.includes("$61.99"));
 		expect(mine.length).toBe(3);
 		expect(mine[0].headers?.["List-Unsubscribe-Post"]).toBe("List-Unsubscribe=One-Click");
 		expect(mine.some((m) => m.text.startsWith("Hi Robin,"))).toBe(true);
