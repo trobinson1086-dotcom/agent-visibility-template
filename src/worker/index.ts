@@ -22,6 +22,7 @@
  * proposal). The React SPA at `/` is served from static assets.
  */
 import { Hono, type Context } from "hono";
+import { drawWinner, giveawayPage, giveawayPhase, giveawayRulesPage, handleGiveawayEntry, listEntries } from "./giveaway";
 import { bookMeta, parseBooksJs, rewriteBookPage, type SiteBook } from "../site/book-meta";
 import { cors } from "hono/cors";
 import {
@@ -526,6 +527,25 @@ app.post("/api/squad/signup", async (c) => {
 	return c.json(result.body, result.status as 200, { "Cache-Control": "no-store" });
 });
 
+/**
+ * Holiday giveaway (worker/giveaway.ts). Built and kept off: both pages answer 404
+ * and entries are refused until GIVEAWAY.open is true and the sponsor address is set.
+ */
+const giveawayHeaders = { "Cache-Control": "no-store" };
+app.get("/giveaway", (c) => {
+	if (giveawayPhase() === "off") return c.notFound();
+	return c.html(giveawayPage(), 200, giveawayHeaders);
+});
+app.get("/giveaway-rules", (c) => {
+	if (giveawayPhase() === "off") return c.notFound();
+	return c.html(giveawayRulesPage(), 200, giveawayHeaders);
+});
+app.post("/api/giveaway/enter", async (c) => {
+	const ip = c.req.header("cf-connecting-ip") ?? "unknown";
+	const result = await handleGiveawayEntry(c.env, await formInput(c.req.raw), ip);
+	return c.json(result.body, result.status as 200, giveawayHeaders);
+});
+
 /** One-click unsubscribe from Squish Squad emails (link and List-Unsubscribe header in every campaign email). */
 app.on(["GET", "POST"], "/api/squad/unsubscribe", async (c) => {
 	const ok = await unsubscribe(c.env, (c.req.query("e") ?? "").slice(0, 254), (c.req.query("t") ?? "").slice(0, 64));
@@ -575,6 +595,26 @@ app.use("/api/admin/*", async (c, next) => {
 		return c.json({ error: "Unauthorized. Set the ADMIN_TOKEN secret." }, 401);
 	}
 	await next();
+});
+
+/** Giveaway: a look at both pages before they go public (admin only). */
+app.get("/api/admin/giveaway/preview", (c) => {
+	const now = Date.parse("2026-12-01T12:00:00-05:00");
+	const cfg = { open: true, sponsorAddress: "[sponsor mailing address goes here]", startsAt: "2026-11-27T00:00:00-05:00", endsAt: "2026-12-13T23:59:59-05:00" };
+	const html = c.req.query("page") === "rules" ? giveawayRulesPage(cfg.sponsorAddress) : giveawayPage(now, cfg);
+	return c.html(html, 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
+});
+
+/** Giveaway entries so far (admin only). */
+app.get("/api/admin/giveaway/entries", async (c) => {
+	const entries = await listEntries(c.env);
+	return c.json({ phase: giveawayPhase(), count: entries.length, entries }, 200, { "Cache-Control": "no-store" });
+});
+
+/** Random draw after entries close; call again for an alternate if a winner doesn't reply (admin only). */
+app.post("/api/admin/giveaway/draw", async (c) => {
+	const r = await drawWinner(c.env);
+	return c.json(r.body, r.status as 200, { "Cache-Control": "no-store" });
 });
 
 /** Holiday emails to the fan list: the campaigns and how many fans would get them. */

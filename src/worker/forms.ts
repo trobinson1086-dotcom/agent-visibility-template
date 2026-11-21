@@ -42,10 +42,10 @@ export interface FormResult {
 
 const fail = (status: number, error: string): FormResult => ({ status, body: { ok: false, error } });
 
-const looksLikeEmail = (s: string) => /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/.test(s);
+export const looksLikeEmail = (s: string) => /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/.test(s);
 
 /** One line, trimmed, no control characters, at most `max` characters. */
-function line(v: unknown, max: number): string {
+export function line(v: unknown, max: number): string {
 	return String(v ?? "")
 		.replace(/[\u0000-\u001f\u007f]+/g, " ")
 		.trim()
@@ -61,13 +61,13 @@ function block(v: unknown, max: number): string {
 		.slice(0, max);
 }
 
-async function sha256(text: string): Promise<string> {
+export async function sha256(text: string): Promise<string> {
 	const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
 	return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 /** A rough per-IP hourly cap, kept in KV. Returns false once the cap is reached. */
-async function underLimit(env: Env, ip: string): Promise<boolean> {
+export async function underLimit(env: Env, ip: string): Promise<boolean> {
 	const hour = new Date().toISOString().slice(0, 13);
 	const key = `form:rate:${await sha256(ip)}:${hour}`;
 	const count = Number((await env.VISIBILITY_CACHE.get(key)) ?? "0");
@@ -163,7 +163,7 @@ export interface Fan {
 
 const FAN_PREFIX = "fan:";
 
-async function saveFan(env: Env, name: string, email: string, interest: string): Promise<void> {
+export async function saveFan(env: Env, name: string, email: string, interest: string): Promise<void> {
 	const key = FAN_PREFIX + email.toLowerCase();
 	const now = new Date().toISOString();
 	const old = await env.VISIBILITY_CACHE.get<Fan>(key, "json");
@@ -171,6 +171,12 @@ async function saveFan(env: Env, name: string, email: string, interest: string):
 	await env.VISIBILITY_CACHE.put(key, JSON.stringify(fan));
 	// Signing up again re-subscribes an address that had unsubscribed (see worker/campaigns.ts).
 	await env.VISIBILITY_CACHE.delete(`fan-unsub:${email.toLowerCase()}`);
+}
+
+/** Puts someone on the fan list without changing what they already chose to receive. */
+export async function ensureFan(env: Env, name: string, email: string): Promise<void> {
+	const old = await env.VISIBILITY_CACHE.get<Fan>(FAN_PREFIX + email.toLowerCase(), "json");
+	await saveFan(env, old?.name || name, email, old?.interest || "Everything");
 }
 
 /** Everyone on the free fan list, newest first (admin only). */
