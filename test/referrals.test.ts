@@ -186,9 +186,9 @@ describe("referrals switched off (the default)", () => {
 		expect(promos).toHaveLength(0);
 	});
 
-	it("the check endpoint reports off on the live config", async () => {
+	it("the live config has referrals on, and an unknown code is not valid", async () => {
 		const r = await SELF.fetch("https://example.com/api/referral/check?code=SQUISHPATABCD");
-		expect(await r.json()).toEqual({ on: false, valid: false });
+		expect(await r.json()).toEqual({ on: true, valid: false });
 	});
 });
 

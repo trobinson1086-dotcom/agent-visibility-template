@@ -446,23 +446,23 @@ export async function listReferrals(env: Env): Promise<{ codes: Array<Omit<Refer
 	const codes: ReferralCode[] = [];
 	let cursor: string | undefined;
 	do {
-		const page = await kv.list({ prefix: "ref:code:", cursor });
-		for (const k of page.keys) {
+		const batch: KVNamespaceListResult<unknown, string> = await kv.list({ prefix: "ref:code:", cursor });
+		for (const k of batch.keys) {
 			const rec = (await kv.get(k.name, "json")) as ReferralCode | null;
 			if (rec) codes.push(rec);
 		}
-		cursor = page.list_complete ? undefined : page.cursor;
+		cursor = batch.list_complete ? undefined : batch.cursor;
 	} while (cursor);
 	const byCode = new Map(codes.map((c) => [c.code, c]));
 	const printsToMail: Array<RewardRecord & { ownerEmail: string }> = [];
 	cursor = undefined;
 	do {
-		const page = await kv.list({ prefix: "ref:reward:", cursor });
-		for (const k of page.keys) {
+		const batch: KVNamespaceListResult<unknown, string> = await kv.list({ prefix: "ref:reward:", cursor });
+		for (const k of batch.keys) {
 			const r = (await kv.get(k.name, "json")) as RewardRecord | null;
 			if (r?.print) printsToMail.push({ ...r, ownerEmail: byCode.get(r.code)?.ownerEmail ?? "" });
 		}
-		cursor = page.list_complete ? undefined : page.cursor;
+		cursor = batch.list_complete ? undefined : batch.cursor;
 	} while (cursor);
 	codes.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 	return {

@@ -82,7 +82,9 @@
 		"SQUAD_SHIPPING_REFUNDS": "on",
 		// Buyer referral codes (friend gets 15% off, buyer earns a free coloring book): "off" | "on".
 		// Also needs REFERRAL_COUPON_ID (a 15%-off Stripe coupon). REFERRAL_REWARD: "digital" | "digital+print".
-		"REFERRALS": "off",
+		// Turned on Nov 21 with the owner's yes; coupon "Friend referral 15% off" (once).
+		"REFERRALS": "on",
+		"REFERRAL_COUPON_ID": "1r4yF9kx",
 		"REFERRAL_REWARD": "digital",
 		// Owner's private visitor stats at /stats?k=<key>: SHA-256 of the key (the key itself is never in the repo).
 		"STATS_KEY_HASH": "b4bf4753427851486b5f9bf6427ae36fe51bfd0553739a08d73ee6f969f26428"
