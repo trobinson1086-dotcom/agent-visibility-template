@@ -1,5 +1,5 @@
 /**
- * The Signed Story Collection Giveaway (holiday 2026).
+ * The Signed Squish Man Book Giveaway (holiday 2026). Prize changed 2026-11-21 on Travis's word: one signed story book plus one coloring book, not the 5-book set.
  *
  * Built and kept OFF. Nothing here is public until Travis says go:
  *   - `open` must be switched to true, and
@@ -27,8 +27,8 @@ export const GIVEAWAY = {
 	endsLabel: "Sunday, December 13, 2026 at 11:59 PM Eastern",
 	drawLabel: "Monday, December 14, 2026",
 	replyLabel: "72 hours",
-	prize: "a signed Squish Man Story Collection: all 5 Squish Man story books in paperback",
-	prizeValue: "$74.95",
+	prize: "a signed paperback of Squish Man and the Missing Puppy Parade (Book 1) plus Squish Man Coloring Book 1",
+	prizeValue: "$27.98",
 	runnerUps: 2,
 	runnerUpPrize: "a signed Squish Man sticker sheet",
 	runnerUpValue: "$5",
@@ -205,14 +205,14 @@ function uniformIndex(n: number): number {
 }
 
 const HEAD = (title: string, desc: string, path: string) =>
-	`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="https://squishman.com${path}"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap"><link rel="stylesheet" href="/style.css"><link rel="icon" href="/favicon.ico" sizes="any"><meta name="theme-color" content="#07347d"><meta property="og:type" content="website"><meta property="og:site_name" content="Squish Man"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="https://squishman.com${path}"><meta property="og:image" content="https://squishman.com/assets/story-collection-og.jpg">
+	`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="https://squishman.com${path}"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap"><link rel="stylesheet" href="/style.css"><link rel="icon" href="/favicon.ico" sizes="any"><meta name="theme-color" content="#07347d"><meta property="og:type" content="website"><meta property="og:site_name" content="Squish Man"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="https://squishman.com${path}"><meta property="og:image" content="https://squishman.com/assets/og-image.jpg">
 <style>
 .gw{background:#fffaf0;min-height:70vh}.gw-wrap{max-width:980px;margin:auto;padding:40px 5% 60px}
 .gw-top{display:flex;justify-content:space-between;align-items:center;padding:14px 4%;background:var(--blue)}.gw-top a{color:var(--gold);font-weight:900;text-decoration:none;font-size:20px}.gw-top a.small{color:#fff;font-size:13px}
 .gw-hero{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center}
 .gw h1{font:700 clamp(32px,4.4vw,50px)/1.05 'Fredoka',Arial,sans-serif;color:var(--deep);margin:10px 0 14px}
 .gw .lede{font-size:18px;line-height:1.6}
-.gw-art img{width:100%;height:auto;border-radius:22px;box-shadow:0 14px 34px #0003}
+.gw-art img{width:100%;height:auto;border-radius:22px;box-shadow:0 14px 34px #0003}.gw-pair{display:flex;gap:14px;align-items:flex-end}.gw-pair img{width:calc(50% - 7px);border-radius:14px}
 .gw-card{background:#fff;border-radius:22px;padding:26px;box-shadow:0 10px 30px #0001;margin-top:28px}
 .gw-form{display:grid;gap:12px}.gw-form label{display:grid;gap:6px;font-weight:800}.gw-form input,.gw-form select{border:1px solid #cddbf2;border-radius:10px;padding:13px;font:inherit}
 .gw-form .check{display:flex;gap:10px;align-items:flex-start;font-weight:700}.gw-form .check input{margin-top:4px;width:20px;height:20px}
@@ -245,11 +245,11 @@ export function giveawayPage(now = Date.now(), cfg: GiveawayCfg = GIVEAWAY): str
 			: phase === "soon"
 				? `<p class="lede"><b>Entries open ${esc(GIVEAWAY.startsLabel)}.</b> Join the <a href="/#squad-join">Squish Squad</a> to get a reminder and a free coloring page.</p>`
 				: `<p class="lede"><b>This giveaway has closed.</b> Thank you to every family who entered! Join the <a href="/#squad-join">Squish Squad</a> for the next one.</p>`;
-	return `${HEAD("Win a Signed Squish Man Story Collection | Free Giveaway", "Enter free to win all 5 Squish Man story books, signed. US parents and guardians, 18+. No purchase necessary.", "/giveaway")}
+	return `${HEAD("Win a Signed Squish Man Book + Coloring Book | Free Giveaway", "Enter free to win a signed Squish Man story book and a Squish Man coloring book. US parents and guardians, 18+. No purchase necessary.", "/giveaway")}
 <main class="gw"><div class="gw-wrap">
-<div class="gw-hero"><div><span class="eyebrow">🎁 FREE HOLIDAY GIVEAWAY</span><h1>Win a signed Squish Man Story Collection</h1>
-<p class="lede">All 5 Squish Man story books in paperback, signed by the author, for the little reader in your life. Free to enter, one entry per family email.</p></div>
-<div class="gw-art"><img src="/assets/story-collection-og.jpg" width="1200" height="630" alt="The five Squish Man story book covers side by side"></div></div>
+<div class="gw-hero"><div><span class="eyebrow">🎁 FREE HOLIDAY GIVEAWAY</span><h1>Win a signed Squish Man book and coloring book</h1>
+<p class="lede">Book 1, <i>Squish Man and the Missing Puppy Parade</i>, signed by the author, plus Squish Man Coloring Book 1, for the little reader in your life. Free to enter, one entry per family email.</p></div>
+<div class="gw-art gw-pair"><img src="/assets/covers/400/drive_master/Squish%20Man%20Book%201%20-%20The%20Missing%20Puppy%20Parade.webp" width="400" height="409" alt="Cover of Squish Man and the Missing Puppy Parade, Book 1"><img src="/assets/covers/400/drive_master/Squish%20Man%20Coloring%20Book.webp" width="400" height="549" alt="Cover of Squish Man Coloring Book 1"></div></div>
 <div class="gw-dates"><div><b>Opens</b>Fri Nov 27</div><div><b>Closes</b>Sun Dec 13, 11:59 PM ET</div><div><b>Winner picked</b>Mon Dec 14</div></div>
 <div class="gw-card">${form}</div>
 <p class="gw-fine" style="margin-top:18px">Grand prize: ${esc(GIVEAWAY.prize)} (value ${esc(GIVEAWAY.prizeValue)}). ${GIVEAWAY.runnerUps} runner-ups win ${esc(GIVEAWAY.runnerUpPrize)}. Open to legal US residents 18 or older. Void where prohibited. See the <a href="/giveaway-rules">official rules</a>.</p>
@@ -258,15 +258,15 @@ export function giveawayPage(now = Date.now(), cfg: GiveawayCfg = GIVEAWAY): str
 
 export function giveawayRulesPage(sponsorAddress: string = GIVEAWAY.sponsorAddress): string {
 	const g = GIVEAWAY;
-	return `${HEAD("Official Rules | Squish Man Holiday Giveaway", "Official rules for the Signed Squish Man Story Collection Giveaway.", "/giveaway-rules")}
+	return `${HEAD("Official Rules | Squish Man Holiday Giveaway", "Official rules for the Signed Squish Man Book Giveaway.", "/giveaway-rules")}
 <main class="gw"><div class="gw-wrap gw-rules">
-<h1>Official Rules: Signed Squish Man Story Collection Giveaway</h1>
+<h1>Official Rules: Signed Squish Man Book Giveaway</h1>
 <p><b>NO PURCHASE NECESSARY TO ENTER OR WIN. A PURCHASE WILL NOT INCREASE YOUR CHANCES OF WINNING. VOID WHERE PROHIBITED.</b></p>
 <h2>1. Sponsor</h2><p>The Amazing Adventures of Squish Man (Travis Robinson), ${esc(sponsorAddress)} ("Sponsor"). Questions: contact@squishman.com.</p>
 <h2>2. Who can enter</h2><p>Open to legal residents of the 50 United States and the District of Columbia who are 18 or older at the time of entry, entering on behalf of their household. Children may not enter. Employees and immediate family of the Sponsor are not eligible.</p>
 <h2>3. Entry period</h2><p>The giveaway starts ${esc(g.startsLabel)} and ends ${esc(g.endsLabel)} (the "Entry Period"). The Sponsor's server clock is the official clock.</p>
 <h2>4. How to enter</h2><p>Visit squishman.com/giveaway during the Entry Period and complete the entry form with your name, email address and state, and confirm you are 18 or older and live in the US. Limit one entry per person and per email address. Entries made by automated means, with fake or temporary email addresses, or beyond the limit are void. Comments, likes, shares or tags on social media are not entries.</p>
-<h2>5. Prizes</h2><p>One (1) Grand Prize: ${esc(g.prize)}. Approximate retail value (ARV): ${esc(g.prizeValue)}. ${g.runnerUps} Runner-Up Prizes: ${esc(g.runnerUpPrize)} each, ARV ${esc(g.runnerUpValue)} each. Total ARV of all prizes: about $85. Prizes ship to US addresses only. No cash or other substitution, except the Sponsor may substitute a prize of equal or greater value if a prize is unavailable. Any taxes are the winner's responsibility.</p>
+<h2>5. Prizes</h2><p>One (1) Grand Prize: ${esc(g.prize)}. Approximate retail value (ARV): ${esc(g.prizeValue)}. ${g.runnerUps} Runner-Up Prizes: ${esc(g.runnerUpPrize)} each, ARV ${esc(g.runnerUpValue)} each. Total ARV of all prizes: about $38. Prizes ship to US addresses only. No cash or other substitution, except the Sponsor may substitute a prize of equal or greater value if a prize is unavailable. Any taxes are the winner's responsibility.</p>
 <h2>6. How winners are picked and told</h2><p>On or about ${esc(g.drawLabel)}, the Sponsor will select the Grand Prize winner and Runner-Up winners in a random drawing from all eligible entries received during the Entry Period. Odds of winning depend on the number of eligible entries received. Winners will be notified by email from contact@squishman.com and must reply with a US mailing address within ${esc(g.replyLabel)}. If a winner does not reply in time, is found ineligible or the prize is returned undeliverable, that prize may be forfeited and an alternate winner selected at random.</p>
 <h2>7. Your information</h2><p>Entry information is used to run the giveaway and to send Squish Squad emails, which you can stop anytime by replying STOP or using the unsubscribe link. We never sell your information and never ask for information about your child. See our <a href="/privacy.html">privacy policy</a>.</p>
 <h2>8. Publicity</h2><p>The Sponsor will share a winner's first name and state publicly only with the winner's permission.</p>

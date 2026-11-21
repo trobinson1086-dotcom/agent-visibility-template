@@ -70,6 +70,9 @@ describe("holiday giveaway", () => {
 		expect(page).toContain("No purchase necessary");
 		expect(page).toContain("Entering adds you to Squish Squad emails");
 		expect(page).toContain("in no way sponsored");
+		expect(page).toContain("Missing Puppy Parade");
+		expect(page).toContain("Coloring Book 1");
+		expect(page).not.toContain("Story Collection</h1>");
 		const rules = giveawayRulesPage(ON.sponsorAddress);
 		expect(rules).toContain("NO PURCHASE NECESSARY");
 		expect(rules).toContain(ON.sponsorAddress);
