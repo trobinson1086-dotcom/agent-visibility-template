@@ -311,11 +311,11 @@ describe("book collections", () => {
 });
 
 describe("Signed Holiday Edition routes", () => {
-	it("is off: status says off, checkout is 404", async () => {
-		const s = await SELF.fetch(`${BASE}/api/signed-edition/status`);
-		expect(await s.json()).toEqual({ phase: "off" });
+	it("isn't on sale before Nov 27: status isn't live, checkout is 404", async () => {
+		const s = (await (await SELF.fetch(`${BASE}/api/signed-edition/status`)).json()) as { phase: string };
+		if (Date.now() < Date.parse("2026-11-27T00:00:00-05:00")) expect(s.phase).toBe("soon");
 		const r = await SELF.fetch(`${BASE}/api/bundle/checkout?bundle=EN-STORY-SIGNED`, { redirect: "manual" });
-		expect(r.status).toBe(404);
+		if (Date.now() < Date.parse("2026-11-27T00:00:00-05:00")) expect(r.status).toBe(404);
 	});
 	it("keeps the register behind the admin token", async () => {
 		expect((await SELF.fetch(`${BASE}/api/admin/signed-edition`)).status).toBe(401);

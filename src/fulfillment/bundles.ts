@@ -50,7 +50,7 @@ export const BUNDLES: readonly Bundle[] = [
 		sale: { unitCents: 6199, ...HOLIDAY_SALE, label: "Black Friday price" },
 	},
 	// The same five paperbacks plus a bookplate Travis signs, numbers and mails himself.
-	// Switched off until Travis says go (SIGNED_EDITION.open); price and limit live there.
+	// $69.99, 50 sets, Nov 27 to Cyber Monday (Travis's yes, 2026-11-21); price and limit live in SIGNED_EDITION.
 	{ key: SIGNED_BUNDLE_KEY, name: SIGNED_EDITION.name, unitCents: SIGNED_EDITION.unitCents, books: STORY, signed: true },
 	{ key: "EN-LEARNING-SET", name: "Squish Man English Learning Set (Learning & Activity Books 1–5)", unitCents: 6599, books: EN },
 	{ key: "ES-LEARNING-SET", name: "Squish Man Colección en Español (Aprendizaje y Actividades 1–5)", unitCents: 6599, books: ES },
@@ -91,7 +91,7 @@ export async function createBundleCheckout(
 	let signedFields: Record<string, string> = {};
 	if (bundle.signed) {
 		const allow = await signedCheckoutAllowance(env, now.getTime());
-		if (!allow.ok) return { status: allow.reason === "OFF" ? 404 : 410, error: `SIGNED_${allow.reason}` };
+		if (!allow.ok) return { status: allow.reason === "OFF" || allow.reason === "NOT_STARTED" ? 404 : 410, error: `SIGNED_${allow.reason}` };
 		maxQty = allow.max;
 		signedFields = {
 			"custom_fields[0][key]": "signto",

@@ -1,8 +1,9 @@
 /**
  * The Signed Holiday Edition of the Story Collection (Black Friday to Cyber Monday 2026).
  *
- * Built and kept OFF. Nothing here is public or buyable until Travis says go and
- * `open` is switched to true. Price and limit are a proposal awaiting his yes.
+ * Travis said yes on 2026-11-21 to $69.99, limited to 50 sets. It is switched on and
+ * sells itself only inside the window below; before Nov 27 the checkout answers 404
+ * and the page doesn't show it. Set `open` to false to pull it at any time.
  *
  * How it works:
  *   - Same five story paperbacks as the Story Collection, printed by Lulu and shipped
@@ -35,7 +36,7 @@ export interface SignedEditionCfg {
 export const SIGNED_EDITION: SignedEditionCfg & { id: string; name: string; mailBy: string } = {
 	id: "2026-holiday",
 	name: "Squish Man Story Collection, Signed Holiday Edition (Books 1–5 Paperbacks + signed, numbered bookplate)",
-	open: false,
+	open: true,
 	unitCents: 6999,
 	limit: 50,
 	maxPerOrder: 3,

@@ -2456,22 +2456,26 @@ describe("Signed Holiday Edition", () => {
 	const LIVE = new Date("2026-11-28T12:00:00-05:00");
 	async function withOpen<T>(fn: () => Promise<T>): Promise<T> {
 		const { SIGNED_EDITION } = await import("../src/fulfillment/signed-edition");
+		const was = SIGNED_EDITION.open;
 		SIGNED_EDITION.open = true;
 		try {
 			return await fn();
 		} finally {
-			SIGNED_EDITION.open = false;
+			SIGNED_EDITION.open = was;
 		}
 	}
 
-	it("ships switched off: no checkout, no status, no email line", async () => {
+	it("is switched on at $69.99 for 50 sets, and can still be pulled with the switch", async () => {
 		const { SIGNED_EDITION, signedPhase } = await import("../src/fulfillment/signed-edition");
 		const { createBundleCheckout } = await import("../src/fulfillment/bundles");
-		expect(SIGNED_EDITION.open).toBe(false);
-		expect(signedPhase(LIVE.getTime())).toBe("off");
+		expect(SIGNED_EDITION.open).toBe(true);
+		expect(SIGNED_EDITION.unitCents).toBe(6999);
+		expect(SIGNED_EDITION.limit).toBe(50);
+		expect(signedPhase(Date.parse("2026-11-21T12:00:00-05:00"))).toBe("soon");
+		expect(signedPhase(LIVE.getTime(), { ...SIGNED_EDITION, open: false })).toBe("off");
 		const before = stripeCreates.length;
-		const r = await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", "signed-edition", LIVE);
-		expect(r).toEqual({ status: 404, error: "SIGNED_OFF" });
+		const early = await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", "signed-edition", new Date("2026-11-26T23:59:59-05:00"));
+		expect(early).toEqual({ status: 404, error: "SIGNED_NOT_STARTED" });
 		expect(stripeCreates.length).toBe(before);
 	});
 
