@@ -119,3 +119,11 @@ describe("holiday campaigns", () => {
 		expect(again.alreadySent).toBe(first.sent);
 	});
 });
+
+describe("holiday campaigns and the Signed Holiday Edition", () => {
+	it("leaves the signed line out while the edition is off", async () => {
+		const res = await SELF.fetch(`${BASE}/api/admin/squad/campaign?name=black-friday`, { method: "POST", headers: { Authorization: "Bearer test-token" } });
+		const body = (await res.json()) as { preview: { text: string } };
+		expect(body.preview.text).not.toContain("Signed Holiday Edition");
+	});
+});

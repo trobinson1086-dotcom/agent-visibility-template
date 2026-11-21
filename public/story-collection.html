@@ -12,6 +12,7 @@
 .sc-save{margin:0 0 18px;font-weight:800;color:#16794a}
 .sc-buy{display:inline-block;font-size:18px;padding:16px 28px}
 .sc-ticks{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:6px;font-weight:700}
+.sc-signed{margin:28px auto;max-width:980px;background:linear-gradient(135deg,#07347d,#0b4fb3);color:#fff;border-radius:22px;padding:26px 24px;box-shadow:0 10px 30px rgba(7,52,125,.25)}.sc-signed .eyebrow{color:var(--gold)}.sc-signed h2{color:#fff;margin:6px 0 10px}.sc-signed p{margin:0 0 12px}.sc-signed ul{margin:0 0 16px;padding-left:20px}.sc-signed .sc-left{display:inline-block;background:var(--gold);color:#07347d;border-radius:999px;padding:6px 14px;font-weight:800;margin:0 0 14px}.sc-signed .price-now{font:700 40px/1 'Fredoka',Arial,sans-serif;color:#fff}.sc-signed .btn{background:var(--gold);color:#07347d}.sc-signed-note{text-align:center;font-weight:800}
 .sc-countdown{margin:0 0 14px;background:var(--deep);color:#fff;border-radius:14px;padding:10px 14px;font-weight:800;display:inline-block}.sc-countdown b{color:var(--gold)}
 .sc-books{max-width:1160px;margin:auto;padding:30px 5% 10px}.sc-books h2,.sc-why h2,.sc-faq h2,.sc-free h2{text-align:center}
 .sc-list{display:grid;gap:18px;margin-top:22px}
@@ -45,6 +46,16 @@
  </div>
  <div class="sc-fan" aria-hidden="true"><img src="assets/covers/story-2-320.webp" width="320" height="437" alt=""><img src="assets/covers/story-3-320.webp" width="320" height="443" alt=""><img src="assets/covers/story-1-320.webp" width="320" height="327" alt=""><img src="assets/covers/story-4-320.webp" width="320" height="440" alt=""><img src="assets/covers/story-5-320.webp" width="320" height="451" alt=""></div>
 </section>
+<section class="sc-signed" id="signed" data-signed hidden>
+ <span class="eyebrow">LIMITED · ONLY <span data-signed-limit>50</span> MADE · BLACK FRIDAY TO CYBER MONDAY</span>
+ <h2>The Signed Holiday Edition</h2>
+ <p>The same 5 story books, plus a bookplate Travis Robinson signs to your child by name and numbers by hand. It arrives in a holiday envelope with a Squish Squad Hero card, ready to stick inside the cover of Book 1.</p>
+ <ul><li>✍️ Signed to the name you type at checkout</li><li>🔢 Numbered, 1 to <span data-signed-limit>50</span>, never reprinted</li><li>🎁 Bookplate mailed within 2 business days; books ship free on their own</li></ul>
+ <p class="sc-left"><span data-signed-left>50</span> of <span data-signed-limit>50</span> left · ends in <b data-countdown>4d 0h 0m</b></p>
+ <p><b class="price-now" data-signed-price>$69.99</b></p>
+ <a class="btn" href="/api/bundle/checkout?bundle=EN-STORY-SIGNED&amp;from=signed-edition" rel="nofollow">GET A SIGNED SET</a>
+</section>
+<p class="sc-signed-note" data-signed-msg hidden></p>
 <section class="sc-books"><span class="eyebrow" style="display:block;text-align:center">WHAT’S INSIDE</span><h2>Five adventures, five big-heart lessons</h2>
  <div class="sc-list">
   <article class="sc-book"><img src="assets/covers/story-1-320.webp" width="320" height="327" alt="Cover of Squish Man and the Missing Puppy Parade" loading="lazy"><div><span class="tag">BOOK 1 · KINDNESS &amp; COURAGE</span><h3>Squish Man and the Missing Puppy Parade</h3><p>A Maple Hollow mystery-adventure where tiny hero Squish Man follows clues and helps bring the community together.</p></div></article>
@@ -70,7 +81,7 @@
 <section class="sc-final"><a class="btn sc-buy" href="/api/bundle/checkout?bundle=EN-STORY-SET&amp;from=story-collection" rel="nofollow">GET ALL 5 STORY BOOKS</a><p><a href="index.html#books">Or shop the books one at a time</a></p></section>
 </main>
 <footer><div><b>THE AMAZING ADVENTURES OF SQUISH MAN™</b><p>BIG HEART. TINY HERO. ENDLESS ADVENTURES!™</p></div><div class="footerlinks"><a href="index.html#books">Shop Books</a><a href="index.html#merch">Squish Merch</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="shipping-returns.html">Shipping &amp; Returns</a><a href="index.html#contact">Contact</a></div><div class="footer-contact"><b>Contact Squish Man™</b><a class="footer-primary-email" href="mailto:contact@squishman.com">contact@squishman.com</a></div></footer>
-<script src="holiday.js"></script><script src="menu.js"></script>
+<script src="holiday.js"></script><script src="signed.js"></script><script src="menu.js"></script>
 <script>(function(){
 if(/[?&]order=thanks\b/.test(location.search)){var t=document.querySelector('.sc-thanks');if(t)t.hidden=false}
 var f=document.getElementById('freePageForm'),btn=f.querySelector('button'),st=f.querySelector('.form-status');

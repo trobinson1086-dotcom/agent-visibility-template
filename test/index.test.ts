@@ -309,3 +309,15 @@ describe("book collections", () => {
 		expect(await res.text()).toContain("orders@squishman.com");
 	});
 });
+
+describe("Signed Holiday Edition routes", () => {
+	it("is off: status says off, checkout is 404", async () => {
+		const s = await SELF.fetch(`${BASE}/api/signed-edition/status`);
+		expect(await s.json()).toEqual({ phase: "off" });
+		const r = await SELF.fetch(`${BASE}/api/bundle/checkout?bundle=EN-STORY-SIGNED`, { redirect: "manual" });
+		expect(r.status).toBe(404);
+	});
+	it("keeps the register behind the admin token", async () => {
+		expect((await SELF.fetch(`${BASE}/api/admin/signed-edition`)).status).toBe(401);
+	});
+});

@@ -15,6 +15,7 @@
  */
 import type { Env } from "../lib/types";
 import { DEFAULT_FROM, baseUrl, esc, layout, sendOnce } from "../fulfillment/email";
+import { signedPhase } from "../fulfillment/signed-edition";
 import { type Fan, SQUAD_INBOX, listFans } from "./forms";
 
 export interface Campaign {
@@ -27,6 +28,11 @@ export interface Campaign {
 	/** Paragraphs; {first} is the fan's first name, {collection} the Story Collection page. */
 	paragraphs: string[];
 	button?: { label: string; href: "collection" | "home" };
+	/**
+	 * A line about the Signed Holiday Edition, added after the paragraphs only while
+	 * it's switched on and on sale (fulfillment/signed-edition.ts). Off = never shown.
+	 */
+	signedLine?: string;
 }
 
 export const CAMPAIGNS: readonly Campaign[] = [
@@ -40,6 +46,8 @@ export const CAMPAIGNS: readonly Campaign[] = [
 			"The Squish Man Black Friday deal is here. Through Cyber Monday, the Story Collection, all 5 picture books about kindness, courage and friendship, is $61.99 with free shipping. That's about $13 less than buying them one by one.",
 			"It's an easy gift for any little hero ages 5 to 9, and you can ship it straight to them.",
 		],
+		signedLine:
+			"New this year, and only 50 of them: the Signed Holiday Edition. Same 5 books, plus a bookplate Travis signs to your child by name and numbers by hand, mailed in a holiday envelope. $69.99, through Cyber Monday or until all 50 are gone.",
 		button: { label: "Get all 5 story books", href: "collection" },
 	},
 	{
@@ -52,6 +60,7 @@ export const CAMPAIGNS: readonly Campaign[] = [
 			"Squish Man is a small, family-made book series, written and illustrated by Travis Robinson. Every order today helps a tiny hero grow.",
 			"The Black Friday price is still on: all 5 story books for $61.99, shipped free, through Cyber Monday.",
 		],
+		signedLine: "The Signed Holiday Edition is going fast. When the 50 numbered bookplates are signed, that's it for this year.",
 		button: { label: "Shop the Story Collection", href: "collection" },
 	},
 	{
@@ -63,6 +72,7 @@ export const CAMPAIGNS: readonly Campaign[] = [
 			"Hi {first},",
 			"Quick reminder: tonight at midnight Eastern the Story Collection goes back to $64.99. Until then, all 5 Squish Man books are $61.99 with free shipping.",
 		],
+		signedLine: "Last call for the Signed Holiday Edition too. Any signed sets that are left stop selling at midnight, and they won't come back this year.",
 		button: { label: "Grab it before midnight", href: "collection" },
 	},
 	{
@@ -119,11 +129,11 @@ export async function resubscribe(env: Env, email: string): Promise<void> {
 	await env.VISIBILITY_CACHE.delete(UNSUB_PREFIX + email.toLowerCase());
 }
 
-async function render(env: Env, c: Campaign, fan: Pick<Fan, "name" | "email">) {
+async function render(env: Env, c: Campaign, fan: Pick<Fan, "name" | "email">, now = Date.now()) {
 	const site = baseUrl(env);
 	const first = fan.name.split(/\s+/)[0] || "friend";
 	const fill = (p: string) => p.replaceAll("{first}", first).replaceAll("{collection}", `${site}/story-collection.html`);
-	const paras = c.paragraphs.map(fill);
+	const paras = [...c.paragraphs, ...(c.signedLine && signedPhase(now) === "live" ? [c.signedLine] : [])].map(fill);
 	const href = c.button ? (c.button.href === "collection" ? `${site}/story-collection.html?utm_source=email&utm_campaign=${c.name}` : `${site}/?utm_source=email&utm_campaign=${c.name}`) : null;
 	const unsub = await unsubscribeUrl(env, fan.email);
 	const text = [
