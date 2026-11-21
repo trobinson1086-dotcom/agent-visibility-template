@@ -21,6 +21,7 @@ import { memberFromSession, recordSquadMember, squadOf } from "./squad";
 import { refundMemberShipping } from "./squad-perks";
 import { nameCheckEmail, orderEmail, sendOnce, squadWelcomeEmail, type OrderLine } from "./email";
 import { paidEbooks } from "./ebooks";
+import { issueReferralCode, referralEmailBlock, rewardReferral } from "./referrals";
 import {
 	calculateCost,
 	checkAuth,
@@ -663,7 +664,11 @@ export async function processPaidSession(
 		const perks = refundMemberShipping(env, session, { kind: "merch" }).catch((err) =>
 			log("merch_perks_error", { session: sessionId, error: errorDetail(err).slice(0, 120) }),
 		);
-		return { ...result, background: Promise.allSettled([result.background, perks]) };
+		// A friend's first order can be merch too: reward the referrer (no-op while referrals are off).
+		const referral = rewardReferral(env, session).catch((err) =>
+			log("referral_error", { session: sessionId, error: errorDetail(err).slice(0, 120) }),
+		);
+		return { ...result, background: Promise.allSettled([result.background, perks, referral]) };
 	}
 
 	const lineItems = session.line_items?.data ?? [];
@@ -766,6 +771,15 @@ export async function orderFollowUp(
 	}
 	const to = session.customer_details?.email?.trim();
 	if (!to) return;
+	// Referrals (off unless REFERRALS=on): reward whoever referred this buyer, then give the buyer their own code.
+	let referral: { html: string; text: string[] } | undefined;
+	try {
+		await rewardReferral(env, session);
+		const code = await issueReferralCode(env, session);
+		if (code) referral = referralEmailBlock(env, code.code);
+	} catch (err) {
+		log("referral_error", { session: session.id, error: errorDetail(err).slice(0, 120) });
+	}
 	try {
 		await sendOnce(env, `order:${session.id}`, {
 			to,
@@ -777,6 +791,7 @@ export async function orderFollowUp(
 				physical,
 				shippingRefundCents: refundCents,
 				cashbackCents,
+				referral,
 			}),
 			tags: [{ name: "type", value: "order" }],
 		});

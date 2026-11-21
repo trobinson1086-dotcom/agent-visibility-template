@@ -68,6 +68,7 @@ import { handleContact, handleSquadSignup, listFans } from "./forms";
 import { buildReport, pruneStats, recordHit, statsAuthorized } from "../stats";
 import { renderStatsPage } from "../stats/page";
 import { createBundleCheckout } from "../fulfillment/bundles";
+import { checkCode, listReferrals, promoIdFor, rewardPage } from "../fulfillment/referrals";
 import { finishEbookCheckout, startEbookCheckout, type EbookCheckoutResult } from "../fulfillment/ebook-checkout";
 import { CAMPAIGNS, runCampaign, runDueCampaigns, unsubscribe, unsubscribePage } from "./campaigns";
 import { packFileAllowed } from "../fulfillment/pack-access";
@@ -485,7 +486,8 @@ app.post("/api/ebook/checkout", async (c) => {
 
 /** Book collections: send the buyer to a Stripe checkout for one bundle (see fulfillment/bundles.ts). */
 app.get("/api/bundle/checkout", async (c) => {
-	const result = await createBundleCheckout(c.env, c.req.query("bundle"), new URL(c.req.url).origin, c.req.query("from"));
+	const promo = await promoIdFor(c.env, c.req.query("promo"));
+	const result = await createBundleCheckout(c.env, c.req.query("bundle"), new URL(c.req.url).origin, c.req.query("from"), undefined, promo);
 	const headers = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
 	if (result.url) return c.redirect(result.url, 303);
 	return c.html(
@@ -493,6 +495,17 @@ app.get("/api/bundle/checkout", async (c) => {
 		result.status as 404,
 		headers,
 	);
+});
+
+/** Referral program (fulfillment/referrals.ts): is this share code live, and for how much off? */
+app.get("/api/referral/check", async (c) =>
+	c.json(await checkCode(c.env, c.req.query("code")), 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" }),
+);
+
+/** Referral program: the private page with an earned free coloring book (link from the reward email). */
+app.get("/api/referral/reward", async (c) => {
+	const r = await rewardPage(c.env, c.req.query("t"));
+	return c.html(r.html, r.status as 200, { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" });
 });
 
 /** Contact form: emails the message to contact@squishman.com (see worker/forms.ts). */
@@ -613,6 +626,8 @@ app.use("/api/admin/*", async (c, next) => {
 });
 
 /** Giveaway: a look at both pages before they go public (admin only). */
+app.get("/api/admin/referrals", async (c) => c.json(await listReferrals(c.env)));
+
 app.get("/api/admin/giveaway/preview", (c) => {
 	const now = Date.parse("2026-12-01T12:00:00-05:00");
 	const cfg = { open: true, sponsorAddress: "[sponsor mailing address goes here]", startsAt: "2026-11-27T00:00:00-05:00", endsAt: "2026-12-13T23:59:59-05:00" };

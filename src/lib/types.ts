@@ -106,6 +106,16 @@ export interface Env {
 	PRINTFUL_CONFIRM_DRAFTS?: string;
 	/** Merch checkout: "off" (default), "preview" (only at ?shop=preview) or "on". */
 	MERCH_CHECKOUT?: string;
+	/** Buyer referral program (src/fulfillment/referrals.ts): "off" (default) or "on". */
+	REFERRALS?: string;
+	/** Stripe coupon (15% off) behind every referral promotion code. Referrals stay off without it. */
+	REFERRAL_COUPON_ID?: string;
+	/** Reward for a referral: "digital" (default, the coloring book PDF) or "digital+print". */
+	REFERRAL_REWARD?: string;
+	/** Optional limits: friends per code, rewards per buyer, the friend's minimum order in cents. */
+	REFERRAL_MAX_USES?: string;
+	REFERRAL_MAX_REWARDS?: string;
+	REFERRAL_MIN_ORDER_CENTS?: string;
 	/** Secret: JSON of print PDF URLs by catalog key, {"EN-PAPERBACK-1": {"cover": …, "interior": …}}. */
 	LULU_PRINT_FILES?: string;
 

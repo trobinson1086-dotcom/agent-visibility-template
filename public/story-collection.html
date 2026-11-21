@@ -78,5 +78,5 @@ f.addEventListener('submit',function(e){e.preventDefault();var d=Object.fromEntr
 fetch('/api/squad/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(function(r){return r.json().catch(function(){return{}}).then(function(j){return{s:r.status,b:j}})}).then(function(res){
 if(res.b&&res.b.ok){f.reset();st.classList.add('ok');st.textContent='Done! Check your inbox for your free coloring page.';return}
 st.classList.add('err');st.textContent=res.s===429?'Too many tries in a short time. Please try again in a little while.':'Please check your name and email address and try again.'}).catch(function(){st.classList.add('err');st.textContent='Something went wrong. Please try again.'}).finally(function(){btn.disabled=false;btn.textContent=label})})})();</script>
-<script src="/mh.js" defer></script>
+<script src="/ref.js" defer></script><script src="/mh.js" defer></script>
 </body></html>

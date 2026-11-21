@@ -181,6 +181,21 @@ Printful order, under the same `FULFILLMENT_MODE` gate as Lulu.
   without `productionEnabled`, are created as Printful **drafts** (nothing is
   charged or printed until confirmed in the Printful dashboard).
 
+## Buyer referral codes ("Share the Squish")
+
+`src/fulfillment/referrals.ts`, switched by `REFERRALS` ("off" by default; also needs `REFERRAL_COUPON_ID`).
+- Every paid book/bundle order gets the buyer one personal code (SQUISH + first name + 4 characters), a Stripe
+  Promotion Code on the 15%-off referral coupon, limited to first-time customers, orders of $12+ and 25 uses.
+  It goes in the order email with a share link `squishman.com/?ref=CODE`.
+- A paid order (books, bundles or merch) that used someone's code earns that buyer the digital Coloring Book 1
+  (reward email → `/api/referral/reward?t=…`), unless it is their own code (normalized email), the same street +
+  ZIP, a friend already counted, a friend who bought before (checked in Stripe), or the buyer has 5 rewards.
+  `REFERRAL_REWARD=digital+print` adds a printed copy to mail by hand (`GET /api/admin/referrals` lists them).
+- `public/ref.js` keeps `?ref=` for 30 days, shows a banner and pre-fills the code on book Payment Links
+  (`prefilled_promo_code`, needs "allow promotion codes" on each link) and collection checkouts (`&promo=`).
+- To turn on: create the coupon, allow promotion codes on the book/coloring Payment Links, make sure the Stripe key
+  can write Promotion Codes, set `REFERRAL_COUPON_ID` and `REFERRALS=on`, deploy.
+
 ## Adding a surface
 
 1. Add a pure renderer to `src/enrichment/surfaces.ts`.
