@@ -16,6 +16,8 @@
 			"/.well-known/web-bot-auth/*",
 			"/api",
 			"/api/*",
+			"/giveaway",
+			"/giveaway-rules",
 			"/assets/squad-packs/*",
 			"/index.json",
 			"/jsonld",

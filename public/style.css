@@ -342,3 +342,5 @@ button[disabled]{opacity:.7;cursor:progress}
 
 /* Anything marked hidden stays hidden, whatever display a class gives it */
 [hidden]{display:none!important}
+
+.free-bar{display:block;text-align:center;background:var(--deep);color:#fff;font-weight:800;padding:10px 4%;text-decoration:none;font-size:14px;line-height:1.4}.free-bar[hidden]{display:none}.free-bar b{color:var(--gold)}.free-bar span{display:inline-block;margin-left:8px;background:var(--gold);color:var(--deep);border-radius:8px;padding:3px 10px;font-size:12px;font-weight:900}@media(max-width:560px){.free-bar{font-size:13px}.free-bar span{display:block;width:max-content;margin:6px auto 0}}
