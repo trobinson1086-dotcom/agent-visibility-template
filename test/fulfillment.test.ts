@@ -2451,3 +2451,110 @@ describe("owner-approved Printful drafts", () => {
 		expect(confirms).toBe(0);
 	});
 });
+
+describe("Signed Holiday Edition", () => {
+	const LIVE = new Date("2026-11-28T12:00:00-05:00");
+	async function withOpen<T>(fn: () => Promise<T>): Promise<T> {
+		const { SIGNED_EDITION } = await import("../src/fulfillment/signed-edition");
+		const was = SIGNED_EDITION.open;
+		SIGNED_EDITION.open = true;
+		try {
+			return await fn();
+		} finally {
+			SIGNED_EDITION.open = was;
+		}
+	}
+
+	it("is switched on at $69.99 for 50 sets, and can still be pulled with the switch", async () => {
+		const { SIGNED_EDITION, signedPhase } = await import("../src/fulfillment/signed-edition");
+		const { createBundleCheckout } = await import("../src/fulfillment/bundles");
+		expect(SIGNED_EDITION.open).toBe(true);
+		expect(SIGNED_EDITION.unitCents).toBe(6999);
+		expect(SIGNED_EDITION.limit).toBe(50);
+		expect(signedPhase(Date.parse("2026-11-21T12:00:00-05:00"))).toBe("soon");
+		expect(signedPhase(LIVE.getTime(), { ...SIGNED_EDITION, open: false })).toBe("off");
+		const before = stripeCreates.length;
+		const early = await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", "signed-edition", new Date("2026-11-26T23:59:59-05:00"));
+		expect(early).toEqual({ status: 404, error: "SIGNED_NOT_STARTED" });
+		expect(stripeCreates.length).toBe(before);
+	});
+
+	it("uses the same window as the Black Friday price", async () => {
+		const { SIGNED_EDITION } = await import("../src/fulfillment/signed-edition");
+		const { HOLIDAY_SALE } = await import("../src/fulfillment/bundles");
+		expect(SIGNED_EDITION.startsAt).toBe(HOLIDAY_SALE.startsAt);
+		expect(SIGNED_EDITION.endsAt).toBe(HOLIDAY_SALE.endsAt);
+	});
+
+	it("once on, sells only inside the window, with the name field and a per-order cap", async () => {
+		await withOpen(async () => {
+			const { createBundleCheckout } = await import("../src/fulfillment/bundles");
+			expect((await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", null, new Date("2026-11-26T23:59:59-05:00"))).error).toBe("SIGNED_NOT_STARTED");
+			expect((await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", null, new Date("2026-12-01T00:00:00-05:00"))).error).toBe("SIGNED_ENDED");
+			const before = stripeCreates.length;
+			const r = await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", "signed-edition", LIVE);
+			expect(r.status).toBe(303);
+			const f = stripeCreates[before];
+			expect(f.get("line_items[0][price_data][unit_amount]")).toBe("6999");
+			expect(f.get("line_items[0][adjustable_quantity][maximum]")).toBe("3");
+			expect(f.get("custom_fields[0][key]")).toBe("signto");
+			expect(f.get("custom_fields[0][optional]")).toBe("true");
+			expect(f.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]")).toBe("0");
+			expect(f.get("metadata[bundle]")).toBe("EN-STORY-SIGNED");
+			expect(f.get("success_url")).toBe("https://squishman.com/story-collection.html?order=thanks&signed=1");
+		});
+	});
+
+	it("takes a friend's referral code on the signed checkout, and a typed code otherwise", async () => {
+		await withOpen(async () => {
+			const { createBundleCheckout } = await import("../src/fulfillment/bundles");
+			const before = stripeCreates.length;
+			const withCode = await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", "signed-edition", LIVE, "promo_friend");
+			expect(withCode.status).toBe(303);
+			const a = stripeCreates[before];
+			expect(a.get("discounts[0][promotion_code]")).toBe("promo_friend");
+			expect(a.has("allow_promotion_codes")).toBe(false);
+			expect(a.get("custom_fields[0][key]")).toBe("signto");
+			expect(a.get("line_items[0][price_data][unit_amount]")).toBe("6999");
+			expect(a.get("line_items[0][adjustable_quantity][maximum]")).toBe("3");
+			const plain = await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", "signed-edition", LIVE, null);
+			expect(plain.status).toBe(303);
+			const b = stripeCreates[before + 1];
+			expect(b.get("allow_promotion_codes")).toBe("true");
+			expect(b.has("discounts[0][promotion_code]")).toBe(false);
+			expect(b.get("custom_fields[0][key]")).toBe("signto");
+			// A referral code never opens the signed set early.
+			const early = await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", "signed-edition", new Date("2026-11-26T23:59:59-05:00"), "promo_friend");
+			expect(early).toEqual({ status: 404, error: "SIGNED_NOT_STARTED" });
+			expect(stripeCreates.length).toBe(before + 2);
+		});
+	});
+
+	it("records a paid signed set as the five paperbacks plus a numbered bookplate to sign", async () => {
+		await withOpen(async () => {
+			const { signedRegister } = await import("../src/fulfillment/signed-edition");
+			session("cs_live_signed1", { price: "price_adhoc_signed", quantity: 2, livemode: true, metadata: { bundle: "EN-STORY-SIGNED", signed: "2026-holiday" } });
+			(sessions.get("cs_live_signed1") as unknown as { custom_fields: unknown }).custom_fields = [{ key: "signto", type: "text", text: { value: "Maya <3 & Leo!!" } }];
+			await deliver(sandboxEnv(), paidEvent("cs_live_signed1"));
+			const rec = await store.get(env.ORDERS_DB!, "cs_live_signed1");
+			const items = JSON.parse(rec!.items_json) as Array<{ key: string; quantity: number }>;
+			expect(items.map((i) => i.key)).toEqual(["EN-PAPERBACK-1", "EN-PAPERBACK-2", "EN-PAPERBACK-3", "EN-PAPERBACK-4", "EN-PAPERBACK-5"]);
+			expect(items.every((i) => i.quantity === 2)).toBe(true);
+			await new Promise((r) => setTimeout(r, 20));
+			const reg = await signedRegister(sandboxEnv());
+			expect(reg.sold).toBe(2);
+			expect(reg.orders[0]).toMatchObject({ session: "cs_live_signed1", quantity: 2, signTo: "Maya & Leo", bookplates: [1, 2] });
+		});
+	});
+
+	it("stops selling when the limit is reached", async () => {
+		await withOpen(async () => {
+			const { SIGNED_EDITION, signedCheckoutAllowance } = await import("../src/fulfillment/signed-edition");
+			const kv = sandboxEnv().VISIBILITY_CACHE;
+			await kv.put("signed:2026-holiday:cs_a", JSON.stringify({ session: "cs_a", paidAt: "2026-11-27T10:00:00Z", quantity: SIGNED_EDITION.limit - 1, livemode: true }));
+			expect(await signedCheckoutAllowance(sandboxEnv(), LIVE.getTime())).toEqual({ ok: true, max: 1 });
+			await kv.put("signed:2026-holiday:cs_b", JSON.stringify({ session: "cs_b", paidAt: "2026-11-27T11:00:00Z", quantity: 1, livemode: true }));
+			expect(await signedCheckoutAllowance(sandboxEnv(), LIVE.getTime())).toEqual({ ok: false, reason: "SOLD_OUT" });
+		});
+	});
+});

@@ -11,6 +11,7 @@
  * for Travis to place by hand.
  */
 import type { Env } from "../lib/types";
+import { SIGNED_BUNDLE_KEY, SIGNED_EDITION, signedCheckoutAllowance } from "./signed-edition";
 import { createCheckoutSession } from "./stripe";
 
 export interface Bundle {
@@ -21,6 +22,8 @@ export interface Bundle {
 	books: readonly string[];
 	/** An optional sale price that applies only between startsAt (inclusive) and endsAt. */
 	sale?: { unitCents: number; startsAt: string; endsAt: string; label: string };
+	/** The Signed Holiday Edition (signed-edition.ts): sold only while it's switched on, in its window, and not sold out. */
+	signed?: true;
 }
 
 /**
@@ -46,6 +49,9 @@ export const BUNDLES: readonly Bundle[] = [
 		books: STORY,
 		sale: { unitCents: 6199, ...HOLIDAY_SALE, label: "Black Friday price" },
 	},
+	// The same five paperbacks plus a bookplate Travis signs, numbers and mails himself.
+	// $69.99, 50 sets, Nov 27 to Cyber Monday (Travis's yes, 2026-11-21); price and limit live in SIGNED_EDITION.
+	{ key: SIGNED_BUNDLE_KEY, name: SIGNED_EDITION.name, unitCents: SIGNED_EDITION.unitCents, books: STORY, signed: true },
 	{ key: "EN-LEARNING-SET", name: "Squish Man English Learning Set (Learning & Activity Books 1–5)", unitCents: 6599, books: EN },
 	{ key: "ES-LEARNING-SET", name: "Squish Man Colección en Español (Aprendizaje y Actividades 1–5)", unitCents: 6599, books: ES },
 	{ key: "BILINGUAL-BUNDLE", name: "Squish Man Bilingual Mega Bundle (10 Learning & Activity Books)", unitCents: 12999, books: [...EN, ...ES] },
@@ -62,7 +68,7 @@ export function bundlePrice(bundle: Bundle, now: Date = new Date()): { unitCents
 }
 
 /** Pages a buyer may come back to after leaving a bundle checkout; anything else goes home. */
-const RETURN_PAGES: Record<string, string> = { "story-collection": "/story-collection.html" };
+const RETURN_PAGES: Record<string, string> = { "story-collection": "/story-collection.html", "signed-edition": "/story-collection.html" };
 
 export function bundleByKey(key: string | null | undefined): Bundle | undefined {
 	return BUNDLES.find((b) => b.key === key);
@@ -83,16 +89,34 @@ export async function createBundleCheckout(
 ): Promise<{ status: number; url?: string; error?: string }> {
 	const bundle = bundleByKey(key);
 	if (!bundle) return { status: 404, error: "UNKNOWN_BUNDLE" };
+	let maxQty = 10;
+	let signedFields: Record<string, string> = {};
+	if (bundle.signed) {
+		const allow = await signedCheckoutAllowance(env, now.getTime());
+		if (!allow.ok) return { status: allow.reason === "OFF" || allow.reason === "NOT_STARTED" ? 404 : 410, error: `SIGNED_${allow.reason}` };
+		maxQty = allow.max;
+		signedFields = {
+			"custom_fields[0][key]": "signto",
+			"custom_fields[0][label][type]": "custom",
+			"custom_fields[0][label][custom]": "Name to sign the bookplate to",
+			"custom_fields[0][type]": "text",
+			"custom_fields[0][optional]": "true",
+			"custom_fields[0][text][maximum_length]": "40",
+			"custom_text[submit][message]": `Travis signs and numbers your bookplate and mails it ${SIGNED_EDITION.mailBy}. Your 5 books print and ship free on their own.`,
+			"metadata[signed]": SIGNED_EDITION.id,
+		};
+	}
 	const price = bundlePrice(bundle, now);
 	const back = (from && RETURN_PAGES[from]) || "/";
 	if (!env.STRIPE_SECRET_KEY) return { status: 503, error: "CHECKOUT_NOT_CONFIGURED" };
 	try {
 		const s = await createCheckoutSession(env.STRIPE_SECRET_KEY, {
+			...signedFields,
 			mode: "payment",
 			"line_items[0][quantity]": "1",
 			"line_items[0][adjustable_quantity][enabled]": "true",
 			"line_items[0][adjustable_quantity][minimum]": "1",
-			"line_items[0][adjustable_quantity][maximum]": "10",
+			"line_items[0][adjustable_quantity][maximum]": String(maxQty),
 			"line_items[0][price_data][currency]": "usd",
 			"line_items[0][price_data][unit_amount]": String(price.unitCents),
 			"line_items[0][price_data][product_data][name]": price.onSale ? `${bundle.name} · ${price.label}` : bundle.name,
@@ -108,7 +132,7 @@ export async function createBundleCheckout(
 			...(promotionCodeId ? { "discounts[0][promotion_code]": promotionCodeId } : { allow_promotion_codes: "true" }),
 			"metadata[bundle]": bundle.key,
 			"metadata[price]": price.onSale ? "sale" : "regular",
-			success_url: back === "/" ? `${origin}/?order=thanks#collections` : `${origin}${back}?order=thanks`,
+			success_url: back === "/" ? `${origin}/?order=thanks#collections` : `${origin}${back}?order=thanks${bundle.signed ? "&signed=1" : ""}`,
 			cancel_url: back === "/" ? `${origin}/#collections` : `${origin}${back}`,
 		});
 		log("checkout_created", { bundle: bundle.key, sale: price.onSale });

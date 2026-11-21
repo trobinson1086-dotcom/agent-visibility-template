@@ -16,6 +16,7 @@
  */
 import type { Env } from "../lib/types";
 import { bundleByKey } from "./bundles";
+import { recordSignedOrder } from "./signed-edition";
 import { byKey, byPriceId, luluMapping, printFiles } from "./catalog";
 import { memberFromSession, recordSquadMember, squadOf } from "./squad";
 import { refundMemberShipping } from "./squad-perks";
@@ -735,7 +736,12 @@ export async function processPaidSession(
 		return { status: 200, body: { received: true, duplicate: true } };
 	}
 	log("recorded", { session: sessionId, event: event.id, held: hold, items: items.map((i) => i.key) });
-	const followUp = orderFollowUp(env, session, lines, true);
+	// Signed Holiday Edition: add it to the bookplate register and tell Travis what to sign.
+	const signedQty = bundle?.signed ? lines.reduce((n, l) => n + l.quantity, 0) : 0;
+	const signed = signedQty
+		? recordSignedOrder(env, session, signedQty).catch((err) => log("signed_record_failed", { session: sessionId, error: errorDetail(err).slice(0, 120) }))
+		: undefined;
+	const followUp = signed ? Promise.allSettled([orderFollowUp(env, session, lines, true), signed]).then(() => undefined) : orderFollowUp(env, session, lines, true);
 	if (hold) {
 		return { status: 200, body: { received: true, fulfillment: "held", reason: hold }, background: followUp };
 	}

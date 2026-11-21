@@ -68,6 +68,7 @@ import { handleContact, handleSquadSignup, listFans } from "./forms";
 import { buildReport, pruneStats, recordHit, statsAuthorized } from "../stats";
 import { renderStatsPage } from "../stats/page";
 import { createBundleCheckout } from "../fulfillment/bundles";
+import { signedRegister, signedStatus } from "../fulfillment/signed-edition";
 import { checkCode, listReferrals, promoIdFor, rewardPage } from "../fulfillment/referrals";
 import { finishEbookCheckout, startEbookCheckout, type EbookCheckoutResult } from "../fulfillment/ebook-checkout";
 import { CAMPAIGNS, runCampaign, runDueCampaigns, unsubscribe, unsubscribePage } from "./campaigns";
@@ -490,11 +491,21 @@ app.get("/api/bundle/checkout", async (c) => {
 	const result = await createBundleCheckout(c.env, c.req.query("bundle"), new URL(c.req.url).origin, c.req.query("from"), undefined, promo);
 	const headers = { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" };
 	if (result.url) return c.redirect(result.url, 303);
+	// Signed Holiday Edition that has ended or sold out: back to the page, which says so.
+	if (result.status === 410 && result.error?.startsWith("SIGNED_"))
+		return c.redirect(`/story-collection.html?signed=${result.error === "SIGNED_SOLD_OUT" ? "soldout" : "closed"}`, 303);
 	return c.html(
 		`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Checkout unavailable</title><p style="font-family:sans-serif;padding:24px">Checkout isn't available right now. Please try again in a moment, or email <a href="mailto:orders@squishman.com">orders@squishman.com</a> and we'll help you order. <a href="/#collections">Back to the collections</a></p>`,
 		result.status as 404,
 		headers,
 	);
+});
+
+/** Signed Holiday Edition: is it on sale, and how many are left (the Story Collection page asks). */
+app.get("/api/signed-edition/status", async (c) => {
+	const s = await signedStatus(c.env);
+	if (s.phase === "off") return c.json({ phase: "off" }, 200, { "Cache-Control": "no-store" });
+	return c.json(s, 200, { "Cache-Control": "no-store" });
 });
 
 /** Referral program (fulfillment/referrals.ts): is this share code live, and for how much off? */
@@ -624,6 +635,9 @@ app.use("/api/admin/*", async (c, next) => {
 	}
 	await next();
 });
+
+/** Signed Holiday Edition register: who bought, bookplate numbers, name to sign, where to mail (admin only). */
+app.get("/api/admin/signed-edition", async (c) => c.json(await signedRegister(c.env), 200, { "Cache-Control": "no-store" }));
 
 /** Giveaway: a look at both pages before they go public (admin only). */
 app.get("/api/admin/referrals", async (c) => c.json(await listReferrals(c.env)));
