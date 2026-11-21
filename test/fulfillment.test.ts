@@ -93,6 +93,7 @@ const printful = {
 	lastConfirm: null as string | null,
 };
 const stripeCreates: URLSearchParams[] = [];
+const turnstileChecks: URLSearchParams[] = [];
 
 function session(
 	id: string,
@@ -288,6 +289,17 @@ beforeAll(() => {
 			};
 		})
 		.persist();
+	// Cloudflare Turnstile: the token "good-token" passes, anything else fails.
+	fetchMock
+		.get("https://challenges.cloudflare.com")
+		.intercept({ path: "/turnstile/v0/siteverify", method: "POST" })
+		.reply((opts) => {
+			const f = new URLSearchParams(String(opts.body));
+			turnstileChecks.push(f);
+			const ok = f.get("response") === "good-token" && f.get("secret") === "turnstile-secret";
+			return { statusCode: 200, data: JSON.stringify(ok ? { success: true, action: "ebook" } : { success: false, "error-codes": ["invalid-input-response"] }) };
+		})
+		.persist();
 });
 
 afterAll(() => {
@@ -307,6 +319,7 @@ beforeEach(() => {
 	printful.lastCreate = null;
 	printful.lastConfirm = null;
 	stripeCreates.length = 0;
+	turnstileChecks.length = 0;
 	(book1 as { lulu: unknown }).lulu = { ...TEST_SPEC };
 });
 
@@ -2218,6 +2231,70 @@ describe("book collections", () => {
 			"ES-LEARNING-1", "ES-LEARNING-2", "ES-LEARNING-3", "ES-LEARNING-4", "ES-LEARNING-5",
 		]);
 		expect(lulu.creates).toBe(0);
+	});
+});
+
+describe("eBook checkout bot check", () => {
+	const TURNSTILE = { TURNSTILE_SITE_KEY: "turnstile-site", TURNSTILE_SECRET_KEY: "turnstile-secret" };
+	const ORIGIN = "https://squishman.com";
+
+	it("goes straight to Stripe while the Turnstile keys aren't set", async () => {
+		const { startEbookCheckout } = await import("../src/fulfillment/ebook-checkout");
+		const r = await startEbookCheckout(sandboxEnv(), "EN-EBOOK-3", ORIGIN);
+		expect(r).toMatchObject({ status: 303, url: "https://checkout.stripe.com/c/pay/cs_test_new" });
+		const f = stripeCreates[0];
+		expect(f.get("line_items[0][price]")).toBe(byKey("EN-EBOOK-3")!.stripePriceId);
+		expect(f.get("line_items[0][quantity]")).toBe("1");
+		expect(f.get("success_url")).toBe(`${ORIGIN}/api/ebook-download?session_id={CHECKOUT_SESSION_ID}`);
+		expect(f.get("invoice_creation[enabled]")).toBe("true");
+		expect(f.get("invoice_creation[invoice_data][footer]")).toContain("17cIZ5y2ZnS7KUaemw35szRXO3BApYAFW");
+		expect(f.get("metadata[ebook]")).toBe("EN-EBOOK-3");
+		expect(turnstileChecks.length).toBe(0);
+	});
+
+	it("shows the Turnstile check, without making a Stripe checkout, once the keys are set", async () => {
+		const { startEbookCheckout } = await import("../src/fulfillment/ebook-checkout");
+		const r = await startEbookCheckout(sandboxEnv(TURNSTILE), "EN-EBOOK-1", ORIGIN);
+		expect(r.status).toBe(200);
+		expect(r.html).toContain("challenges.cloudflare.com/turnstile/v0/api.js");
+		expect(r.html).toContain('data-sitekey="turnstile-site"');
+		expect(r.html).toContain('value="EN-EBOOK-1"');
+		expect(r.html).not.toContain("turnstile-secret");
+		expect(stripeCreates.length).toBe(0);
+	});
+
+	it("refuses a missing or bad token and makes no Stripe checkout", async () => {
+		const { finishEbookCheckout } = await import("../src/fulfillment/ebook-checkout");
+		const none = await finishEbookCheckout(sandboxEnv(TURNSTILE), { ebook: "EN-EBOOK-3" }, "203.0.113.9", ORIGIN);
+		expect(none.status).toBe(403);
+		const bad = await finishEbookCheckout(sandboxEnv(TURNSTILE), { ebook: "EN-EBOOK-3", "cf-turnstile-response": "bot" }, "203.0.113.9", ORIGIN);
+		expect(bad.status).toBe(403);
+		expect(bad.html).toContain("data-sitekey");
+		expect(stripeCreates.length).toBe(0);
+	});
+
+	it("checks a good token with Cloudflare, then sends the buyer to Stripe", async () => {
+		const { finishEbookCheckout } = await import("../src/fulfillment/ebook-checkout");
+		const r = await finishEbookCheckout(sandboxEnv(TURNSTILE), { ebook: "EN-EBOOK-5", "cf-turnstile-response": "good-token" }, "203.0.113.9", ORIGIN);
+		expect(r).toMatchObject({ status: 303, url: "https://checkout.stripe.com/c/pay/cs_test_new" });
+		expect(turnstileChecks[0].get("remoteip")).toBe("203.0.113.9");
+		expect(stripeCreates[0].get("line_items[0][price]")).toBe(byKey("EN-EBOOK-5")!.stripePriceId);
+	});
+
+	it("only sells the five eBooks", async () => {
+		const { finishEbookCheckout, startEbookCheckout } = await import("../src/fulfillment/ebook-checkout");
+		expect((await startEbookCheckout(sandboxEnv(), "EN-PAPERBACK-1", ORIGIN)).status).toBe(404);
+		expect((await startEbookCheckout(sandboxEnv(), undefined, ORIGIN)).status).toBe(404);
+		expect((await finishEbookCheckout(sandboxEnv(), { ebook: "EN-EBOOK-9" }, undefined, ORIGIN)).status).toBe(404);
+		expect(stripeCreates.length).toBe(0);
+	});
+
+	it("is served by the worker, and the site's eBook buttons point to it", async () => {
+		const res = await SELF.fetch(`${BASE}/api/ebook/checkout?ebook=NOPE`, { redirect: "manual" });
+		expect(res.status).toBe(404);
+		const books = await SELF.fetch(`${BASE}/books.js`);
+		const js = await books.text();
+		for (const n of [1, 2, 3, 4, 5]) expect(js).toContain(`/api/ebook/checkout?ebook=EN-EBOOK-${n}`);
 	});
 });
 

@@ -89,6 +89,12 @@ export interface Env {
 	FULFILLMENT_CONTACT_EMAIL?: string;
 	/** Secret: restricted Stripe key with read access to Checkout Sessions (write for merch checkout). */
 	STRIPE_SECRET_KEY?: string;
+	/**
+	 * Cloudflare Turnstile keys for the eBook bot check (fulfillment/ebook-checkout.ts).
+	 * Both are set as Worker secrets; when either is missing, eBook checkout skips the check.
+	 */
+	TURNSTILE_SITE_KEY?: string;
+	TURNSTILE_SECRET_KEY?: string;
 	/** Secret: signing secret of the Stripe webhook endpoint. */
 	STRIPE_WEBHOOK_SECRET?: string;
 	/** Secrets: Lulu API client key/secret for the environment FULFILLMENT_MODE selects. */
