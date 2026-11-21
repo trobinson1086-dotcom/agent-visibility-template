@@ -2505,6 +2505,31 @@ describe("Signed Holiday Edition", () => {
 		});
 	});
 
+	it("takes a friend's referral code on the signed checkout, and a typed code otherwise", async () => {
+		await withOpen(async () => {
+			const { createBundleCheckout } = await import("../src/fulfillment/bundles");
+			const before = stripeCreates.length;
+			const withCode = await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", "signed-edition", LIVE, "promo_friend");
+			expect(withCode.status).toBe(303);
+			const a = stripeCreates[before];
+			expect(a.get("discounts[0][promotion_code]")).toBe("promo_friend");
+			expect(a.has("allow_promotion_codes")).toBe(false);
+			expect(a.get("custom_fields[0][key]")).toBe("signto");
+			expect(a.get("line_items[0][price_data][unit_amount]")).toBe("6999");
+			expect(a.get("line_items[0][adjustable_quantity][maximum]")).toBe("3");
+			const plain = await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", "signed-edition", LIVE, null);
+			expect(plain.status).toBe(303);
+			const b = stripeCreates[before + 1];
+			expect(b.get("allow_promotion_codes")).toBe("true");
+			expect(b.has("discounts[0][promotion_code]")).toBe(false);
+			expect(b.get("custom_fields[0][key]")).toBe("signto");
+			// A referral code never opens the signed set early.
+			const early = await createBundleCheckout(sandboxEnv(), "EN-STORY-SIGNED", "https://squishman.com", "signed-edition", new Date("2026-11-26T23:59:59-05:00"), "promo_friend");
+			expect(early).toEqual({ status: 404, error: "SIGNED_NOT_STARTED" });
+			expect(stripeCreates.length).toBe(before + 2);
+		});
+	});
+
 	it("records a paid signed set as the five paperbacks plus a numbered bookplate to sign", async () => {
 		await withOpen(async () => {
 			const { signedRegister } = await import("../src/fulfillment/signed-edition");

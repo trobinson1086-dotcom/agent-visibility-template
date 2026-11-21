@@ -142,6 +142,8 @@ export function orderEmail(
 		shippingRefundCents: number;
 		/** Hero/Platinum: percentage of the order refunded as a member perk. */
 		cashbackCents?: number;
+		/** Buyer referral program: the buyer's own code block (see referrals.ts). */
+		referral?: { html: string; text: string[] };
 	},
 ): Pick<Email, "subject" | "html" | "text"> {
 	const download = `${baseUrl(env)}/api/ebook-download?session_id=${encodeURIComponent(o.sessionId)}`;
@@ -169,7 +171,7 @@ ${o.ebooks
 		env,
 		"Your Squish Man order",
 		`<h1 style="font-size:24px;color:#07347d;margin:0 0 12px">Thank you for your order! 🐾</h1>
-<p>${hello}</p><p>Your order is confirmed:</p><ul>${list}</ul>${ebookHtml}${physicalHtml}${refundHtml}`,
+<p>${hello}</p><p>Your order is confirmed:</p><ul>${list}</ul>${ebookHtml}${physicalHtml}${refundHtml}${o.referral?.html ?? ""}`,
 	);
 	const text = [
 		`${o.name ? `Hi ${o.name.split(" ")[0]},` : "Hi there,"}`,
@@ -181,6 +183,7 @@ ${o.ebooks
 			: []),
 		...(o.physical ? ["", "Printed books are made to order just for you. We'll ship them to the address you gave at checkout."] : []),
 		...(perkText ? ["", `Squish Squad perk: ${perkText}`] : []),
+		...(o.referral?.text ?? []),
 		"",
 		`Questions? Reply to this email or write to ${REPLY_TO}.`,
 	].join("\n");

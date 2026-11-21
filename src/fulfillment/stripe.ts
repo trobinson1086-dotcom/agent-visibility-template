@@ -79,6 +79,8 @@ export interface StripeCheckoutSession {
 	amount_total?: number | null;
 	total_details?: { amount_discount?: number; amount_shipping?: number; amount_tax?: number } | null;
 	shipping_cost?: { amount_total?: number } | null;
+	/** Coupons and promotion codes applied at checkout (referral codes are promotion codes). */
+	discounts?: Array<{ coupon?: string | { id: string } | null; promotion_code?: string | { id: string } | null }> | null;
 }
 
 export class StripeError extends Error {

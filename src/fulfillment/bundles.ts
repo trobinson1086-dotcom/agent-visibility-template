@@ -84,6 +84,8 @@ export async function createBundleCheckout(
 	origin: string,
 	from?: string | null,
 	now: Date = new Date(),
+	/** Stripe promotion code to pre-apply (a friend's referral code); otherwise buyers can type one. */
+	promotionCodeId?: string | null,
 ): Promise<{ status: number; url?: string; error?: string }> {
 	const bundle = bundleByKey(key);
 	if (!bundle) return { status: 404, error: "UNKNOWN_BUNDLE" };
@@ -125,8 +127,9 @@ export async function createBundleCheckout(
 			"shipping_options[0][shipping_rate_data][fixed_amount][amount]": "0",
 			"shipping_options[0][shipping_rate_data][fixed_amount][currency]": "usd",
 			"phone_number_collection[enabled]": "true",
-			// Lets a holiday or customer promo code from Stripe apply at checkout.
-			allow_promotion_codes: "true",
+			// A referral code from the site is applied for them; otherwise a holiday or customer
+			// promo code can be typed at checkout (Stripe allows one or the other).
+			...(promotionCodeId ? { "discounts[0][promotion_code]": promotionCodeId } : { allow_promotion_codes: "true" }),
 			"metadata[bundle]": bundle.key,
 			"metadata[price]": price.onSale ? "sale" : "regular",
 			success_url: back === "/" ? `${origin}/?order=thanks#collections` : `${origin}${back}?order=thanks${bundle.signed ? "&signed=1" : ""}`,
