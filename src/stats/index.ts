@@ -46,12 +46,18 @@ const SCHEMA = [
 		region TEXT,
 		city TEXT,
 		visitor TEXT NOT NULL,
-		test INTEGER NOT NULL DEFAULT 0
+		test INTEGER NOT NULL DEFAULT 0,
+		asn INTEGER,
+		as_org TEXT,
+		dc INTEGER NOT NULL DEFAULT 0
 	)`,
 	`CREATE INDEX IF NOT EXISTS site_hits_day ON site_hits (day, kind)`,
 	`CREATE INDEX IF NOT EXISTS site_hits_ts ON site_hits (ts)`,
 	`CREATE TABLE IF NOT EXISTS site_salts (day TEXT PRIMARY KEY, salt TEXT NOT NULL)`,
 ];
+
+/** Columns added after the table first went live (migrations/0004_site_stats_dc.sql). */
+const ADDED_COLUMNS = ["asn INTEGER", "as_org TEXT", "dc INTEGER NOT NULL DEFAULT 0"];
 
 let schemaReady: Promise<void> | null = null;
 
@@ -60,13 +66,61 @@ export function ensureStatsSchema(db: D1Database): Promise<void> {
 	if (!schemaReady) {
 		schemaReady = db
 			.batch(SCHEMA.map((s) => db.prepare(s)))
-			.then(() => undefined)
+			.then(async () => {
+				for (const col of ADDED_COLUMNS) {
+					try {
+						await db.prepare(`ALTER TABLE site_hits ADD COLUMN ${col}`).run();
+					} catch (err) {
+						if (!/duplicate column/i.test(String(err))) throw err;
+					}
+				}
+				await db.prepare("CREATE INDEX IF NOT EXISTS site_hits_dc ON site_hits (dc, day)").run();
+			})
 			.catch((err) => {
 				schemaReady = null;
 				throw err;
 			});
 	}
 	return schemaReady;
+}
+
+/**
+ * Networks that belong to cloud and hosting companies. People browse from home,
+ * office and phone networks; visits from these come from servers (link
+ * checkers, previews, scanners), so the report leaves them out.
+ */
+const DATA_CENTER_ASNS = new Set([
+	16509, 14618, 8987, // Amazon / AWS
+	15169, 396982, 19527, 36040, 139070, // Google, Google Cloud
+	8075, 8068, 8069, // Microsoft / Azure
+	14061, // DigitalOcean
+	16276, // OVH
+	24940, 213230, // Hetzner
+	63949, // Linode / Akamai Cloud
+	31898, // Oracle Cloud
+	45102, 37963, // Alibaba Cloud
+	132203, 45090, // Tencent Cloud
+	20473, // Vultr / Choopa
+	51167, // Contabo
+	12876, // Scaleway
+	60781, 28753, // Leaseweb
+	36352, // ColoCrossing
+	54290, // Hostwinds
+	62240, // Clouvider
+	9009, // M247
+	212238, // Datacamp
+	396356, // Latitude.sh / Maxihost
+	53667, // FranTech / BuyVM
+	46664, // VolumeDrive
+]);
+const DATA_CENTER_ORG =
+	/\b(amazon|aws|google cloud|google llc|microsoft|azure|digitalocean|ovh|hetzner|linode|akamai connected cloud|oracle|alibaba|tencent|vultr|choopa|contabo|scaleway|leaseweb|colocrossing|hostwinds|clouvider|m247|datacamp|hosting|cloud|data ?cent(er|re)|server|colo(cation)?|vps)\b/i;
+
+/** True when a visit comes from a cloud or hosting network rather than a person's internet. */
+export function isDataCenter(asn: unknown, org: unknown): boolean {
+	const n = Number(asn);
+	if (Number.isFinite(n) && DATA_CENTER_ASNS.has(n)) return true;
+	return typeof org === "string" && DATA_CENTER_ORG.test(org);
 }
 
 const KINDS = new Set(["view", "time", "buy", "signup", "contact", "social", "email", "out", "peek"]);
@@ -142,8 +196,8 @@ export async function recordHit(env: Env, req: Request): Promise<Response> {
 		await db
 			.prepare(
 				`INSERT INTO site_hits (ts, day, hour, weekday, kind, path, label, entry, repeat_visitor, secs, source, ref_host,
-				 utm_source, utm_medium, utm_campaign, utm_content, browser, os, device, lang, country, region, city, visitor, test)
-				 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+				 utm_source, utm_medium, utm_campaign, utm_content, browser, os, device, lang, country, region, city, visitor, test, asn, as_org, dc)
+				 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 			)
 			.bind(
 				now,
@@ -171,6 +225,9 @@ export async function recordHit(env: Env, req: Request): Promise<Response> {
 				clean(cf.city, 60) || null,
 				visitor,
 				b.x === 1 ? 1 : 0,
+				Number.isFinite(Number(cf.asn)) && cf.asn != null ? Number(cf.asn) : null,
+				clean(cf.asOrganization, 80) || null,
+				isDataCenter(cf.asn, cf.asOrganization) ? 1 : 0,
 			)
 			.run();
 	} catch (err) {
@@ -225,6 +282,8 @@ export interface StatsReport {
 		contacts: number;
 		returningVisitsPct: number;
 	};
+	/** Visitors from cloud and hosting networks (link checkers, scanners), left out of every number above. */
+	automatedLeftOut: number;
 	liveNow: number;
 	daily: { day: string; visitors: number; views: number; buys: number }[];
 	sources: { name: string; visitors: number; visits: number; buys: number }[];
@@ -277,7 +336,7 @@ export async function buildReport(env: Env, days: number): Promise<StatsReport> 
 	await ensureStatsSchema(db);
 	const to = easternParts(Date.now()).day;
 	const from = easternParts(Date.now() - (days - 1) * 86_400_000).day;
-	const W = "test = 0 AND day >= ?1 AND day <= ?2";
+	const W = "test = 0 AND dc = 0 AND day >= ?1 AND day <= ?2";
 	const all = <T>(sql: string, ...extra: unknown[]) =>
 		db.prepare(sql).bind(from, to, ...extra).all<T>().then((r) => r.results ?? []);
 	const one = <T>(sql: string) => db.prepare(sql).bind(from, to).first<T>();
@@ -308,7 +367,7 @@ export async function buildReport(env: Env, days: number): Promise<StatsReport> 
 				`SELECT COUNT(*) AS clicks, COUNT(DISTINCT ${visitorKey}) AS people FROM site_hits WHERE ${W} AND kind='buy'`,
 			),
 			db
-				.prepare("SELECT COUNT(DISTINCT visitor) AS n FROM site_hits WHERE test=0 AND ts > ?")
+				.prepare("SELECT COUNT(DISTINCT visitor) AS n FROM site_hits WHERE test=0 AND dc=0 AND ts > ?")
 				.bind(Date.now() - 30 * 60_000)
 				.first<{ n: number }>(),
 			all<{ day: string; visitors: number; views: number; buys: number }>(
@@ -359,12 +418,18 @@ export async function buildReport(env: Env, days: number): Promise<StatsReport> 
 			db
 				.prepare(
 					`SELECT ts, kind, path, label, source, city, region, country, device, browser FROM site_hits
-					 WHERE test=0 AND kind <> 'time' ORDER BY ts DESC LIMIT 30`,
+					 WHERE test=0 AND dc=0 AND kind <> 'time' ORDER BY ts DESC LIMIT 30`,
 				)
 				.all<{ ts: number; kind: string; path: string; label: string | null; source: string; city: string | null; region: string | null; country: string | null; device: string; browser: string }>()
 				.then((r) => r.results ?? []),
 		]);
 
+	const automated = await db
+		.prepare(
+			`SELECT COUNT(DISTINCT day || visitor) AS n FROM site_hits WHERE test = 0 AND dc = 1 AND kind = 'view' AND day >= ?1 AND day <= ?2`,
+		)
+		.bind(from, to)
+		.first<{ n: number }>();
 	const visitors = Number(t?.visitors ?? 0);
 	const visits = Number(t?.visits ?? 0);
 	const hourFill = Array.from({ length: 24 }, (_, h) => ({ hour: h, views: Number(hours.find((x) => x.hour === h)?.views ?? 0) }));
@@ -385,6 +450,7 @@ export async function buildReport(env: Env, days: number): Promise<StatsReport> 
 			contacts: Number(t?.contacts ?? 0),
 			returningVisitsPct: visits ? Math.round((100 * Number(t?.repeats ?? 0)) / visits) : 0,
 		},
+		automatedLeftOut: Number(automated?.n ?? 0),
 		liveNow: Number(liveNow?.n ?? 0),
 		daily: daily.map((d) => ({ day: d.day, visitors: Number(d.visitors), views: Number(d.views), buys: Number(d.buys) })),
 		sources: sources.map((s) => ({ ...s, visitors: Number(s.visitors), visits: Number(s.visits), buys: Number(s.buys) })),

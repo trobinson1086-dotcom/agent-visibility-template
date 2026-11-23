@@ -173,7 +173,7 @@ td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}.r{text-al
 			: `<p class="empty">No visits yet.</p>`
 	}</section>
 </div>
-<p class="note">Counted by the site itself: no cookies, no ads, and no IP addresses are kept. Locations are approximate (from the visitor's internet provider). Visits from bots and from this browser are left out: opening this page marks your browser so your own visits aren't counted.</p>
+<p class="note">Counted by the site itself: no cookies, no ads, and no IP addresses are kept. Locations are approximate (from the visitor's internet provider). Visits from bots and from this browser are left out: opening this page marks your browser so your own visits aren't counted. Visits from cloud and hosting servers (link checkers and scanners, not people) are left out too: ${num(r.automatedLeftOut)} in this range.</p>
 </main><div id="tip"></div>
 <script>
 try{localStorage.setItem('sm_owner','1')}catch(e){}
