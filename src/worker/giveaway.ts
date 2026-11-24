@@ -224,7 +224,7 @@ const HEAD = (title: string, desc: string, path: string) =>
 </style></head><body>
 <div class="gw-top"><a href="/">👑 Squish Man™</a><a class="small" href="/#books">Shop the books</a></div>`;
 
-const FOOT = `<footer style="display:block;text-align:center"><p><small>This giveaway is in no way sponsored, endorsed, administered by or associated with Instagram, Facebook, TikTok, YouTube or Pinterest.</small></p><p><small>SquishMan.com · © 2026 Travis Robinson. All rights reserved. · <a style="color:#fff" href="/privacy.html">Privacy</a></small></p></footer><script src="/mh.js" defer></script></body></html>`;
+const FOOT = `<footer style="display:block;text-align:center"><p><small>This giveaway is in no way sponsored, endorsed, administered by or associated with Instagram, Facebook, TikTok, YouTube or Pinterest.</small></p><p><small>SquishMan.com · © 2026 Travis Robinson. All rights reserved. · <a style="color:#fff" href="/privacy.html">Privacy</a></small></p></footer><script src="/mh.js" defer></script><script>function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricool.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}loadScript(function(){beTracker.t({hash:"ad870074b9bee97b2c7e9adffc86b9cf"})});</script></body></html>`;
 
 export function giveawayPage(now = Date.now(), cfg: GiveawayCfg = GIVEAWAY): string {
 	const phase = giveawayPhase(now, cfg);
