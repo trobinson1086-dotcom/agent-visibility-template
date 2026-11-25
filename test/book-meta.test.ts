@@ -14,7 +14,7 @@ beforeAll(async () => {
 
 describe("book page meta", () => {
 	it("reads every book from public/books.js", () => {
-		expect(books.length).toBe(35);
+		expect(books.length).toBe(32);
 		expect(byId("book-1").name).toBe("Squish Man and the Missing Puppy Parade");
 		expect(parseBooksJs("nonsense")).toEqual([]);
 	});
@@ -28,7 +28,7 @@ describe("book page meta", () => {
 		expect(bookFormats(byId("libro-1")).map((f) => f.label)).toEqual(["Paperback", "Hardcover"]);
 		expect(bookFormats(byId("bonus-2"))[0].price).toBe("29.99");
 		expect(bookFormats(byId("learning-3"))[0].price).toBe("16.99");
-		expect(bookFormats(byId("coloring-5"))[0].price).toBe("12.99");
+		expect(bookFormats(byId("coloring-2"))[0].price).toBe("12.99");
 	});
 
 	it("writes Book 1's own title, share image, canonical link and schema data into the page", async () => {
