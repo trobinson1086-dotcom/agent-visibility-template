@@ -4,6 +4,15 @@
 // these Stripe checkout links, never ones taken from the web address.
 //   key   short title the book page uses to pick its description and preview
 //   label shelf name; name: the story's full title (when the cover has one)
+//
+// Hidden Nov 25, 2026 on the owner's word: Coloring Books 3-5 have covers but
+// no inside pages yet, so they are off the site until the pages exist. Their
+// Stripe products, prices and Payment Links are unchanged. To bring one back,
+// move its line (without the leading "// ") into the list below, after Coloring
+// Book 2, and add its sitemap.xml line again.
+// {"id": "coloring-3", "shelf": "color", "key": "Coloring Book 3", "label": "Coloring Book 3", "cover": "drive_master/Squish Man Coloring Book - Book 3.webp", "price": "$12.99", "checkout": "https://book.stripe.com/fZu28l3B78er2hv0tn1Jm3Y"}
+// {"id": "coloring-4", "shelf": "color", "key": "Coloring Book 4", "label": "Coloring Book 4", "cover": "drive_master/Squish Man Coloring Book - Book 4.webp", "price": "$12.99", "checkout": "https://book.stripe.com/dRm28l4FbfGTbS58ZT1Jm3Z"}
+// {"id": "coloring-5", "shelf": "color", "key": "Coloring Book 5", "label": "Coloring Book 5", "cover": "drive_master/Squish Man Coloring Book - Book 5.webp", "price": "$12.99", "checkout": "https://book.stripe.com/7sY28l5Jf1Q3bS5cc51Jm40"}
 window.SQUISH_BOOKS=[
  {"id": "book-1", "shelf": "english", "key": "Book 1 — Missing Puppy Parade", "label": "Book 1", "name": "Squish Man and the Missing Puppy Parade", "cover": "drive_master/Squish Man Book 1 - The Missing Puppy Parade.webp", "price": "Paperback $14.99", "paperback": "https://book.stripe.com/8x29AN3B77ancW93Fz1Jm38", "ebook": "/api/ebook/checkout?ebook=EN-EBOOK-1", "hardcover": "https://book.stripe.com/8x200ddbHfGT6xL2Bv1Jm3s"},
  {"id": "book-2", "shelf": "english", "key": "Book 2 — Big Dream Adventure", "label": "Book 2", "name": "Squish Man’s Big Dream Adventure", "cover": "6542(4).webp", "price": "Paperback $14.99", "paperback": "https://book.stripe.com/28E8wJb3z66j4pDa3X1Jm39", "ebook": "/api/ebook/checkout?ebook=EN-EBOOK-2", "hardcover": "https://book.stripe.com/9B68wJ3B7cuHcW92Bv1Jm3t"},
@@ -36,8 +45,5 @@ window.SQUISH_BOOKS=[
  {"id": "aprendizaje-4", "shelf": "spanish", "key": "Aprendizaje y Actividades 4", "label": "Aprendizaje y Actividades 4", "cover": "7614.webp", "price": "$16.99", "checkout": "https://book.stripe.com/00wfZb0oV52f7BP8ZT1Jm3U"},
  {"id": "aprendizaje-5", "shelf": "spanish", "key": "Aprendizaje y Actividades 5", "label": "Aprendizaje y Actividades 5", "cover": "7615.webp", "price": "$16.99", "checkout": "https://book.stripe.com/dRm7sF6Nj52f5tH0tn1Jm3V"},
  {"id": "coloring-1", "shelf": "color", "key": "Coloring Book 1", "label": "Coloring Book 1", "cover": "drive_master/Squish Man Coloring Book.webp", "price": "$12.99", "checkout": "https://book.stripe.com/8x228ldbHdyL7BP6RL1Jm3W"},
- {"id": "coloring-2", "shelf": "color", "key": "Coloring Book 2", "label": "Coloring Book 2", "cover": "drive_master/Squish Man Coloring Book - Book 2.webp", "price": "$12.99", "checkout": "https://book.stripe.com/3cI00dfjP3Yb7BPfoh1Jm3X"},
- {"id": "coloring-3", "shelf": "color", "key": "Coloring Book 3", "label": "Coloring Book 3", "cover": "drive_master/Squish Man Coloring Book - Book 3.webp", "price": "$12.99", "checkout": "https://book.stripe.com/fZu28l3B78er2hv0tn1Jm3Y"},
- {"id": "coloring-4", "shelf": "color", "key": "Coloring Book 4", "label": "Coloring Book 4", "cover": "drive_master/Squish Man Coloring Book - Book 4.webp", "price": "$12.99", "checkout": "https://book.stripe.com/dRm28l4FbfGTbS58ZT1Jm3Z"},
- {"id": "coloring-5", "shelf": "color", "key": "Coloring Book 5", "label": "Coloring Book 5", "cover": "drive_master/Squish Man Coloring Book - Book 5.webp", "price": "$12.99", "checkout": "https://book.stripe.com/7sY28l5Jf1Q3bS5cc51Jm40"}
+ {"id": "coloring-2", "shelf": "color", "key": "Coloring Book 2", "label": "Coloring Book 2", "cover": "drive_master/Squish Man Coloring Book - Book 2.webp", "price": "$12.99", "checkout": "https://book.stripe.com/3cI00dfjP3Yb7BPfoh1Jm3X"}
 ];
